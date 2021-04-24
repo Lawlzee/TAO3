@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>TAO3</id>
+    <version>1.0.0</version>
+    <authors>TAO3</authors>
+    <description>Package Description</description>
+    <dependencies>
+      <group targetFramework="net5.0">
+        <dependency id="Microsoft.DotNet.Interactive" version="1.0.0-beta.21215.5" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.DotNet.Interactive.CSharp" version="1.0.0-beta.21215.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
