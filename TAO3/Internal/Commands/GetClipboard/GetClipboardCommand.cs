@@ -27,7 +27,7 @@ namespace TAO3.Internal.Commands.GetClipboard
             Add(new Option(new[] { "-v", "--verbose" }, "print generated class"));
 
 
-            Handler = CommandHandler.Create(async (DocumentType type, string name, string? separator, bool verbose, KernelInvocationContext context) =>
+            Handler = CommandHandler.Create(async (DocumentType type, string name, string separator, bool verbose, KernelInvocationContext context) =>
             {
                 string text = await ClipboardService.GetTextAsync() ?? string.Empty;
                 

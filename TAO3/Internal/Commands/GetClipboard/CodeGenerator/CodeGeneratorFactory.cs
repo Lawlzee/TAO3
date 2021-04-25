@@ -17,6 +17,8 @@ namespace TAO3.Internal.Commands.GetClipboard.CodeGenerator
                     return new JsonCodeGenerator();
                 case DocumentType.Xml:
                     return new XmlCodeGenerator();
+                case DocumentType.Line:
+                    return new LineCodeGenerator();
                 default:
                     return new NullCodeGenerator();
             }
