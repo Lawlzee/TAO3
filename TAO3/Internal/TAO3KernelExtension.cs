@@ -7,27 +7,29 @@ using System.CommandLine.Invocation;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Internal.Commands;
+using TAO3.Internal.Commands.GetClipboard;
+using TAO3.Internal.Converters;
 
-namespace TAO3
+namespace TAO3.Internal
 {
     public class TAO3KernelExtension : IKernelExtension
     {
-        public static string Test { get; set; } = "ALLOmiam";
-
         public Task OnLoadAsync(Kernel kernel)
-        {
+        {/*
             Command command = new Command("#!cb", "Copy clipboard value")
             {
-                new Argument<string>("type")
+                new Argument<DocumentType>("type"),
+                new Option<string>(new[] { "-s", "--separator" }, "Csv separator" )
             };
 
-            command.Handler = CommandHandler.Create((string type, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create((string type, string? separator, KernelInvocationContext context) =>
             {
                 context.Display(type);
             });
-
-            kernel.AddDirective(command);
-
+            */
+            kernel.AddDirective(new GetClipboardCommand());
+            /*
             var clockCommand = new Command("#!clock", "Displays a clock showing the current or specified time.")
                 {
                     new Option<int>(new[]{"-o","--hour"},
@@ -50,7 +52,7 @@ namespace TAO3
             {
                 writer.Write("<h1>test</h1>");
             }, "text/html");
-
+            */
 
             return Task.CompletedTask;
         }

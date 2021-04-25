@@ -1,10 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+    <Authors>Olivier Lavoie</Authors>
+    <Company>Olivier Lavoie</Company>
+    <Description>TAO3</Description>
+    <NoWarn>$(NoWarn);NU5100;VSTHRD002</NoWarn><!-- dll outside of lib/ folder -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,12 +19,29 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21215.5" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21215.5" />
+    <Compile Remove="Libs\JsonClassGeneratorLib\CodeWriters\JavaCodeWriter.cs" />
+    <Compile Remove="Libs\JsonClassGeneratorLib\CodeWriters\TypeScriptCodeWriter.cs" />
+    <Compile Remove="Libs\JsonClassGeneratorLib\CodeWriters\VisualBasicCodeWriter.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21215.5" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21215.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="TextCopy" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="bin\Debug\net5.0\/TAO3.dll" />
+  </ItemGroup>
+
+
+  <ItemGroup>
     <None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Internal\Extensions\" />
   </ItemGroup>
   
 </Project>
