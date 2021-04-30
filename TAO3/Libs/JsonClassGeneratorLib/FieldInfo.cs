@@ -1,10 +1,10 @@
 ﻿// Copyright © 2010 Xamasoft
 
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TAO3.Internal.CodeGeneration;
 
 namespace Xamasoft.JsonClassGenerator
 {
@@ -17,7 +17,7 @@ namespace Xamasoft.JsonClassGenerator
         internal FieldInfo(string jsonMemberName, JsonType type)
         {
             JsonMemberName = jsonMemberName;
-            MemberName = JsonClassGenerator.ToTitleCase(jsonMemberName);
+            MemberName = IdentifierUtils.ToPascalCase(jsonMemberName);
             Type = type;
         }
     }

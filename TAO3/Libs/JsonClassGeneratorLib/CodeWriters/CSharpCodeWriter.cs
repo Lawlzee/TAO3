@@ -38,6 +38,7 @@ namespace Xamasoft.JsonClassGenerator.CodeWriters
         {
             sw.WriteLine("using System;");
             sw.WriteLine("using System.Collections.Generic;");
+            sw.WriteLine("using CsvHelper.Configuration.Attributes;");
             sw.WriteLine("using Newtonsoft.Json;");
             sw.WriteLine("using Newtonsoft.Json.Linq;");
             sw.WriteLine();
@@ -53,21 +54,19 @@ namespace Xamasoft.JsonClassGenerator.CodeWriters
             sw.WriteLine("public class {0}", type.AssignedName);
             sw.Write("{");
 
-            WriteClassMembers(sw, type);
+            int i = 0;
+            foreach (FieldInfo field in type.Fields)
+            {
+                sw.WriteLine();
+                sw.WriteLine("    [JsonProperty(\"{0}\")]", field.JsonMemberName);
+                sw.WriteLine("    [Index({0})]", i);
+                sw.WriteLine("    public {0} {1} {{ get; set; }}", GetTypeName(field.Type), field.MemberName);
+                i++;
+            }
 
             sw.WriteLine("}");
 
             sw.WriteLine();
-        }
-
-        private void WriteClassMembers(TextWriter sw, JsonType type)
-        {
-            foreach (FieldInfo? field in type.Fields)
-            {
-                sw.WriteLine();
-                sw.WriteLine("    [JsonProperty(\"{0}\")]", field.JsonMemberName);
-                sw.WriteLine("    public {0} {1} {{ get; set; }}", GetTypeName(field.Type), field.MemberName);
-            }
         }
     }
 }

@@ -19,6 +19,10 @@ namespace TAO3.Internal.Commands.GetClipboard.CodeGenerator
                     return new XmlCodeGenerator();
                 case DocumentType.Line:
                     return new LineCodeGenerator();
+                case DocumentType.Csv:
+                    return new CsvCodeGenerator(hasHeader: false);
+                case DocumentType.Csvh:
+                    return new CsvCodeGenerator(hasHeader: true);
                 default:
                     return new NullCodeGenerator();
             }

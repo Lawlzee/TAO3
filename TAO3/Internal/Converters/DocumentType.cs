@@ -13,7 +13,6 @@ namespace TAO3.Internal.Converters
         Text,
         Line,
         Csv,
-        Csvh,
-        Hjson
+        Csvh
     }
 }

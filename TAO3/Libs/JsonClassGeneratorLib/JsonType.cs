@@ -17,6 +17,14 @@ namespace Xamasoft.JsonClassGenerator
         internal IList<FieldInfo> Fields { get; set; }
         internal bool IsRoot { get; set; }
 
+        public JsonType(JsonTypeEnum type, JsonType? internalType, string assignedName, IList<FieldInfo> fields, bool isRoot) : this(type)
+        {
+            InternalType = internalType;
+            AssignedName = assignedName;
+            Fields = fields;
+            IsRoot = isRoot;
+        }
+
         internal JsonType(JToken token)
         {
 
@@ -41,7 +49,6 @@ namespace Xamasoft.JsonClassGenerator
 
         internal static JsonType GetCommonType(JToken[] tokens)
         {
-
             if (tokens.Length == 0)
             {
                 return new JsonType(JsonTypeEnum.NonConstrained);

@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Commands;
+using TAO3.Internal.Commands.CopyResult;
 using TAO3.Internal.Commands.GetClipboard;
 using TAO3.Internal.Converters;
 
@@ -16,7 +18,13 @@ namespace TAO3.Internal
     public class TAO3KernelExtension : IKernelExtension
     {
         public Task OnLoadAsync(Kernel kernel)
-        {/*
+        {
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+
+            /*
             Command command = new Command("#!cb", "Copy clipboard value")
             {
                 new Argument<DocumentType>("type"),
@@ -29,6 +37,7 @@ namespace TAO3.Internal
             });
             */
             kernel.AddDirective(new GetClipboardCommand());
+            kernel.AddDirective(new CopyResultCommand());
             /*
             var clockCommand = new Command("#!clock", "Displays a clock showing the current or specified time.")
                 {

@@ -11,7 +11,8 @@ namespace TAO3.Internal.Commands.GetClipboard.CodeGenerator
         CSharpKernel CSharpKernel,
         string Text,
         string Name,
-        string Separator);
+        string Separator,
+        bool Dynamic);
 
     internal record GenerationResult(
         string ClassDefinition,

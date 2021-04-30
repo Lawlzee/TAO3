@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Globalization;
 using Xamasoft.JsonClassGenerator.CodeWriters;
-
+using TAO3.Internal.CodeGeneration;
 
 namespace Xamasoft.JsonClassGenerator
 {
@@ -53,6 +53,11 @@ namespace Xamasoft.JsonClassGenerator
             
             List<JsonType> types = GenerateClass(examples, rootType, usedNames);
 
+            return WriteClasses(types);
+        }
+
+        internal static string WriteClasses(List<JsonType> types)
+        {
             CSharpCodeWriter codeWriter = new CSharpCodeWriter();
             using (StringWriter stringWriter = new StringWriter())
             {
@@ -193,7 +198,7 @@ namespace Xamasoft.JsonClassGenerator
 
         private static string CreateUniqueClassName(string name, HashSet<string> usedNames)
         {
-            name = ToTitleCase(name);
+            name = IdentifierUtils.ToPascalCase(name);
 
             string? finalName = name;
             int i = 2;
@@ -205,28 +210,6 @@ namespace Xamasoft.JsonClassGenerator
 
             usedNames.Add(finalName);
             return finalName;
-        }
-
-        internal static string ToTitleCase(string str)
-        {
-            StringBuilder? sb = new StringBuilder(str.Length);
-            bool flag = true;
-
-            for (int i = 0; i < str.Length; i++)
-            {
-                char c = str[i];
-                if (char.IsLetterOrDigit(c))
-                {
-                    sb.Append(flag ? char.ToUpper(c) : c);
-                    flag = false;
-                }
-                else
-                {
-                    flag = true;
-                }
-            }
-
-            return sb.ToString();
         }
     }
 }
