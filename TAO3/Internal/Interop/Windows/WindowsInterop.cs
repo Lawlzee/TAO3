@@ -10,20 +10,24 @@ namespace TAO3.Internal.Interop.Windows
     {
         public IKeyboardHook KeyboardHook { get; }
         public IClipboard Clipboard { get; }
+        public IToastNotifier ToastNotifier { get; }
 
-        private WindowsInterop(WindowsKeyboardHook keyboardHook, WindowsClipboard clipboard)
+        private WindowsInterop(WindowsKeyboardHook keyboardHook, WindowsClipboard clipboard, WindowsToastNotifier windowsToastNotifier)
         {
             KeyboardHook = keyboardHook;
             Clipboard = clipboard;
+            ToastNotifier = windowsToastNotifier;
         }
 
         internal static WindowsInterop Create()
         {
             Task.Run(() => AvaloniaApp.Start());
             AvaloniaApp avaloniaApp = AvaloniaApp.Current;
+
             return new WindowsInterop(
-                new WindowsKeyboardHook(),
-                new WindowsClipboard(avaloniaApp));
+                avaloniaApp.KeyboardHook,
+                new WindowsClipboard(avaloniaApp),
+                new WindowsToastNotifier());
         }
     }
 }

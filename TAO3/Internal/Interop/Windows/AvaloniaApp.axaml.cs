@@ -13,6 +13,9 @@ namespace TAO3.Internal.Interop.Windows
     {
         private readonly static Semaphore _lock = new Semaphore(0, 1);
 
+#nullable disable
+        internal WindowsKeyboardHook KeyboardHook { get; private set; }
+#nullable enable
         internal static new AvaloniaApp Current
         {
             get
@@ -37,6 +40,7 @@ namespace TAO3.Internal.Interop.Windows
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
+            KeyboardHook = new WindowsKeyboardHook();
             _lock.Release();
         }
 

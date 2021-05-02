@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace TAO3.Internal.Interop
 {
-    internal interface IInteropOS
+    internal interface IToastNotifier
     {
-        IKeyboardHook KeyboardHook { get; }
-        IClipboard Clipboard { get; }
-        IToastNotifier ToastNotifier { get; }
+        void Notify(string title, string body, DateTimeOffset expirationTime);
     }
 }

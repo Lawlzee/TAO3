@@ -11,6 +11,7 @@ using Microsoft.DotNet.Interactive.Events;
 using Newtonsoft.Json;
 using Microsoft.DotNet.Interactive.Commands;
 using TAO3.Internal.Interop;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Internal.Commands.CopyResult
 {
@@ -25,13 +26,13 @@ namespace TAO3.Internal.Commands.CopyResult
             Handler = CommandHandler.Create((DocumentType type, string separator, KernelInvocationContext context) =>
             {
                 Kernel rootKernel = context.HandlingKernel.ParentKernel;
-                KernelCommand submitCodeCommand = GetRootCommand(context.Command);
+                KernelCommand submitCodeCommand = context.Command.GetRootCommand();
 
                 IDisposable disposable = null!;
                 disposable = rootKernel.KernelEvents.Subscribe(
                     onNext: e =>
                     {
-                        KernelCommand rootCommand = GetRootCommand(e.Command);
+                        KernelCommand rootCommand = e.Command.GetRootCommand();
 
                         if (rootCommand == submitCodeCommand)
                         {
@@ -59,16 +60,6 @@ namespace TAO3.Internal.Commands.CopyResult
 
                 return Task.CompletedTask;
             });
-        }
-
-        private KernelCommand GetRootCommand(KernelCommand kernelCommand)
-        {
-            while (kernelCommand.Parent != null)
-            {
-                kernelCommand = kernelCommand.Parent;
-            }
-
-            return kernelCommand;
         }
     }
 }

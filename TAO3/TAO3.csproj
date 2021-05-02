@@ -48,7 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Internal\Extensions\" />
     <Folder Include="Libs\CsvClassGenerator\" />
   </ItemGroup>
 
