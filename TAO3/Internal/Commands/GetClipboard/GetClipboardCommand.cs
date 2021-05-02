@@ -13,13 +13,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.Internal.Commands.GetClipboard.CodeGenerator;
 using TAO3.Internal.Converters;
-using TextCopy;
+using TAO3.Internal.Interop;
 
 namespace TAO3.Internal.Commands.GetClipboard
 {
     internal class GetClipboardCommand : Command
     {
-        public GetClipboardCommand() :
+        public GetClipboardCommand(IInteropOS interop) :
             base("#!cb", "Copy clipboard value")
         {
             Add(new Argument<DocumentType>("type", "The document type of the clipboard"));
@@ -30,7 +30,7 @@ namespace TAO3.Internal.Commands.GetClipboard
 
             Handler = CommandHandler.Create(async (DocumentType type, string name, string separator, bool verbose, bool dynamic, KernelInvocationContext context) =>
             {
-                string text = await ClipboardService.GetTextAsync() ?? string.Empty;
+                string text = await interop.Clipboard.GetTextAsync() ?? string.Empty;
                 
                 CSharpKernel cSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
                 GetClipboardOptions options = new GetClipboardOptions(cSharpKernel, text, name, Regex.Unescape(separator), dynamic);

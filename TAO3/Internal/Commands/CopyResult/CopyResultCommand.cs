@@ -8,15 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Converters;
 using Microsoft.DotNet.Interactive.Events;
-using TextCopy;
 using Newtonsoft.Json;
 using Microsoft.DotNet.Interactive.Commands;
+using TAO3.Internal.Interop;
 
 namespace TAO3.Internal.Commands.CopyResult
 {
     internal class CopyResultCommand : Command
     {
-        public CopyResultCommand() :
+        public CopyResultCommand(IInteropOS interop) :
             base("#!copyResult", "Copy returned value to clipboard")
         {
             Add(new Argument<DocumentType>("type", "The document type of the clipboard"));
@@ -37,7 +37,7 @@ namespace TAO3.Internal.Commands.CopyResult
                         {
                             if (e is ReturnValueProduced valueProduced)
                             {
-                                ClipboardService.SetText(JsonConvert.SerializeObject(valueProduced.Value));
+                                interop.Clipboard.SetTextAsync(JsonConvert.SerializeObject(valueProduced.Value));
                                 disposable.Dispose();
                             }
 
