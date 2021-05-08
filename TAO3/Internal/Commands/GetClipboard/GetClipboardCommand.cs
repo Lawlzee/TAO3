@@ -6,43 +6,58 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using TAO3.Internal.Commands.GetClipboard.CodeGenerator;
-using TAO3.Internal.Converters;
+using System.Xml.Linq;
+using TAO3.Converters;
 using TAO3.Internal.Interop;
+using TAO3.Internal.Services;
 
 namespace TAO3.Internal.Commands.GetClipboard
 {
     internal class GetClipboardCommand : Command
     {
-        public GetClipboardCommand(IInteropOS interop) :
-            base("#!cb", "Copy clipboard value")
+        public GetClipboardCommand(IInteropOS interop, IFormatConverterService formatConverterService) :
+            base("#!getClipboard", "Copy clipboard value")
         {
-            Add(new Argument<DocumentType>("type", "The document type of the clipboard"));
-            Add(new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"));
-            Add(new Option<string>(new[] { "-s", "--separator" }, "Separator for CSV format and line separator regex for line format"));
-            Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
-            Add(new Option(new[] { "-d", "--dynamic" }, "Disable the class definition generation and use dynamic object instead"));
-
-            Handler = CommandHandler.Create(async (DocumentType type, string name, string separator, bool verbose, bool dynamic, KernelInvocationContext context) =>
+            formatConverterService.Events.Subscribe(e =>
             {
-                string text = await interop.Clipboard.GetTextAsync() ?? string.Empty;
-                
-                CSharpKernel cSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
-                GetClipboardOptions options = new GetClipboardOptions(cSharpKernel, text, name, Regex.Unescape(separator), dynamic);
-
-                string code = await CodeGeneratorFactory.Create(type).GenerateSourceCodeAsync(options);
-
-                if (verbose)
+                IConverter converter = e.Converter;
+                if (e is ConverterRegisteredEvent registeredEvent)
                 {
-                    context.Display(code, null);
-                }
+                    Command command = new Command(converter.Format)
+                    {
+                        new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
+                        new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
+                    };
 
-                await cSharpKernel.SubmitCodeAsync(code);
+                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(
+                        converter,
+                        async () => await interop.Clipboard.GetTextAsync() ?? string.Empty);
+
+                    if (converter is IConfigurableConverter configurableConverter)
+                    {
+                        command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
+
+                        configurableConverter.ConfigureCommand(
+                            command,
+                            convertionContextProvider);
+                    }
+                    else
+                    {
+                        command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
+                        {
+                            IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
+                            await convertionContext.DefaultHandle();
+                        });
+                    }
+
+                    Add(command);
+                }
             });
         }
     }

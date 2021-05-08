@@ -8,102 +8,80 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration;
+using TAO3.Converters;
 using Xamasoft.JsonClassGenerator;
 
-namespace TAO3.Internal.Commands.GetClipboard.CodeGenerator
+namespace TAO3.Internal.CodeGeneration.Generators
 {
-    internal class CsvCodeGenerator : ICodeGenerator
+    internal class CsvCodeGenerator
     {
-        private readonly bool _hasHeader;
-
-        public CsvCodeGenerator(bool hasHeader)
+        public async Task<string> GenerateSourceCodeAsync(IConverterContext<CsvConfiguration> context)
         {
-            _hasHeader = hasHeader;
-        }
-
-        public async Task<string> GenerateSourceCodeAsync(GetClipboardOptions options)
-        {
-            string delimiter = options.Separator != string.Empty
-                ? options.Separator
-                : ",";
-
-            ClassInferer inferedClass = InferClass(options.Text, delimiter);
-            string className = IdentifierUtils.ToPascalCase(options.Name);
+            ClassInferer inferedClass = InferClass(await context.GetTextAsync(), context.Settings!);
+            string className = IdentifierUtils.ToPascalCase(context.VariableName);
             JsonType typeDefinition = inferedClass.CreateJsonType(className);
 
             string classDefinition = JsonClassGenerator.WriteClasses(new List<JsonType> { typeDefinition });
 
-            string clipboardVariableName = "__cb";
-            await options.CSharpKernel.SetVariableAsync(clipboardVariableName, options.Text, typeof(string));
-
+            string clipboardVariableName = await context.CreatePrivateVariable(await context.GetTextAsync(), typeof(string));
+            string converterVariableName = await context.CreatePrivateVariable(context.Converter, typeof(CsvConverter));
+            string settingsVariableName = await context.CreatePrivateVariable(context.Settings, typeof(CsvConfiguration));
 
             string code = $@"using System.Globalization;
 using System.IO;
 using System.Linq;
-using CsvHelper;
-using CsvHelper.Configuration;
-{classDefinition}{className}[] {options.Name} = null;
-
-using (StringReader __reader = new StringReader({clipboardVariableName}))
-{{
-    CsvConfiguration __csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
-    {{
-        Delimiter = {SymbolDisplay.FormatLiteral(delimiter, quote: true)},
-        HasHeaderRecord = {(_hasHeader ? "true": "false")}
-    }};
-
-    using (CsvReader __csvReader = new CsvReader(__reader, __csvConfig))
-    {{
-        {options.Name} = __csvReader.GetRecords<{className}>().ToArray();
-    }}
-}}";
+{classDefinition}{className}[] {context.VariableName} = ({className}[]){converterVariableName}.Deserialize<{className}>({clipboardVariableName}, {settingsVariableName});";
 
             return code;
         }
 
-        private ClassInferer InferClass(string text, string delimiter)
+        private ClassInferer InferClass(string text, CsvConfiguration settings)
         {
-            CsvConfiguration csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+            bool hasHeader = settings.HasHeaderRecord;
+            try
             {
-                Delimiter = delimiter,
-                HasHeaderRecord = false
-            };
+                settings.HasHeaderRecord = false;
 
-            using StringReader reader = new StringReader(text);
-            using CsvReader csvReader = new CsvReader(reader, csvConfig);
+                using StringReader reader = new StringReader(text);
+                using CsvReader csvReader = new CsvReader(reader, settings);
 
-            List<string[]> rows = new List<string[]>();
+                List<string[]> rows = new List<string[]>();
 
-            ClassInferer? inferer = null;
+                ClassInferer? inferer = null;
 
-            while (csvReader.Read())
-            {
-                string[] row = csvReader.Context.Record;
-
-                if (inferer == null)
+                while (csvReader.Read())
                 {
-                    if (_hasHeader)
+                    string[] row = csvReader.Context.Record;
+
+                    if (inferer == null)
                     {
-                        inferer = new ClassInferer(csvReader.Context.Record);
-                        continue;
+                        if (hasHeader)
+                        {
+                            inferer = new ClassInferer(csvReader.Context.Record);
+                            continue;
+                        }
+
+                        string[] anonymousHeaders = Enumerable.Range(1, row.Length)
+                            .Select(ExcelIdentifierUtils.GetExcelColumnName)
+                            .ToArray();
+
+                        inferer = new ClassInferer(anonymousHeaders);
                     }
 
-                    string[] anonymousHeaders = Enumerable.Range(1, row.Length)
-                        .Select(ExcelIdentifierUtils.GetExcelColumnName)
-                        .ToArray();
-
-                    inferer = new ClassInferer(anonymousHeaders);
+                    bool done = inferer.UpdateClassInferance(row);
+                    if (done)
+                    {
+                        break;
+                    }
                 }
 
-                bool done = inferer.UpdateClassInferance(row);
-                if (done)
-                {
-                    break;
-                }
+                return inferer ?? new ClassInferer(Array.Empty<string>());
             }
-
-            return inferer ?? new ClassInferer(Array.Empty<string>());
+            finally
+            {
+                settings.HasHeaderRecord = hasHeader;
+            }
+            
         }
 
         private class ClassInferer
@@ -122,7 +100,7 @@ using (StringReader __reader = new StringReader({clipboardVariableName}))
                 bool done = true;
                 for (int i = 0; i < _typeInferers.Length; i++)
                 {
-                    if (!_typeInferers[i].UpdateLegalTypeConvertions(row[i])) 
+                    if (!_typeInferers[i].UpdateLegalTypeConvertions(row[i]))
                     {
                         done = false;
                     }
