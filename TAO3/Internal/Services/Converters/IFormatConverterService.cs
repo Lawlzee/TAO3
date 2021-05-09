@@ -7,7 +7,7 @@ namespace TAO3.Internal.Services
     {
         IObservable<IConverterServiceEvent> Events { get; }
         IConverter? TryGetConverter(string format);
-        void RegisterConverter(IConverter converter);
+        void Register(IConverter converter);
         bool UnregisterConverter(string format);
     }
 }

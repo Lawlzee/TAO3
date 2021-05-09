@@ -21,7 +21,7 @@ namespace TAO3.Internal.Services
             _events = new();
         }
 
-        public void RegisterConverter(IConverter converter)
+        public void Register(IConverter converter)
         {
             _converters[converter.Format] = converter;
             _events.OnNext(new ConverterRegisteredEvent(converter));

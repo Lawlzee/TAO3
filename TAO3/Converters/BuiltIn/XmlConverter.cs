@@ -52,15 +52,15 @@ namespace TAO3.Converters
 
         public void ConfigureCommand(Command command, ConvertionContextProvider contextProvider)
         {
-            command.Add(new Option(new[] { "-d", "--dynamic" }, "Convert the input to a dynamic type"));
+            command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
 
-            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, bool dynamic, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create(async (string source, string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
             {
-                IConverterContext<XmlWriterSettings> converterContext = contextProvider.Invoke<XmlWriterSettings>(name, settings, verbose, context);
+                IConverterContext<XmlWriterSettings> converterContext = contextProvider.Invoke<XmlWriterSettings>(source, name, settings, verbose, context);
 
                 converterContext.Settings ??= _defaultSettings;
 
-                if (dynamic)
+                if (type == "dynamic")
                 {
                     await converterContext.DefaultHandle();
                     return;
@@ -74,12 +74,20 @@ namespace TAO3.Converters
                 string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
 
                 string clipboardVariableName = await converterContext.CreatePrivateVariable(jsonInput, typeof(string));
-                string settingsVariableName = await converterContext.CreatePrivateVariable(converterContext.Settings, typeof(JsonSerializerSettings));
 
-                string className = IdentifierUtils.ToPascalCase(name);
-                string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
+                if (string.IsNullOrEmpty(type))
+                {
+                    string className = IdentifierUtils.ToPascalCase(name);
+                    string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
 
-                await converterContext.SubmitCodeAsync($@"{classDeclarations}{className} {name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");
+                    await converterContext.SubmitCodeAsync($@"{classDeclarations}{className} {name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");
+                }
+                else
+                {
+                    await converterContext.SubmitCodeAsync($@"using Newtonsoft.Json;
+
+{type} {name} = JsonConvert.DeserializeObject<{type}>({clipboardVariableName});");
+                }
             });
         }
     }

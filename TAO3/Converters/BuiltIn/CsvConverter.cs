@@ -103,11 +103,11 @@ namespace TAO3.Converters
         public void ConfigureCommand(Command command, ConvertionContextProvider contextProvider)
         {
             command.Add(new Option<string>(new[] { "-s", "--separator" }, "Value separator"));
-            command.Add(new Option(new[] { "-d", "--dynamic" }, "Convert the input to a dynamic type"));
+            command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
 
-            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string separator, bool dynamic, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create(async (string source, string name, string settings, bool verbose, string separator, string type, KernelInvocationContext context) =>
             {
-                IConverterContext<CsvConfiguration> converterContext = contextProvider.Invoke<CsvConfiguration>(name, settings, verbose, context);
+                IConverterContext<CsvConfiguration> converterContext = contextProvider.Invoke<CsvConfiguration>(source, name, settings, verbose, context);
 
                 converterContext.Settings ??= _defaultSettings;
 
@@ -116,14 +116,27 @@ namespace TAO3.Converters
                     converterContext.Settings.Delimiter = Regex.Unescape(separator);
                 }
 
-                if (dynamic)
+                if (type == "dynamic")
                 {
                     await converterContext.DefaultHandle();
                     return;
                 }
 
-                string code = await new CsvCodeGenerator().GenerateSourceCodeAsync(converterContext);
-                await converterContext.SubmitCodeAsync(code);
+                if (string.IsNullOrEmpty(type))
+                {
+                    string code = await new CsvCodeGenerator().GenerateSourceCodeAsync(converterContext);
+                    await converterContext.SubmitCodeAsync(code);
+                }
+                else
+                {
+                    string clipboardVariableName = await converterContext.CreatePrivateVariable(await converterContext.GetTextAsync(), typeof(string));
+                    string converterVariableName = await converterContext.CreatePrivateVariable(converterContext.Converter, typeof(CsvConverter));
+                    string settingsVariableName = await converterContext.CreatePrivateVariable(converterContext.Settings, typeof(CsvConfiguration));
+
+                    string code = $"{type}[] {name} = ({type}[]){converterVariableName}.Deserialize<{type}>({clipboardVariableName}, {settingsVariableName});";
+                    await converterContext.SubmitCodeAsync(code);
+
+                }
             });
 
         }

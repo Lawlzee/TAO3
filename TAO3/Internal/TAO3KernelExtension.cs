@@ -8,9 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters;
+using TAO3.InputSources;
 using TAO3.Internal.Commands.Converter;
 using TAO3.Internal.Commands.CopyResult;
-using TAO3.Internal.Commands.GetClipboard;
+using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
 using TAO3.Internal.Interop;
 using TAO3.Internal.Services;
@@ -26,18 +27,25 @@ namespace TAO3.Internal
 
             IInteropOS interop = InteropFactory.Create();
             IFormatConverterService formatConverterService = new FormatConverterService();
+            IInputSourceService inputSourceService = new InputSourceService();
+
 
             kernel.AddDirective(new MacroCommand(interop));
-            kernel.AddDirective(new GetClipboardCommand(interop, formatConverterService));
+            kernel.AddDirective(new InputCommand(interop, formatConverterService, inputSourceService));
             kernel.AddDirective(new CopyResultCommand(interop, formatConverterService));
             kernel.AddDirective(new ConverterCommand(formatConverterService));
 
-            formatConverterService.RegisterConverter(new CsvConverter(true));
-            formatConverterService.RegisterConverter(new CsvConverter(false));
-            formatConverterService.RegisterConverter(new JsonConverter());
-            formatConverterService.RegisterConverter(new XmlConverter());
-            formatConverterService.RegisterConverter(new LineConverter());
-            formatConverterService.RegisterConverter(new TextConveter());
+            formatConverterService.Register(new CsvConverter(true));
+            formatConverterService.Register(new CsvConverter(false));
+            formatConverterService.Register(new JsonConverter());
+            formatConverterService.Register(new XmlConverter());
+            formatConverterService.Register(new LineConverter());
+            formatConverterService.Register(new TextConveter());
+
+            inputSourceService.Register(new ClipboardInputSource(interop.Clipboard));
+            inputSourceService.Register(new FileInputSource());
+            inputSourceService.Register(new UriInputSource());
+            inputSourceService.Register(new CellInputSource());
 
             return Task.CompletedTask;
         }

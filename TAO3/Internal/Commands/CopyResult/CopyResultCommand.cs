@@ -29,7 +29,7 @@ namespace TAO3.Internal.Commands.CopyResult
                 {
                     Command command = new Command(converter.Format)
                     {
-                        new Option<string>(new[] {"-s", "--settings" }, $"Conveter settings of type '{converter.SettingsType.FullName}'")
+                        new Option<string>(new[] {"-s", "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
                     };
 
                     command.Handler = CommandHandler.Create((string settings, KernelInvocationContext context) =>

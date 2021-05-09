@@ -11,6 +11,7 @@ namespace TAO3.Converters
         string Format { get; }
         string DefaultType { get; }
         Type SettingsType => typeof(object);
+
         string Serialize(object? value, object? settings = null);
         object? Deserialize<T>(string text, object? settings = null);
     }

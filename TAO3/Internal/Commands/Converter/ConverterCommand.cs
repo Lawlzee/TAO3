@@ -35,7 +35,7 @@ namespace TAO3.Internal.Commands.Converter
                 CSharpKernel cSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
                 if (cSharpKernel.TryGetVariable(converter, out IConverter converterInstance))
                 {
-                    formatConverterService.RegisterConverter(converterInstance);
+                    formatConverterService.Register(converterInstance);
                     context.Display($"{converterInstance.Format} Converter '{converterInstance.GetType().FullName}' registered", null);
                     return;
                 }

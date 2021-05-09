@@ -17,13 +17,23 @@ using TAO3.Converters;
 using TAO3.Internal.Interop;
 using TAO3.Internal.Services;
 
-namespace TAO3.Internal.Commands.GetClipboard
+namespace TAO3.Internal.Commands.Input
 {
-    internal class GetClipboardCommand : Command
+    internal class InputCommand : Command
     {
-        public GetClipboardCommand(IInteropOS interop, IFormatConverterService formatConverterService) :
-            base("#!getClipboard", "Copy clipboard value")
+        public InputCommand(
+            IInteropOS interop, 
+            IFormatConverterService formatConverterService,
+            IInputSourceService inputSourceService) :
+            base("#!input", "Get a value from a source and convert it to C# object")
         {
+            Argument<string> sourceArgument = new Argument<string>("source", "The source of the input");
+
+            inputSourceService.Events.Subscribe(e =>
+            {
+                sourceArgument.AddSuggestions(e.InputSource.Name);
+            });
+
             formatConverterService.Events.Subscribe(e =>
             {
                 IConverter converter = e.Converter;
@@ -31,13 +41,12 @@ namespace TAO3.Internal.Commands.GetClipboard
                 {
                     Command command = new Command(converter.Format)
                     {
+                        sourceArgument,
                         new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
                         new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
                     };
 
-                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(
-                        converter,
-                        async () => await interop.Clipboard.GetTextAsync() ?? string.Empty);
+                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSourceService);
 
                     if (converter is IConfigurableConverter configurableConverter)
                     {
@@ -49,9 +58,9 @@ namespace TAO3.Internal.Commands.GetClipboard
                     }
                     else
                     {
-                        command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
+                        command.Handler = CommandHandler.Create(async (string source, string name, string settings, KernelInvocationContext context) =>
                         {
-                            IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
+                            IConverterContext<object> convertionContext = convertionContextProvider.Invoke(source, name, settings, verbose: false, context);
                             await convertionContext.DefaultHandle();
                         });
                     }

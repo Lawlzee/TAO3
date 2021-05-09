@@ -33,6 +33,7 @@ namespace TAO3.Converters
         private readonly KernelInvocationContext _context;
         private readonly Func<Task<string>> _getTextAsync;
         private string? _text;
+        private bool _textInitialized = false;
 
         public IConverter Converter { get; }
         public string VariableName { get; }
@@ -65,11 +66,12 @@ namespace TAO3.Converters
 
         public async Task<string> GetTextAsync()
         {
-            if (_text == null)
+            if (!_textInitialized)
             {
                 _text = await _getTextAsync();
+                _textInitialized = true;
             }
-            return _text;
+            return _text!;
         }
 
         public async Task SubmitCodeAsync(string code)
