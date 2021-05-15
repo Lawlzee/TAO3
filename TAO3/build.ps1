@@ -2,8 +2,7 @@
 $dir = Split-Path $scriptpath
 cd $dir
 
-dotnet build --nologo -v q --configuration Release
-dotnet pack TAO3.csproj /p:PackageVersion=1.0.0 --nologo -v q
+& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" -nologo -t:Pack TAO3.csproj
 
 Remove-Item bin\Feed -Recurse -ErrorAction Ignore
 Remove-Item (Join-Path -Path $env:USERPROFILE -ChildPath ".nuget\packages\TAO3") -Recurse -ErrorAction Ignore

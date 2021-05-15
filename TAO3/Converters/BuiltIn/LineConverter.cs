@@ -22,7 +22,7 @@ namespace TAO3.Converters
         {
             if (value is IEnumerable enumerable)
             {
-                return string.Join(Environment.NewLine, enumerable);
+                return string.Join(Environment.NewLine, enumerable.Cast<object>());
             }
             return value?.ToString() ?? "";
         }

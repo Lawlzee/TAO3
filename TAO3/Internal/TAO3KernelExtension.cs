@@ -25,6 +25,8 @@ namespace TAO3.Internal
         {
             Debugger.Launch();
 
+            new ExcelService().GetOrOpenExcel();
+
             IInteropOS interop = InteropFactory.Create();
             IFormatConverterService formatConverterService = new FormatConverterService();
             IInputSourceService inputSourceService = new InputSourceService();
