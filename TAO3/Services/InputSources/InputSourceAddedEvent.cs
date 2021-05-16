@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.InputSources;
 
-namespace TAO3.Services
+namespace TAO3.InputSources
 {
     public class InputSourceAddedEvent
     {

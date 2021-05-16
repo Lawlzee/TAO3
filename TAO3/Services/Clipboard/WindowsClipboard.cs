@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Services.Avalonia;
+using TAO3.Avalonia;
 
-namespace TAO3.Services.Clipboard
+namespace TAO3.Clipboard
 {
     internal class WindowsClipboard : IClipboardService
     {

@@ -10,17 +10,16 @@ using Microsoft.DotNet.Interactive.Events;
 using Newtonsoft.Json;
 using Microsoft.DotNet.Interactive.Commands;
 using TAO3.Internal.Extensions;
-using TAO3.Services;
 using TAO3.Converters;
 using Microsoft.DotNet.Interactive.CSharp;
-using TAO3.Services.Clipboard;
+using TAO3.Clipboard;
 
-namespace TAO3.Internal.Commands.CopyResult
+namespace TAO3.Internal.Commands.Output
 {
-    internal class CopyResultCommand : Command
+    internal class OutputCommand : Command
     {
-        public CopyResultCommand(IClipboardService clipboard, IFormatConverterService formatConverter) :
-            base("#!copyResult", "Copy returned value to clipboard")
+        public OutputCommand(IClipboardService clipboard, IFormatConverterService formatConverter) :
+            base("#!out", "Copy returned value to clipboard")
         {
             formatConverter.Events.Subscribe(e =>
             {

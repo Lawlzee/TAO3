@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TAO3.Converters;
-using TAO3.Services;
+using TAO3.InputSources;
 
 namespace TAO3.Internal.Commands.Input
 {
@@ -23,7 +23,7 @@ namespace TAO3.Internal.Commands.Input
         public InputCommand(
             IFormatConverterService formatConverter,
             IInputSourceService inputSource) :
-            base("#!input", "Get a value from a source and convert it to C# object")
+            base("#!in", "Get a value from a source and convert it to C# object")
         {
             Argument<string> sourceArgument = new Argument<string>("source", "The source of the input");
 

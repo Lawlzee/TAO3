@@ -2,9 +2,9 @@ using Avalonia;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Threading;
-using TAO3.Services.Keyboard;
+using TAO3.Keyboard;
 
-namespace TAO3.Services.Avalonia
+namespace TAO3.Avalonia
 {
     internal class AvaloniaApp : Application
     {

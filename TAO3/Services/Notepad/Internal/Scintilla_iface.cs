@@ -8,7 +8,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace TAO3.Services.Notepad.Facade
+namespace TAO3.Notepad.Internal
 {
     /// <summary>
     /// Compatible with Windows NMHDR.

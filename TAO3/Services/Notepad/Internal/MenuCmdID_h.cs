@@ -5,7 +5,7 @@
 // found at
 // https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/menuCmdID.h
 
-namespace TAO3.Services.Notepad.Facade
+namespace TAO3.Notepad.Internal
 {
     internal enum NppMenuCmd : uint
     {

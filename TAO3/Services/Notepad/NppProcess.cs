@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Windows;
 
-namespace TAO3.Services.Notepad
+namespace TAO3.Notepad
 {
     internal class NppProcess
     {

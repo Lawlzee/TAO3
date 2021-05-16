@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Services.Notepad;
+using TAO3.Notepad;
 
 namespace TAO3.Test.Services.Notepad
 {

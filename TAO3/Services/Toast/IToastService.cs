@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Services.Toast
+namespace TAO3.Toast
 {
     public interface IToastService
     {

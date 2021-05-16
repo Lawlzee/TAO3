@@ -1,7 +1,7 @@
 ﻿using System;
 using TAO3.Converters;
 
-namespace TAO3.Services
+namespace TAO3.Converters
 {
     public interface IFormatConverterService : IDisposable
     {

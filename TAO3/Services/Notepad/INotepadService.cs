@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Windows;
-using TAO3.Services.Notepad.Facade;
+using TAO3.Notepad.Internal;
 
-namespace TAO3.Services.Notepad
+namespace TAO3.Notepad
 {
     public interface INotepadService
     {

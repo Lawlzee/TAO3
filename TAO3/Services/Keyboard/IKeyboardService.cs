@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WindowsHook;
 
-namespace TAO3.Services.Keyboard
+namespace TAO3.Keyboard
 {
 
     public interface IKeyboardService

@@ -10,16 +10,18 @@ using System.Threading.Tasks;
 using TAO3.Converters;
 using TAO3.InputSources;
 using TAO3.Internal.Commands.Converter;
-using TAO3.Internal.Commands.CopyResult;
+using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
 using TAO3.Services;
-using TAO3.Services.Avalonia;
-using TAO3.Services.Clipboard;
-using TAO3.Services.Keyboard;
-using TAO3.Services.Notepad;
-using TAO3.Services.Toast;
+using TAO3.Avalonia;
+using TAO3.Clipboard;
+using TAO3.Keyboard;
+using TAO3.Notepad;
+using TAO3.Toast;
 using WindowsHook;
+using TAO3.OutputDestinations;
+using TAO3.Excel;
 
 namespace TAO3.Internal
 {
@@ -40,7 +42,9 @@ namespace TAO3.Internal
 
             IToastService toast = new ToastService();
             IFormatConverterService formatConverter = new FormatConverterService();
+            
             IInputSourceService inputSource = new InputSourceService();
+            IOutputDestinationService outputDestination = new OutputDestinationService();
 
             Prelude.TAO3Services = new TAO3Services(
                 excel,
@@ -49,13 +53,14 @@ namespace TAO3.Internal
                 clipboard,
                 toast,
                 formatConverter,
-                inputSource);
+                inputSource,
+                outputDestination);
 
             Prelude.Kernel = kernel;
 
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(formatConverter, inputSource));
-            kernel.AddDirective(new CopyResultCommand(clipboard, formatConverter));
+            kernel.AddDirective(new OutputCommand(clipboard, formatConverter));
             //kernel.AddDirective(new ConverterCommand(formatConverter));
 
             formatConverter.Register(new CsvConverter(true));

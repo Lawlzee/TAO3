@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using WindowsHook;
 
-namespace TAO3.Services.Keyboard
+namespace TAO3.Keyboard
 {
     //Make thread safe?
     internal class WindowsKeyboardService : IKeyboardService, IDisposable

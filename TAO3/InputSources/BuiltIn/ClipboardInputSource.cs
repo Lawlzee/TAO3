@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Services.Clipboard;
+using TAO3.Clipboard;
 
 namespace TAO3.InputSources
 {

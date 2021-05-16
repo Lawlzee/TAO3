@@ -7,7 +7,7 @@
 
 using System;
 
-namespace TAO3.Services.Notepad.Facade
+namespace TAO3.Notepad.Internal
 {
     internal class Constants
     {

@@ -10,8 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
-using TAO3.Services.Keyboard;
-using TAO3.Services.Toast;
+using TAO3.Keyboard;
+using TAO3.Toast;
 using WindowsHook;
 
 namespace TAO3.Internal.Commands.Macro

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Services.Clipboard;
-using TAO3.Services.Keyboard;
-using TAO3.Services.Toast;
+using TAO3.Clipboard;
+using TAO3.Keyboard;
+using TAO3.Toast;
 
-namespace TAO3.Services.Avalonia
+namespace TAO3.Avalonia
 {
     internal class WindowsInterop
     {
