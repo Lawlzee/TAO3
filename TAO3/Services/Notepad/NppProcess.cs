@@ -62,5 +62,57 @@ namespace TAO3.Services.Notepad
                 return true;
             }
         }
+
+        public IntPtr VirtualAllocEx(int dwSize)
+        {
+            return Kernel32.VirtualAllocEx(Process.Handle, IntPtr.Zero, (IntPtr)(dwSize), Kernel32.AllocationType.Reserve | Kernel32.AllocationType.Commit, Kernel32.MemoryProtection.ReadWrite);
+        }
+
+        public bool VirtualFreeEx(IntPtr lpAdress, int dwSize)
+        {
+            return Kernel32.VirtualFreeEx(Process.Handle, lpAdress, dwSize, Kernel32.FreeType.Release);
+        }
+
+        public IntPtr[] VirtualAllocEx(int dwSize, int count)
+        {
+            IntPtr[] result = new IntPtr[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                result[i] = VirtualAllocEx(dwSize);
+            }
+
+            return result;
+        }
+
+        public void VirtualFreeEx(IntPtr[] lpAdress, int dwSize)
+        {
+            for (int i = 0; i < lpAdress.Length; i++)
+            {
+                VirtualFreeEx(lpAdress[i], dwSize);
+            }
+        }
+
+        public byte[] ReadProcessMemory(IntPtr lpBaseAddress, int nSize)
+        {
+            byte[] lpBuffer = new byte[nSize];
+            Kernel32.ReadProcessMemory(Process.Handle, lpBaseAddress, lpBuffer, nSize, out IntPtr bytesRead);
+            return lpBuffer;
+        }
+
+        public byte[][] ReadProcessMemory(IntPtr[] lpBaseAddress, int nSize)
+        {
+            byte[][] result = new byte[lpBaseAddress.Length][];
+            for (int i = 0; i < lpBaseAddress.Length; i++)
+            {
+                result[i] = ReadProcessMemory(lpBaseAddress[i], nSize);
+            }
+            return result;
+        }
+
+        public bool WriteProcessMemory(IntPtr lpBaseAddress, byte[] lpBuffer)
+        {
+            return Kernel32.WriteProcessMemory(Process.Handle, lpBaseAddress, lpBuffer, lpBuffer.Length, out IntPtr lpNumberOfBytesWritten);
+        }
     }
 }

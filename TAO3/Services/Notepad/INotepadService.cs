@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.Excel;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -48,24 +49,21 @@ namespace TAO3.Services.Notepad
                 return "";
             }
 
-            IntPtr memPtr = Kernel32.VirtualAllocEx(npp.Process.Handle, IntPtr.Zero, (IntPtr)(length + 1), Kernel32.AllocationType.Reserve | Kernel32.AllocationType.Commit, Kernel32.MemoryProtection.ReadWrite);
+            IntPtr memPtr = npp.VirtualAllocEx(length + 1);
             try
             {
                 User32.SendMessage(npp.ScintillaMainHandle, (uint)SciMsg.SCI_GETTEXT, length + 1, memPtr);
 
-                byte[] textBuffer = new byte[length + 1];
-
-                Kernel32.ReadProcessMemory(npp.Process.Handle, memPtr, textBuffer, length + 1, out IntPtr bytesRead);
+                byte[] textBuffer = npp.ReadProcessMemory(memPtr, length + 1);
                 return Encoding.UTF8.GetString(textBuffer).TrimEnd('\0');
             }
             finally
             {
-                Kernel32.VirtualFreeEx(npp.Process.Handle, memPtr, length + 1, Kernel32.FreeType.Release);
+                npp.VirtualFreeEx(memPtr, length + 1);
             }
         }
 
         //https://community.notepad-plus-plus.org/topic/18290/external-sendmessage-to-notepad-for-nppm_getopenfilenames-and-other-tchar/2
-        //to do: refactor
         private string[] GetTabs()
         {
             NppProcess npp = GetNppOrThrow();
@@ -76,35 +74,26 @@ namespace TAO3.Services.Notepad
             {
                 return Array.Empty<string>();
             }
-            IntPtr[]? filesPtr = null;
-            IntPtr memPtr = IntPtr.Zero;
 
-            int size = IntPtr.Size * fileCount;
+            IntPtr[]? filesPtr = null;
+            IntPtr fileNamesPtr = IntPtr.Zero;
+
+            int fileNamePtrsSize = IntPtr.Size * fileCount;
+            const int pathSize = 1024;
             try
             {
-                int pathSize = 1024;
+                filesPtr = npp.VirtualAllocEx(pathSize, fileCount);
 
-                filesPtr = Enumerable.Range(0, fileCount)
-                    .Select(x => Kernel32.VirtualAllocEx(npp.Process.Handle, IntPtr.Zero, (IntPtr)pathSize, Kernel32.AllocationType.Reserve | Kernel32.AllocationType.Commit, Kernel32.MemoryProtection.ReadWrite))
-                    .ToArray();
-
-                byte[] filesPtrArrayBytes = new byte[size];
+                byte[] filesPtrArrayBytes = new byte[fileNamePtrsSize];
                 Buffer.BlockCopy(filesPtr, 0, filesPtrArrayBytes, 0, filesPtrArrayBytes.Length);
 
-                memPtr = Kernel32.VirtualAllocEx(npp.Process.Handle, IntPtr.Zero, (IntPtr)size, Kernel32.AllocationType.Reserve | Kernel32.AllocationType.Commit, Kernel32.MemoryProtection.ReadWrite);
+                fileNamesPtr = npp.VirtualAllocEx(fileNamePtrsSize);
+                npp.WriteProcessMemory(fileNamesPtr, filesPtrArrayBytes);
 
-                Kernel32.WriteProcessMemory(npp.Process.Handle, memPtr, filesPtrArrayBytes, size, out IntPtr lpNumberOfBytesWritten);
+                int count = (int)User32.SendMessage(npp.NppHandle, (uint)NppMsg.NPPM_GETOPENFILENAMES, fileNamesPtr, (IntPtr)fileCount);
 
-                int count = (int)User32.SendMessage(npp.NppHandle, (uint)NppMsg.NPPM_GETOPENFILENAMES, memPtr, (IntPtr)fileCount);
-
-                byte[] buffer = new byte[pathSize];
-
-                string[] files = filesPtr
-                    .Select(filePtr =>
-                    {
-                        Kernel32.ReadProcessMemory(npp.Process.Handle, filePtr, buffer, pathSize, out IntPtr bytesRead);
-                        return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
-                    })
+                string[] files = npp.ReadProcessMemory(filesPtr, pathSize)
+                    .Select(buffer => Encoding.Unicode.GetString(buffer).TrimEnd('\0'))
                     .ToArray();
 
                 return files;
@@ -114,12 +103,8 @@ namespace TAO3.Services.Notepad
             {
                 if (filesPtr != null)
                 {
-                    foreach (IntPtr filePtr in filesPtr)
-                    {
-                        Kernel32.VirtualFreeEx(npp.Process.Handle, filePtr, size, Kernel32.FreeType.Release);
-                    }
-
-                    Kernel32.VirtualFreeEx(npp.Process.Handle, memPtr, size, Kernel32.FreeType.Release);
+                    npp.VirtualFreeEx(filesPtr, fileNamePtrsSize);
+                    npp.VirtualFreeEx(fileNamesPtr, fileNamePtrsSize);
                 }
             }
         }
