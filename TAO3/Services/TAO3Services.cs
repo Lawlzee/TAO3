@@ -14,7 +14,7 @@ using TAO3.Toast;
 
 namespace TAO3.Services
 {
-    public class TAO3Services
+    public class TAO3Services : IDisposable
     {
         public IExcelService Excel { get; }
         public INotepadService Notepad { get; }
@@ -35,6 +35,18 @@ namespace TAO3.Services
             FormatConverter = formatConverter;
             InputSource = inputSource;
             OutputDestination = outputDestination;
+        }
+
+        public void Dispose()
+        {
+            Excel.Dispose();
+            Notepad.Dispose();
+            Keyboard.Dispose();
+            Clipboard.Dispose();
+            Toast.Dispose();
+            FormatConverter.Dispose();
+            InputSource.Dispose();
+            OutputDestination.Dispose();
         }
     }
 }

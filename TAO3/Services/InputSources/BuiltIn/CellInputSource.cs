@@ -12,7 +12,7 @@ namespace TAO3.InputSources
     {
         public string Name => "cell";
 
-        public Task<string> GetText(string source, KernelInvocationContext context)
+        public Task<string> GetTextAsync(KernelInvocationContext context)
         {
             string code = ((SubmitCode)context.Command).Code;
             return Task.Run(() => string.Join(

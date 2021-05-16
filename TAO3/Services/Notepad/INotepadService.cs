@@ -11,7 +11,7 @@ using TAO3.Notepad.Internal;
 
 namespace TAO3.Notepad
 {
-    public interface INotepadService
+    public interface INotepadService : IDisposable
     {
         string[] Tabs { get; }
         void Start();
@@ -130,6 +130,11 @@ namespace TAO3.Notepad
             }
 
             throw new Exception("notepad++ is closed");
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }

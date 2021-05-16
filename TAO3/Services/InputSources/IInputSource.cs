@@ -10,6 +10,6 @@ namespace TAO3.InputSources
     public interface IInputSource
     {
         string Name { get; }
-        Task<string> GetText(string source, KernelInvocationContext context);
+        Task<string> GetTextAsync(KernelInvocationContext context);
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TAO3.Clipboard
 {
-    public interface IClipboardService
+    public interface IClipboardService : IDisposable
     {
         Task ClearAsync();
         Task<string> GetTextAsync();

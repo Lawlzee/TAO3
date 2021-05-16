@@ -105,9 +105,9 @@ namespace TAO3.Converters
             command.Add(new Option<string>(new[] { "-s", "--separator" }, "Value separator"));
             command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
 
-            command.Handler = CommandHandler.Create(async (string source, string name, string settings, bool verbose, string separator, string type, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string separator, string type, KernelInvocationContext context) =>
             {
-                IConverterContext<CsvConfiguration> converterContext = contextProvider.Invoke<CsvConfiguration>(source, name, settings, verbose, context);
+                IConverterContext<CsvConfiguration> converterContext = contextProvider.Invoke<CsvConfiguration>(name, settings, verbose, context);
 
                 converterContext.Settings ??= _defaultSettings;
 

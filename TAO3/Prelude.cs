@@ -8,8 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using TAO3.Clipboard;
 using TAO3.Converters;
+using TAO3.Excel;
+using TAO3.InputSources;
+using TAO3.Keyboard;
+using TAO3.Notepad;
+using TAO3.OutputDestinations;
 using TAO3.Services;
+using TAO3.Toast;
 using JsonConverter = TAO3.Converters.JsonConverter;
 
 namespace TAO3
@@ -17,7 +24,15 @@ namespace TAO3
     public static class Prelude
     {
         public static Kernel Kernel { get; internal set; } = null!;
-        public static TAO3Services TAO3Services { get; internal set; } = null!;
+        public static TAO3Services Services { get; internal set; } = null!;
+        public static IExcelService Excel => Services.Excel;
+        public static INotepadService Notepad => Services.Notepad;
+        public static IKeyboardService Keyboard => Services.Keyboard;
+        public static IClipboardService Clipboard => Services.Clipboard;
+        public static IToastService Toast => Services.Toast;
+        public static IFormatConverterService FormatConverter => Services.FormatConverter;
+        public static IInputSourceService InputSource => Services.InputSource;
+        public static IOutputDestinationService OutputDestination => Services.OutputDestination;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);

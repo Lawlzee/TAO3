@@ -46,7 +46,7 @@ namespace TAO3.Internal
             IInputSourceService inputSource = new InputSourceService();
             IOutputDestinationService outputDestination = new OutputDestinationService();
 
-            Prelude.TAO3Services = new TAO3Services(
+            Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
                 keyboard,
@@ -58,10 +58,11 @@ namespace TAO3.Internal
 
             Prelude.Kernel = kernel;
 
+            kernel.RegisterForDisposal(Prelude.Services);
+
             kernel.AddDirective(new MacroCommand(keyboard, toast));
-            kernel.AddDirective(new InputCommand(formatConverter, inputSource));
-            kernel.AddDirective(new OutputCommand(clipboard, formatConverter));
-            //kernel.AddDirective(new ConverterCommand(formatConverter));
+            kernel.AddDirective(new InputCommand(inputSource, formatConverter));
+            kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));
@@ -71,9 +72,10 @@ namespace TAO3.Internal
             formatConverter.Register(new TextConveter());
 
             inputSource.Register(new ClipboardInputSource(clipboard));
-            inputSource.Register(new FileInputSource());
-            inputSource.Register(new UriInputSource());
             inputSource.Register(new CellInputSource());
+            inputSource.Register(new NotepadInputSource(notepad));
+
+            outputDestination.Register(new ClipboardOutputDestination(clipboard));
 
             return Task.CompletedTask;
         }

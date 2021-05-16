@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TAO3.Toast
 {
-    public interface IToastService
+    public interface IToastService : IDisposable
     {
         void Notify(string title, string body, DateTimeOffset expirationTime);
     }

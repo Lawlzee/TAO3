@@ -21,51 +21,59 @@ namespace TAO3.Internal.Commands.Input
     internal class InputCommand : Command
     {
         public InputCommand(
-            IFormatConverterService formatConverter,
-            IInputSourceService inputSource) :
-            base("#!in", "Get a value from a source and convert it to C# object")
+            IInputSourceService inputSource,
+            IFormatConverterService formatConverter) 
+            : base("#!in", "Get a value from a source and convert it to C# object")
         {
-            Argument<string> sourceArgument = new Argument<string>("source", "The source of the input");
-
-            inputSource.Events.Subscribe(e =>
+            inputSource.Events.Subscribe(inputSourceEvent =>
             {
-                sourceArgument.AddSuggestions(e.InputSource.Name);
-            });
+                Command inputSourceCommand = new Command(inputSourceEvent.InputSource.Name);
 
-            formatConverter.Events.Subscribe(e =>
-            {
-                IConverter converter = e.Converter;
-                if (e is ConverterRegisteredEvent registeredEvent)
+                Add(inputSourceCommand);
+
+                foreach (IConverter converter in formatConverter.Converters)
                 {
-                    Command command = new Command(converter.Format)
-                    {
-                        sourceArgument,
-                        new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
-                        new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
-                    };
-
-                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSource);
-
-                    if (converter is IConfigurableConverter configurableConverter)
-                    {
-                        command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
-
-                        configurableConverter.ConfigureCommand(
-                            command,
-                            convertionContextProvider);
-                    }
-                    else
-                    {
-                        command.Handler = CommandHandler.Create(async (string source, string name, string settings, KernelInvocationContext context) =>
-                        {
-                            IConverterContext<object> convertionContext = convertionContextProvider.Invoke(source, name, settings, verbose: false, context);
-                            await convertionContext.DefaultHandle();
-                        });
-                    }
-
-                    Add(command);
+                    AddConverterCommand(inputSourceCommand, inputSourceEvent.InputSource, converter);
                 }
+
+                formatConverter.Events.Subscribe(formatConveterEvenet =>
+                {
+                    if (formatConveterEvenet is ConverterRegisteredEvent registeredEvent)
+                    {
+                        AddConverterCommand(inputSourceCommand, inputSourceEvent.InputSource, formatConveterEvenet.Converter);
+                    }
+                });
             });
+        }
+
+        private void AddConverterCommand(Command parentCommand, IInputSource inputSource, IConverter converter)
+        {
+            Command command = new Command(converter.Format)
+            {
+                new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
+                new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
+            };
+
+            ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSource);
+
+            if (converter is IConfigurableConverter configurableConverter)
+            {
+                command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
+
+                configurableConverter.ConfigureCommand(
+                    command,
+                    convertionContextProvider);
+            }
+            else
+            {
+                command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
+                {
+                    IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
+                    await convertionContext.DefaultHandle();
+                });
+            }
+
+            parentCommand.Add(command);
         }
     }
 }

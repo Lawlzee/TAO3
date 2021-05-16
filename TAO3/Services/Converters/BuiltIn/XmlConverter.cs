@@ -54,9 +54,9 @@ namespace TAO3.Converters
         {
             command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
 
-            command.Handler = CommandHandler.Create(async (string source, string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
             {
-                IConverterContext<XmlWriterSettings> converterContext = contextProvider.Invoke<XmlWriterSettings>(source, name, settings, verbose, context);
+                IConverterContext<XmlWriterSettings> converterContext = contextProvider.Invoke<XmlWriterSettings>(name, settings, verbose, context);
 
                 converterContext.Settings ??= _defaultSettings;
 

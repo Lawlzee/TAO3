@@ -5,7 +5,7 @@ using WindowsHook;
 namespace TAO3.Keyboard
 {
     //Make thread safe?
-    internal class WindowsKeyboardService : IKeyboardService, IDisposable
+    internal class WindowsKeyboardService : IKeyboardService
     {
         private Keys _lastKeyData;
         private readonly Dictionary<Keys, Action> _shortcuts;

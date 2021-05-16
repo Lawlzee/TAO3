@@ -8,22 +8,22 @@ namespace TAO3.Converters
     public sealed class ConvertionContextProvider
     {
         private readonly IConverter _converter;
-        private readonly IInputSourceService _inputSource;
+        private readonly IInputSource _inputSource;
 
-        internal ConvertionContextProvider(IConverter converter, IInputSourceService inputSourceService)
+        internal ConvertionContextProvider(IConverter converter, IInputSource inputSource)
         {
             _converter = converter;
-            _inputSource = inputSourceService;
+            _inputSource = inputSource;
         }
 
-        public IConverterContext<TSettings> Invoke<TSettings>(string source, string name, string settings, bool verbose, KernelInvocationContext context)
+        public IConverterContext<TSettings> Invoke<TSettings>(string name, string settings, bool verbose, KernelInvocationContext context)
         {
-            return new ConverterContext<TSettings>(_converter, name, settings, verbose, context, () => _inputSource.GetTextAsync(source, context));
+            return new ConverterContext<TSettings>(_converter, name, settings, verbose, context, () => _inputSource.GetTextAsync( context));
         }
 
-        public IConverterContext<object> Invoke(string source, string name, string settings, bool verbose, KernelInvocationContext context)
+        public IConverterContext<object> Invoke(string name, string settings, bool verbose, KernelInvocationContext context)
         {
-            return new ConverterContext<object>(_converter, name, settings, verbose, context, () => _inputSource.GetTextAsync(source, context));
+            return new ConverterContext<object>(_converter, name, settings, verbose, context, () => _inputSource.GetTextAsync(context));
         }
     }
 }

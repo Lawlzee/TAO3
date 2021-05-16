@@ -47,5 +47,9 @@ $Notifier.Show($Toast);
             return str
                 .Replace("\"", "`");
         }
+        public void Dispose()
+        {
+
+        }
     }
 }

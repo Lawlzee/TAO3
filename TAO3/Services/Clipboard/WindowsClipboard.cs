@@ -30,5 +30,10 @@ namespace TAO3.Clipboard
         {
             return _avaloniaApp.Clipboard.SetTextAsync(text);
         }
+
+        public void Dispose()
+        {
+
+        }
     }
 }

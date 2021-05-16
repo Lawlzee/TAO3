@@ -36,9 +36,9 @@ namespace TAO3.Converters
         {
             command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
 
-            command.Handler = CommandHandler.Create(async (string source, string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
             {
-                IConverterContext<JsonSerializerSettings> converterContext = contextProvider.Invoke<JsonSerializerSettings>(source, name, settings, verbose, context);
+                IConverterContext<JsonSerializerSettings> converterContext = contextProvider.Invoke<JsonSerializerSettings>(name, settings, verbose, context);
 
                 converterContext.Settings ??= _defaultSettings;
 

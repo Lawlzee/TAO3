@@ -6,21 +6,22 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Clipboard;
 
-namespace TAO3.InputSources
+namespace TAO3.OutputDestinations
 {
-    internal class ClipboardInputSource : IInputSource
+    internal class ClipboardOutputDestination : IOutputDestination
     {
         private readonly IClipboardService _clipboard;
+
         public string Name => "clipboard";
 
-        public ClipboardInputSource(IClipboardService clipboard)
+        public ClipboardOutputDestination(IClipboardService clipboard)
         {
             _clipboard = clipboard;
         }
 
-        public async Task<string> GetTextAsync(KernelInvocationContext context)
+        public Task SetTextAsync(string text, KernelInvocationContext context)
         {
-            return await _clipboard.GetTextAsync();
+            return _clipboard.SetTextAsync(text);
         }
     }
 }

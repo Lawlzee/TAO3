@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace TAO3.Excel
 {
-    public interface IExcelService
+    public interface IExcelService : IDisposable
     {
         
     }
@@ -96,5 +96,10 @@ namespace TAO3.Excel
         [SuppressUnmanagedCodeSecurity]
         [System.Security.SecurityCritical]  // auto-generated
         private static extern void GetActiveObject(ref Guid rclsid, IntPtr reserved, [MarshalAs(UnmanagedType.Interface)] out object ppunk);
+
+        public void Dispose()
+        {
+            
+        }
     }
 }
