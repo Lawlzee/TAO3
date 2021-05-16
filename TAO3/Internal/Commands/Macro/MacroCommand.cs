@@ -10,14 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
-using TAO3.Internal.Interop;
+using TAO3.Services.Keyboard;
+using TAO3.Services.Toast;
 using WindowsHook;
 
 namespace TAO3.Internal.Commands.Macro
 {
     internal class MacroCommand : Command
     {
-        public MacroCommand(IInteropOS interop)
+        public MacroCommand(IKeyboardService keyboard, IToastService toast)
             : base("#!macro", "Add a macro that run the code in the cell")
         {
             Add(new Argument<string>("shortcut", "Ex. CTRL+SHIFT+1"));
@@ -31,7 +32,7 @@ namespace TAO3.Internal.Commands.Macro
                 string code = RemoveMacroCommand(originalCommand.Code);
                 CompositeKernel rootKernel = context.HandlingKernel.ParentKernel;
 
-                interop.KeyboardHook.RegisterOnKeyPressed(shortcutKeys, () =>
+                keyboard.RegisterOnKeyPressed(shortcutKeys, () =>
                 {
                     Stopwatch? stopwatch = null;
                     if (!silent)
@@ -42,6 +43,8 @@ namespace TAO3.Internal.Commands.Macro
                     
                     Task.Run(async () =>
                     {
+                        context.Display(DateTime.Now);
+
                         SubmitCode submitCode = new SubmitCode(code, originalCommand.TargetKernelName, originalCommand.SubmissionType);
 
                         IDisposable disposable = null!;
@@ -85,7 +88,7 @@ namespace TAO3.Internal.Commands.Macro
                             body.Append(commandFailed.Exception.ToString());
                         }
 
-                        interop.ToastNotifier.Notify(title, body.ToString(), DateTimeOffset.Now.AddSeconds(1));
+                        toast.Notify(title, body.ToString(), DateTimeOffset.Now.AddSeconds(1));
                     });
                 });
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Internal.Interop;
 
 namespace TAO3.InputSources
 {

@@ -12,6 +12,14 @@
     <NoWarn>$(NoWarn);NU5100;VSTHRD002</NoWarn><!-- dll outside of lib/ folder -->
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaXaml Remove="Internal\Commands\Macro\Listener\**" />
     <Compile Remove="bin\**" />
@@ -65,7 +73,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Internal\Interop\Windows\AvaloniaApp.axaml.cs">
+    <Compile Update="Services\Avalonia\AvaloniaApp.axaml.cs">
       <DependentUpon>AvaloniaApp.axaml</DependentUpon>
     </Compile>
   </ItemGroup>

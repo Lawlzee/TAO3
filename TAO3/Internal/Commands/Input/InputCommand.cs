@@ -14,27 +14,25 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TAO3.Converters;
-using TAO3.Internal.Interop;
-using TAO3.Internal.Services;
+using TAO3.Services;
 
 namespace TAO3.Internal.Commands.Input
 {
     internal class InputCommand : Command
     {
         public InputCommand(
-            IInteropOS interop, 
-            IFormatConverterService formatConverterService,
-            IInputSourceService inputSourceService) :
+            IFormatConverterService formatConverter,
+            IInputSourceService inputSource) :
             base("#!input", "Get a value from a source and convert it to C# object")
         {
             Argument<string> sourceArgument = new Argument<string>("source", "The source of the input");
 
-            inputSourceService.Events.Subscribe(e =>
+            inputSource.Events.Subscribe(e =>
             {
                 sourceArgument.AddSuggestions(e.InputSource.Name);
             });
 
-            formatConverterService.Events.Subscribe(e =>
+            formatConverter.Events.Subscribe(e =>
             {
                 IConverter converter = e.Converter;
                 if (e is ConverterRegisteredEvent registeredEvent)
@@ -46,7 +44,7 @@ namespace TAO3.Internal.Commands.Input
                         new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
                     };
 
-                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSourceService);
+                    ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSource);
 
                     if (converter is IConfigurableConverter configurableConverter)
                     {

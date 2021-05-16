@@ -9,23 +9,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TAO3.Converters;
-using TAO3.Internal.Services;
+using TAO3.Services;
 
 namespace TAO3.Internal.Commands.Converter
 {
     internal class ConverterCommand : Command
     {
-        public ConverterCommand(IFormatConverterService formatConverterService) 
+        public ConverterCommand(IFormatConverterService formatConverter) 
             : base("#!converter", "Manage the format converters")
         {
-            Add(new RegisterConverterCommand(formatConverterService));
-            Add(new UnregisterConverterCommand(formatConverterService));
+            Add(new RegisterConverterCommand(formatConverter));
+            Add(new UnregisterConverterCommand(formatConverter));
         }
     }
 
     internal class RegisterConverterCommand : Command
     {
-        public RegisterConverterCommand(IFormatConverterService formatConverterService)
+        public RegisterConverterCommand(IFormatConverterService formatConverter)
             : base("add", "Add a new format converter")
         {
             Add(new Argument<string>("converter", "The name of the variable containing an instance of TAO3.Converters.IConveter to be registered"));
@@ -35,7 +35,7 @@ namespace TAO3.Internal.Commands.Converter
                 CSharpKernel cSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
                 if (cSharpKernel.TryGetVariable(converter, out IConverter converterInstance))
                 {
-                    formatConverterService.Register(converterInstance);
+                    formatConverter.Register(converterInstance);
                     context.Display($"{converterInstance.Format} Converter '{converterInstance.GetType().FullName}' registered", null);
                     return;
                 }
@@ -47,14 +47,14 @@ namespace TAO3.Internal.Commands.Converter
 
     internal class UnregisterConverterCommand : Command
     {
-        public UnregisterConverterCommand(IFormatConverterService formatConverterService)
+        public UnregisterConverterCommand(IFormatConverterService formatConverter)
             : base("remove", "remove a format converter")
         {
             Add(new Argument<string>("format", "The name of the format to remove"));
 
             Handler = CommandHandler.Create((string format, KernelInvocationContext context) =>
             {
-                formatConverterService.UnregisterConverter(format);
+                formatConverter.UnregisterConverter(format);
             });
         }
     }

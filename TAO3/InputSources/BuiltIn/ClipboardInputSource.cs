@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Internal.Interop;
+using TAO3.Services.Clipboard;
 
 namespace TAO3.InputSources
 {
     internal class ClipboardInputSource : IInputSource
     {
-        private readonly IClipboard _clipboard;
+        private readonly IClipboardService _clipboard;
         public string Name => "clipboard";
 
-        public ClipboardInputSource(IClipboard clipboard)
+        public ClipboardInputSource(IClipboardService clipboard)
         {
             _clipboard = clipboard;
         }

@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration;
+using Microsoft.DotNet.Interactive;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using TAO3.Converters;
+using TAO3.Services;
 using JsonConverter = TAO3.Converters.JsonConverter;
 
 namespace TAO3
 {
     public static class Prelude
     {
+        public static Kernel Kernel { get; internal set; } = null!;
+        public static TAO3Services TAO3Services { get; internal set; } = null!;
+
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);
         public static string ToCsv(object? value, CsvConfiguration? settings = null) => new CsvConverter(hasHeader: false).Serialize(value, settings);

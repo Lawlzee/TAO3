@@ -13,8 +13,12 @@ using TAO3.Internal.Commands.Converter;
 using TAO3.Internal.Commands.CopyResult;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
-using TAO3.Internal.Interop;
-using TAO3.Internal.Services;
+using TAO3.Services;
+using TAO3.Services.Avalonia;
+using TAO3.Services.Clipboard;
+using TAO3.Services.Keyboard;
+using TAO3.Services.Notepad;
+using TAO3.Services.Toast;
 using WindowsHook;
 
 namespace TAO3.Internal
@@ -25,29 +29,46 @@ namespace TAO3.Internal
         {
             Debugger.Launch();
 
-            new ExcelService().GetOrOpenExcel();
+            IExcelService excel = null!;
+            //new ExcelService().GetOrOpenExcel();
 
-            IInteropOS interop = InteropFactory.Create();
-            IFormatConverterService formatConverterService = new FormatConverterService();
-            IInputSourceService inputSourceService = new InputSourceService();
+            INotepadService notepad = new NotepadService();
 
+            WindowsInterop interop = WindowsInterop.Create();
+            IKeyboardService keyboard = interop.Keyboard;
+            IClipboardService clipboard = interop.Clipboard;
 
-            kernel.AddDirective(new MacroCommand(interop));
-            kernel.AddDirective(new InputCommand(interop, formatConverterService, inputSourceService));
-            kernel.AddDirective(new CopyResultCommand(interop, formatConverterService));
-            kernel.AddDirective(new ConverterCommand(formatConverterService));
+            IToastService toast = new ToastService();
+            IFormatConverterService formatConverter = new FormatConverterService();
+            IInputSourceService inputSource = new InputSourceService();
 
-            formatConverterService.Register(new CsvConverter(true));
-            formatConverterService.Register(new CsvConverter(false));
-            formatConverterService.Register(new JsonConverter());
-            formatConverterService.Register(new XmlConverter());
-            formatConverterService.Register(new LineConverter());
-            formatConverterService.Register(new TextConveter());
+            Prelude.TAO3Services = new TAO3Services(
+                excel,
+                notepad,
+                keyboard,
+                clipboard,
+                toast,
+                formatConverter,
+                inputSource);
 
-            inputSourceService.Register(new ClipboardInputSource(interop.Clipboard));
-            inputSourceService.Register(new FileInputSource());
-            inputSourceService.Register(new UriInputSource());
-            inputSourceService.Register(new CellInputSource());
+            Prelude.Kernel = kernel;
+
+            kernel.AddDirective(new MacroCommand(keyboard, toast));
+            kernel.AddDirective(new InputCommand(formatConverter, inputSource));
+            kernel.AddDirective(new CopyResultCommand(clipboard, formatConverter));
+            //kernel.AddDirective(new ConverterCommand(formatConverter));
+
+            formatConverter.Register(new CsvConverter(true));
+            formatConverter.Register(new CsvConverter(false));
+            formatConverter.Register(new JsonConverter());
+            formatConverter.Register(new XmlConverter());
+            formatConverter.Register(new LineConverter());
+            formatConverter.Register(new TextConveter());
+
+            inputSource.Register(new ClipboardInputSource(clipboard));
+            inputSource.Register(new FileInputSource());
+            inputSource.Register(new UriInputSource());
+            inputSource.Register(new CellInputSource());
 
             return Task.CompletedTask;
         }
