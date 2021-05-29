@@ -23,10 +23,14 @@ namespace Xamasoft.JsonClassGenerator
         NonConstrained = 1 << 10,
 
         Nullable = 1 << 11,
+        NullableString = Nullable | String,
         NullableInteger = Nullable | Integer,
         NullableLong = Nullable | Long,
         NullableFloat = Nullable | Float,
         NullableBoolean = Nullable | Boolean,
-        NullableDate = Nullable | Date
+        NullableDate = Nullable | Date,
+        NullableObject = Nullable | Object,
+        NullableArray = Nullable | Array,
+        NullableDictionary = Nullable | Dictionary
     }
 }

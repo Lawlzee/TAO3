@@ -7,7 +7,6 @@ namespace TAO3.Converters
 {
     public interface IFormatConverterService : IDisposable
     {
-        IReadOnlyCollection<IConverter> Converters { get; }
         IObservable<IConverterServiceEvent> Events { get; }
         IConverter? TryGetConverter(string format);
         void Register(IConverter converter);
@@ -17,10 +16,8 @@ namespace TAO3.Converters
     public class FormatConverterService : IFormatConverterService
     {
         private readonly Dictionary<string, IConverter> _converters;
-        private readonly Subject<IConverterServiceEvent> _events;
+        private readonly ReplaySubject<IConverterServiceEvent> _events;
         public IObservable<IConverterServiceEvent> Events => _events;
-
-        public IReadOnlyCollection<IConverter> Converters => _converters.Values;
 
         public FormatConverterService()
         {

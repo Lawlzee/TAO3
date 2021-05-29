@@ -13,13 +13,13 @@ using TAO3.Internal.Commands.Converter;
 using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
+using TAO3.Internal.Commands.WrapExcel;
 using TAO3.Services;
 using TAO3.Avalonia;
 using TAO3.Clipboard;
 using TAO3.Keyboard;
 using TAO3.Notepad;
 using TAO3.Toast;
-using WindowsHook;
 using TAO3.OutputDestinations;
 using TAO3.Excel;
 
@@ -31,9 +31,7 @@ namespace TAO3.Internal
         {
             Debugger.Launch();
 
-            IExcelService excel = null!;
-            //new ExcelService().GetOrOpenExcel();
-
+            IExcelService excel = new ExcelService();
             INotepadService notepad = new NotepadService();
 
             WindowsInterop interop = WindowsInterop.Create();
@@ -63,6 +61,7 @@ namespace TAO3.Internal
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
+            kernel.AddDirective(new WrapExcelCommand(excel));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));

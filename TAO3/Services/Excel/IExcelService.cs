@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.DotNet.Interactive.CSharp;
+using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,29 +8,28 @@ using System.Runtime.Versioning;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Excel.Generation;
 
 namespace TAO3.Excel
 {
     public interface IExcelService : IDisposable
     {
-        
+        public dynamic Instance { get; }
+        IReadOnlyList<ExcelWorkbook> Workbooks { get; }
     }
 
     public class ExcelService : IExcelService
     {
-        public dynamic GetOrOpenExcel2()
-        {
-            try
-            {
-                return GetActiveObject("Excel.Application");
-            }
-            catch (Exception)//Excel not open
-            {
-                return new Application().Workbooks;
-            }
-        }
+        private Application? _application = null;
+        internal Application Application => _application ?? (_application = GetOrOpenExcel());
+        public dynamic Instance => Application;
 
-        public Application GetOrOpenExcel()
+        public IReadOnlyList<ExcelWorkbook> Workbooks => Application.Workbooks
+            .Cast<Workbook>()
+            .Select(x => new ExcelWorkbook(x))
+            .ToList();
+
+        private Application GetOrOpenExcel()
         {
             try
             {
@@ -39,21 +39,7 @@ namespace TAO3.Excel
             {
                 return new Application();
             }
-            Application application;
-            Worksheet worksheet = (Worksheet)application.Workbooks[""].Sheets[0];
-            worksheet.UsedRange.Table(null, null);
         }
-
-        public Workbook OpenWorkbook(Application application, string name)
-        {
-            return application.Workbooks[name];
-        }
-
-        /*public string[] T(Application application)
-        {
-            Worksheet worksheet = (Worksheet)application.Workbooks[""].Sheets[0];
-            worksheet.UsedRange.Table(null, null);
-        }*/
 
         //https://stackoverflow.com/questions/58010510/no-definition-found-for-getactiveobject-from-system-runtime-interopservices-mars
         [System.Security.SecurityCritical]  // auto-generated_required
@@ -99,7 +85,9 @@ namespace TAO3.Excel
 
         public void Dispose()
         {
-            
+            //Close excel application?
         }
+
+        
     }
 }

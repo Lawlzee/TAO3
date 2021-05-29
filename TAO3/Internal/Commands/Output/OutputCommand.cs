@@ -29,11 +29,6 @@ namespace TAO3.Internal.Commands.Output
 
                     Add(outputDestinationCommand);
 
-                    foreach (IConverter converter in formatConverter.Converters)
-                    {
-                        AddConverterCommand(outputDestinationCommand, addedEvent.OutputDestination, converter);
-                    }
-
                     formatConverter.Events.Subscribe(formatConverterEvent =>
                     {
                         if (formatConverterEvent is ConverterRegisteredEvent registeredEvent)

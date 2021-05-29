@@ -28,7 +28,7 @@ namespace TAO3.InputSources
         private readonly HttpClient _httpClient;
 
         private readonly Dictionary<string, IInputSource> _sourceByName;
-        private readonly Subject<InputSourceAddedEvent> _events;
+        private readonly ReplaySubject<InputSourceAddedEvent> _events;
         public IObservable<InputSourceAddedEvent> Events => _events;
 
         public InputSourceService()

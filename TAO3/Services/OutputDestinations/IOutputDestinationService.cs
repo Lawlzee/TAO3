@@ -18,7 +18,7 @@ namespace TAO3.OutputDestinations
     public class OutputDestinationService : IOutputDestinationService
     {
         private readonly Dictionary<string, IOutputDestination> _destinationByName;
-        private readonly Subject<IOutputDestinationEvent> _events;
+        private readonly ReplaySubject<IOutputDestinationEvent> _events;
         public IObservable<IOutputDestinationEvent> Events => _events;
 
         public OutputDestinationService()
