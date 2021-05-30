@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.Internal.CodeGeneration;
-using TAO3.Excel.Extensions;
 using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Excel.Generation
@@ -120,13 +119,15 @@ using TAO3.Excel;
 
 public class {className} : ExcelTable
 {{
-    internal {className}(object listObject)
-        : base(listObject)
+    internal {className}(object worksheet, object listObject)
+        : base(worksheet, listObject)
     {{
 
     }}
 
     public List<{rowTypeName}> Get() => Get<{rowTypeName}>();
+
+    public void Set(IEnumerable<{rowTypeName}> data) => Set<{rowTypeName}>(data);
 }}";
             await cSharpKernel.SubmitCodeAsync(code);
 

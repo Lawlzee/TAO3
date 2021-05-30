@@ -19,7 +19,7 @@ namespace TAO3.Excel.Generation
                 .Tables
                 .Select(t => TypeSafeExcelTableGenerator.GenerateAsync(cSharpKernel, t))
                 .Select(x => x.Result)
-                .Select((name, index) => $"public {name} {name} => new {name}(Tables[{index}].Instance);")
+                .Select((name, index) => $"public {name} {name} => new {name}(Instance, Tables[{index}].Instance);")
                 .ToList();
 
             string getTablesCode = string.Join(@"

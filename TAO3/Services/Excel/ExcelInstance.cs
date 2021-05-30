@@ -11,7 +11,6 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.CodeGeneration;
-using TAO3.Excel.Extensions;
 using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Excel
@@ -49,7 +48,7 @@ namespace TAO3.Excel
         public IReadOnlyList<ExcelTable> Tables => Worksheet
             .ListObjects
             .Cast<ListObject>()
-            .Select(x => new ExcelTable(x))
+            .Select(x => new ExcelTable(Worksheet, x))
             .ToList();
 
         internal ExcelWorksheet(Worksheet worksheet)
@@ -65,29 +64,32 @@ namespace TAO3.Excel
 
     public class ExcelTable
     {
+        internal Worksheet Worksheet { get; }
         internal ListObject ListObject { get; }
         public dynamic Instance => ListObject;
 
         public string Name => ListObject.Name;
 
-        internal ExcelTable(ListObject listObject)
+        internal ExcelTable(Worksheet worksheet, ListObject listObject)
         {
+            Worksheet = worksheet;
             ListObject = listObject;
         }
 
-        protected ExcelTable(object listObject)
+        protected ExcelTable(object worksheet, object listObject)
         {
+            Worksheet = (Worksheet)worksheet;
             ListObject = (ListObject)listObject;
         }
 
         public object[,] GetRawData()
         {
-            return ListObject.Range.GetValues();
+            return ListObject.DataBodyRange.GetValues();
         }
 
         public void SetRawData(object[,] data)
         {
-            ListObject.Range.Value2 = data;
+            ListObject.DataBodyRange.Value2 = data;
         }
 
         //to do: optimise
@@ -100,12 +102,12 @@ namespace TAO3.Excel
             object[,] data = GetRawData();
             List<T> result = new List<T>();
 
-            for (int row = 2; row <= data.GetLength(0); row++)
+            for (int row = 1; row <= data.GetLength(0); row++)
             {
                 T rowObject = new T();
                 for (int col = 1; col <= data.GetLength(1); col++)
                 {
-                    PropertyInfo? property = GetProperty(col);
+                    PropertyInfo? property = GetProperty(properties, columns[col - 1], col - 1);
                     if (property == null)
                     {
                         continue;
@@ -138,15 +140,61 @@ namespace TAO3.Excel
 
             return result;
 
-            PropertyInfo? GetProperty(int col)
+
+        }
+
+        //to do: optimise
+        public void Set<T>(IEnumerable<T> data)
+        {
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            ListColumn[] columns = ListObject.ListColumns.Cast<ListColumn>().ToArray();
+
+            List<T> dataList = data.ToList();
+
+            Microsoft.Office.Interop.Excel.Range originalRange = ListObject.Range;
+
+            Microsoft.Office.Interop.Excel.Range newRange = Worksheet.Range[
+                Worksheet.Cells[originalRange.Row, originalRange.Column],
+                Worksheet.Cells[originalRange.Row + Math.Max(1, dataList.Count), originalRange.Column + columns.Length - 1]];
+
+            int originalRowCountNoHeaders = originalRange.Rows.Count - 1;
+            if (dataList.Count > originalRowCountNoHeaders)
             {
-                string columnName = columns[col - 1].Name;
-                return properties
-                    .Where(x => x.Name == columnName
-                        || x.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName == columnName
-                        || x.GetCustomAttribute<IndexAttribute>()?.Index == col - 1)
-                    .FirstOrDefault();
+                ListObject.Resize(newRange);
             }
+
+            object?[,] newBody = BaseOneArray.Create(Math.Max(originalRowCountNoHeaders, dataList.Count), originalRange.Columns.Count);
+            for (int col = 1; col <= columns.Length; col++)
+            {
+                PropertyInfo? property = GetProperty(properties, columns[col - 1], col - 1);
+
+                if (property == null)
+                {
+                    continue;
+                }
+
+                for (int row = 1; row <= dataList.Count; row++)
+                {
+                    newBody[row, col] = property.GetValue(dataList[row - 1])?.ToString();
+                }
+            }
+
+            ListObject.DataBodyRange.Value2 = newBody;
+
+            if (dataList.Count < originalRowCountNoHeaders)
+            {
+                ListObject.Resize(newRange);
+            }
+        }
+
+        PropertyInfo? GetProperty(PropertyInfo[] properties, ListColumn column, int col)
+        {
+            string columnName = column.Name;
+            return properties
+                .Where(x => x.Name == columnName
+                    || x.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName == columnName
+                    || x.GetCustomAttribute<IndexAttribute>()?.Index == col)
+                .FirstOrDefault();
         }
     }
 }
