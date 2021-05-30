@@ -25,7 +25,7 @@ namespace TAO3.Excel.Generation
         {
             List<FieldInfo> fields = table.ListObject.ListColumns
                 .Cast<ListColumn>()
-                .Select(x => new FieldInfo(x.Name, GetType(x)))
+                .Select(x => new FieldInfo(x.Name, new JsonType(ExcelFormatHelper.GetCellType(x.DataBodyRange))))
                 .ToList();
 
             JsonType objectType = new JsonType(
@@ -40,70 +40,6 @@ namespace TAO3.Excel.Generation
             await cSharpKernel.SubmitCodeAsync(code);
 
             return objectType.AssignedName;
-
-            JsonType GetType(ListColumn listColumn)
-            {
-                ListDataFormat format = listColumn.ListDataFormat;
-                Microsoft.Office.Interop.Excel.Range bodyRange = listColumn.DataBodyRange;
-
-                string? numberFormat = bodyRange.NumberFormat as string;
-
-                if (numberFormat == null)
-                {
-                    return new JsonType(JsonTypeEnum.NullableString);
-                }
-
-                const string textFormat = "@";
-                if (numberFormat == textFormat)
-                {
-                    return new JsonType(JsonTypeEnum.NullableString);
-                }
-
-                object[] values = listColumn.DataBodyRange.GetValues()
-                    .Cast<object>()
-                    .ToArray();
-
-                bool isNullable = values.Any(x => x == null);
-
-                //We can probably do better than this
-                const string dateTimeRegex = @"(^|;)([ymdhms :_\(\),\/\\\-\.]|AM\/PM|am\/pm|A\/P|a\/p|\[.*\])+($|;)";
-                if (Regex.IsMatch(numberFormat, dateTimeRegex))
-                {
-                    bool isTypeNullable = isNullable || values.Any(x => !(x is double));
-                    bool isTimeSpan = values
-                        .OfType<double>()
-                        .All(x => 0 <= x && x < 1);
-
-                    return new JsonType(
-                        (isTimeSpan ? JsonTypeEnum.TimeSpan : JsonTypeEnum.Date)
-                        | (isTypeNullable ? JsonTypeEnum.Nullable : 0));
-                }
-
-                Type[] columnTypes = values
-                    .Where(x => x != null)
-                    .Select(x => x.GetType())
-                    .Distinct()
-                    .Take(2)
-                    .ToArray();
-
-                if (columnTypes.Length == 1)
-                {
-                    Type columnType = columnTypes[0];
-                    if (columnType == typeof(double))
-                    {
-                        bool isInteger = values
-                            .OfType<double>()
-                            //https://stackoverflow.com/questions/2751593/how-to-determine-if-a-decimal-double-is-an-integer
-                            .All(x => Math.Abs(x % 1) <= (double.Epsilon * 100));
-
-                        return new JsonType(
-                            (isInteger ? JsonTypeEnum.Integer : JsonTypeEnum.Float)
-                            | (isNullable ? JsonTypeEnum.Nullable : 0));
-                    }
-                }
-                
-                return new JsonType(JsonTypeEnum.String | (isNullable ? JsonTypeEnum.Nullable : 0));
-            }
         }
 
         private static async Task<string> GenerateTableTypeAsync(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)

@@ -35,4 +35,53 @@ namespace Xamasoft.JsonClassGenerator
         NullableArray = Nullable | Array,
         NullableDictionary = Nullable | Dictionary
     }
+
+    internal static class JsonTypeEnumExtensions
+    {
+        public static Type ToClrType(this JsonTypeEnum jsonTypeEnum)
+        {
+            switch (jsonTypeEnum)
+            {
+                case JsonTypeEnum.Anything:
+                case JsonTypeEnum.NonConstrained:
+                case JsonTypeEnum.NullableObject:
+                case JsonTypeEnum.NullableSomething:
+                case JsonTypeEnum.Object:
+                    return typeof(object);
+                case JsonTypeEnum.Array:
+                case JsonTypeEnum.NullableArray: 
+                    return typeof(List<>);
+                case JsonTypeEnum.Dictionary:
+                case JsonTypeEnum.NullableDictionary:
+                    return typeof(Dictionary<,>);
+                case JsonTypeEnum.Boolean: 
+                    return typeof(bool);
+                case JsonTypeEnum.Float: 
+                    return typeof(double);
+                case JsonTypeEnum.Integer:
+                    return typeof(int);
+                case JsonTypeEnum.Long:
+                    return typeof(long);
+                case JsonTypeEnum.Date: 
+                    return typeof(DateTime);
+                case JsonTypeEnum.TimeSpan:
+                    return typeof(TimeSpan);
+                case JsonTypeEnum.String:
+                case JsonTypeEnum.NullableString: 
+                    return typeof(string);
+                case JsonTypeEnum.NullableBoolean: 
+                    return typeof(bool?);
+                case JsonTypeEnum.NullableFloat:
+                    return typeof(double?);
+                case JsonTypeEnum.NullableInteger:
+                    return typeof(int?);
+                case JsonTypeEnum.NullableLong:
+                    return typeof(long?);
+                case JsonTypeEnum.NullableTimeSpan:
+                    return typeof(TimeSpan?);
+                
+                default: throw new NotSupportedException("Unsupported json type");
+            }
+        }
+    }
 }
