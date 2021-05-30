@@ -1,17 +1,11 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using Microsoft.DotNet.Interactive;
-using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.Office.Interop.Excel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration;
-using Xamasoft.JsonClassGenerator;
+using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
 namespace TAO3.Excel
 {
@@ -59,6 +53,66 @@ namespace TAO3.Excel
         protected ExcelWorksheet(object worksheet)
         {
             Worksheet = (Worksheet)worksheet;
+        }
+
+        public ExcelTable CreateTable<T>(string name, string cell)
+        {
+            return CreateTable<T>(name, Worksheet.Range[cell]);
+        }
+
+        public ExcelTable CreateTable<T>(string name, int row = 1, int col = 1)
+{
+            return CreateTable<T>(name, Worksheet.Cells[row, col]);
+        }
+
+        private ExcelTable CreateTable<T>(string name, ExcelRange cell)
+        {
+            PropertyInfo[] properties = typeof(T).GetProperties();
+
+            ExcelRange headersRange = Worksheet.Range[cell, Worksheet.Cells[cell.Row, cell.Column + properties.Length - 1]];
+            headersRange.NumberFormat = "@";
+
+            ExcelRange range = Worksheet.Range[cell, Worksheet.Cells[cell.Row + 1, cell.Column + properties.Length - 1]];
+
+            object[,] tableCells = BaseOneArray.Create(2, properties.Length);
+
+            for (int i = 1; i <= properties.Length; i++)
+            {
+                PropertyInfo property = properties[i - 1];
+                string columnName = property.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName
+                    ?? property.Name;
+
+                tableCells[1, i] = columnName;
+                ExcelRange bodyCell = Worksheet.Cells[cell.Row + 1, cell.Column + i - 1];
+
+                if (property.PropertyType == typeof(double) || property.PropertyType == typeof(double?))
+                {
+                    bodyCell.NumberFormat = "0.00";
+                }
+                else if (property.PropertyType == typeof(int) || property.PropertyType == typeof(int?))
+                {
+                    bodyCell.NumberFormat = "0";
+                }
+                else if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))
+                {
+                    bodyCell.NumberFormat = "yyyy-mm-dd hh:mm:ss";
+                }
+                else if (property.PropertyType == typeof(TimeSpan) || property.PropertyType == typeof(TimeSpan?))
+                {
+                    bodyCell.NumberFormat = "hh:mm:ss";
+                }
+                else
+                {
+                    bodyCell.NumberFormat = "@";
+                }
+            }
+
+            range.Value2 = tableCells;
+
+            ListObject newTable = Worksheet.ListObjects.Add(XlListObjectSourceType.xlSrcRange, range, XlListObjectHasHeaders: XlYesNoGuess.xlYes);
+            newTable.Name = name;
+
+            return new ExcelTable(Worksheet, newTable);
         }
     }
 
@@ -151,9 +205,9 @@ namespace TAO3.Excel
 
             List<T> dataList = data.ToList();
 
-            Microsoft.Office.Interop.Excel.Range originalRange = ListObject.Range;
+            ExcelRange originalRange = ListObject.Range;
 
-            Microsoft.Office.Interop.Excel.Range newRange = Worksheet.Range[
+            ExcelRange newRange = Worksheet.Range[
                 Worksheet.Cells[originalRange.Row, originalRange.Column],
                 Worksheet.Cells[originalRange.Row + Math.Max(1, dataList.Count), originalRange.Column + columns.Length - 1]];
 

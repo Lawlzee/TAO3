@@ -71,8 +71,7 @@ namespace TAO3.Excel.Generation
                 {
                     bool isTypeNullable = isNullable || values.Any(x => !(x is double));
                     bool isTimeSpan = values
-                        .Where(x => x != null)
-                        .Cast<double>()
+                        .OfType<double>()
                         .All(x => 0 <= x && x < 1);
 
                     return new JsonType(
@@ -93,8 +92,7 @@ namespace TAO3.Excel.Generation
                     if (columnType == typeof(double))
                     {
                         bool isInteger = values
-                            .Where(x => x != null)
-                            .Cast<double>()
+                            .OfType<double>()
                             //https://stackoverflow.com/questions/2751593/how-to-determine-if-a-decimal-double-is-an-integer
                             .All(x => Math.Abs(x % 1) <= (double.Epsilon * 100));
 
