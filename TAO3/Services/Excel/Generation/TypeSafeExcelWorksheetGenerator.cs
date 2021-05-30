@@ -1,15 +1,13 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
-using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Excel;
 using TAO3.Internal.CodeGeneration;
 
-namespace TAO3.Internal.Commands.WrapExcel.Generation
+namespace TAO3.Excel.Generation
 {
     internal static class TypeSafeExcelWorksheetGenerator
     {
@@ -21,7 +19,7 @@ namespace TAO3.Internal.Commands.WrapExcel.Generation
                 .Tables
                 .Select(t => TypeSafeExcelTableGenerator.GenerateAsync(cSharpKernel, t))
                 .Select(x => x.Result)
-                .Select((name, index) => $"public {name} {name} => new {name}(Instance, Tables[{index}].Instance);")
+                .Select((name, index) => $"public {name} {name} => new {name}(Tables[{index}].Instance);")
                 .ToList();
 
             string getTablesCode = string.Join(@"

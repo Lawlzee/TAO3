@@ -1,5 +1,4 @@
-﻿using Microsoft.DotNet.Interactive.CSharp;
-using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,6 @@ using System.Runtime.Versioning;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Excel.Generation;
 
 namespace TAO3.Excel
 {
@@ -21,7 +19,7 @@ namespace TAO3.Excel
     public class ExcelService : IExcelService
     {
         private Application? _application = null;
-        internal Application Application => _application ?? (_application = GetOrOpenExcel());
+        internal Application Application => _application ??= GetOrOpenExcel();
         public dynamic Instance => Application;
 
         public IReadOnlyList<ExcelWorkbook> Workbooks => Application.Workbooks
@@ -83,11 +81,14 @@ namespace TAO3.Excel
         [System.Security.SecurityCritical]  // auto-generated
         private static extern void GetActiveObject(ref Guid rclsid, IntPtr reserved, [MarshalAs(UnmanagedType.Interface)] out object ppunk);
 
+        //https://stackoverflow.com/questions/158706/how-do-i-properly-clean-up-excel-interop-objects
         public void Dispose()
         {
-            //Close excel application?
-        }
+            //todo: Close excel application?
 
-        
+            _application = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 }

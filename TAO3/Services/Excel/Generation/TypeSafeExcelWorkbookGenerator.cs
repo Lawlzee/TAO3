@@ -1,15 +1,13 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
-using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Excel;
 using TAO3.Internal.CodeGeneration;
 
-namespace TAO3.Internal.Commands.WrapExcel.Generation
+namespace TAO3.Excel.Generation
 {
     internal static class TypeSafeExcelWorkbookGenerator
     {

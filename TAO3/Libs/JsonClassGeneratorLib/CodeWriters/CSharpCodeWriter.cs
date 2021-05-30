@@ -23,6 +23,7 @@ namespace Xamasoft.JsonClassGenerator.CodeWriters
                 case JsonTypeEnum.Integer: return "int";
                 case JsonTypeEnum.Long: return "long";
                 case JsonTypeEnum.Date: return "DateTime";
+                case JsonTypeEnum.TimeSpan: return "TimeSpan";
                 case JsonTypeEnum.NonConstrained: return "object";
                 case JsonTypeEnum.NullableString: return "string?";
                 case JsonTypeEnum.NullableBoolean: return "bool?";
@@ -30,6 +31,7 @@ namespace Xamasoft.JsonClassGenerator.CodeWriters
                 case JsonTypeEnum.NullableInteger: return "int?";
                 case JsonTypeEnum.NullableLong: return "long?";
                 case JsonTypeEnum.NullableDate: return "DateTime?";
+                case JsonTypeEnum.NullableTimeSpan: return "TimeSpan?";
                 case JsonTypeEnum.NullableObject: return "object?";
                 case JsonTypeEnum.NullableSomething: return "object";
                 case JsonTypeEnum.Object: return type.AssignedName;

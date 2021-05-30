@@ -13,7 +13,7 @@ using TAO3.Internal.Commands.Converter;
 using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
-using TAO3.Internal.Commands.WrapExcel;
+using TAO3.Internal.Commands.RefreshTypes;
 using TAO3.Services;
 using TAO3.Avalonia;
 using TAO3.Clipboard;
@@ -61,7 +61,7 @@ namespace TAO3.Internal
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
-            kernel.AddDirective(new WrapExcelCommand(excel));
+            kernel.AddDirective(new RefreshTypesCommand(excel));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));
