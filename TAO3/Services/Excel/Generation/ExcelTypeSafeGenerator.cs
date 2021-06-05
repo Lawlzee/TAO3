@@ -1,24 +1,34 @@
 ﻿using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Excel.Generation
 {
-    internal static class ExcelTypeSafeGenerator
+    internal class ExcelTypeSafeGenerator
     {
-        public static async Task RefreshGenerationAsync(CSharpKernel cSharpKernel, IExcelService excelService)
+        private readonly CSharpKernel _cSharpKernel;
+        private readonly IExcelService _excelService;
+
+        public ExcelTypeSafeGenerator(CSharpKernel cSharpKernel, IExcelService excelService)
         {
-            List<string> workbooks = excelService.Workbooks
-                .Select(w => TypeSafeExcelWorkbookGenerator.GenerateAsync(cSharpKernel, w))
-                .Select(x => x.Result)
+            _cSharpKernel = cSharpKernel;
+            _excelService = excelService;
+        }
+
+        public void RefreshGeneration()
+        {
+            List<string> workbooks = _excelService.Workbooks
+                .Select(w => TypeSafeExcelWorkbookGenerator.Generate(_cSharpKernel, w))
                 .Select((name, index) => $@"
 public static {name} {name}(this IExcelService excelService)
 {{
-    return new {name}(excelService.Workbooks[{index}].Instance);
+    return new {name}(excelService.Workbooks[{index}]);
 }}")
                 .ToList();
 
@@ -28,7 +38,7 @@ public static {name} {name}(this IExcelService excelService)
 
 {getWorkbooksCode}";
 
-            await cSharpKernel.SubmitCodeAsync(code);
+            _cSharpKernel.DeferCommand(new SubmitCode(code));
         }
     }
 }

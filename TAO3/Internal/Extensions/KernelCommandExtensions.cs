@@ -9,7 +9,7 @@ namespace TAO3.Internal.Extensions
 {
     internal static class KernelCommandExtensions
     {
-        internal static KernelCommand GetRootCommand(this KernelCommand kernelCommand)
+        public static KernelCommand GetRootCommand(this KernelCommand kernelCommand)
         {
             while (kernelCommand.Parent != null)
             {

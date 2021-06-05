@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.DotNet.Interactive.CSharp;
+using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Runtime.Versioning;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Excel.Generation;
 
 namespace TAO3.Excel
 {
@@ -14,18 +16,42 @@ namespace TAO3.Excel
     {
         public dynamic Instance { get; }
         IReadOnlyList<ExcelWorkbook> Workbooks { get; }
+        ExcelWorkbook Open(string path, bool refreshTypes = true);
+        void RefreshTypes();
     }
 
-    public class ExcelService : IExcelService
+    internal class ExcelService : IExcelService
     {
+        internal ExcelTypeSafeGenerator TypeGenerator { get; }
+
         private Application? _application = null;
         internal Application Application => _application ??= GetOrOpenExcel();
         public dynamic Instance => Application;
 
         public IReadOnlyList<ExcelWorkbook> Workbooks => Application.Workbooks
             .Cast<Workbook>()
-            .Select(x => new ExcelWorkbook(x))
+            .Select(x => new ExcelWorkbook(TypeGenerator, x))
             .ToList();
+
+        public ExcelService(CSharpKernel kernel)
+        {
+            TypeGenerator = new ExcelTypeSafeGenerator(kernel, this);
+        }
+
+        public ExcelWorkbook Open(string path, bool refreshTypes = true)
+        {
+            ExcelWorkbook workbook = new ExcelWorkbook(TypeGenerator, Application.Workbooks.Open(path));
+            if (refreshTypes)
+            {
+                TypeGenerator.RefreshGeneration();
+            }
+            return workbook;
+        }
+
+        public void RefreshTypes()
+        {
+            TypeGenerator.RefreshGeneration();
+        }
 
         private Application GetOrOpenExcel()
         {

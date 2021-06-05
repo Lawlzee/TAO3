@@ -1,4 +1,5 @@
 ﻿using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.Office.Interop.Excel;
 using System;
@@ -14,14 +15,14 @@ namespace TAO3.Excel.Generation
 {
     internal static class TypeSafeExcelTableGenerator
     {
-        public static async Task<string> GenerateAsync(CSharpKernel cSharpKernel, ExcelTable table)
+        public static string Generate(CSharpKernel cSharpKernel, ExcelTable table)
         {
-            string rowTypeName = await GenerateRowTypeAsync(cSharpKernel, table);
-            string tableTypeName = await GenerateTableTypeAsync(cSharpKernel, table, rowTypeName);
+            string rowTypeName = GenerateRowType(cSharpKernel, table);
+            string tableTypeName = GenerateTableType(cSharpKernel, table, rowTypeName);
             return tableTypeName;
         }
 
-        private static async Task<string> GenerateRowTypeAsync(CSharpKernel cSharpKernel, ExcelTable table)
+        private static string GenerateRowType(CSharpKernel cSharpKernel, ExcelTable table)
         {
             List<FieldInfo> fields = table.ListObject.ListColumns
                 .Cast<ListColumn>()
@@ -37,12 +38,12 @@ namespace TAO3.Excel.Generation
 
             string code = JsonClassGenerator.WriteClasses(new List<JsonType> { objectType });
 
-            await cSharpKernel.SubmitCodeAsync(code);
+            cSharpKernel.DeferCommand(new SubmitCode(code));
 
             return objectType.AssignedName;
         }
 
-        private static async Task<string> GenerateTableTypeAsync(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
+        private static string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
         {
             string className = IdentifierUtils.ToPascalCase(table.Name);
 
@@ -53,8 +54,8 @@ using TAO3.Excel;
 
 public class {className} : ExcelTable
 {{
-    internal {className}(object worksheet, object listObject)
-        : base(worksheet, listObject)
+    internal {className}(ExcelTable table)
+        : base(table)
     {{
 
     }}
@@ -63,7 +64,7 @@ public class {className} : ExcelTable
 
     public void Set(IEnumerable<{rowTypeName}> data) => Set<{rowTypeName}>(data);
 }}";
-            await cSharpKernel.SubmitCodeAsync(code);
+            cSharpKernel.DeferCommand(new SubmitCode(code));
 
             return className;
         }

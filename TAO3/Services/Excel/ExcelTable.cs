@@ -5,28 +5,54 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TAO3.Excel.Generation;
 using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
 namespace TAO3.Excel
 {
     public class ExcelTable
     {
+        internal ExcelTypeSafeGenerator TypeGenerator { get; }
         internal Worksheet Worksheet { get; }
         internal ListObject ListObject { get; }
         public dynamic Instance => ListObject;
 
-        public string Name => ListObject.Name;
-
-        internal ExcelTable(Worksheet worksheet, ListObject listObject)
+        public string Name
         {
+            get => ListObject.Name;
+            set => ListObject.Name = value;
+        }
+
+        internal ExcelTable(ExcelTypeSafeGenerator typeGenerator, Worksheet worksheet, ListObject listObject)
+        {
+            TypeGenerator = typeGenerator;
             Worksheet = worksheet;
             ListObject = listObject;
         }
 
-        protected ExcelTable(object worksheet, object listObject)
+        protected ExcelTable(ExcelTable table)
         {
-            Worksheet = (Worksheet)worksheet;
-            ListObject = (ListObject)listObject;
+            TypeGenerator = table.TypeGenerator;
+            Worksheet = table.Worksheet;
+            ListObject = table.ListObject;
+        }
+
+        public void Delete(bool refreshTypes = true)
+        {
+            ListObject.Delete();
+            if (refreshTypes)
+            {
+                TypeGenerator.RefreshGeneration();
+            }
+        }
+
+        public void Unlist(bool refreshTypes = true)
+        {
+            ListObject.Unlist();
+            if (refreshTypes)
+            {
+                TypeGenerator.RefreshGeneration();
+            }
         }
 
         public object[,] GetRawData()

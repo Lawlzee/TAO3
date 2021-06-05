@@ -9,11 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters;
 using TAO3.InputSources;
-using TAO3.Internal.Commands.Converter;
 using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
-using TAO3.Internal.Commands.RefreshTypes;
 using TAO3.Services;
 using TAO3.Avalonia;
 using TAO3.Clipboard;
@@ -22,6 +20,7 @@ using TAO3.Notepad;
 using TAO3.Toast;
 using TAO3.OutputDestinations;
 using TAO3.Excel;
+using Microsoft.DotNet.Interactive.CSharp;
 
 namespace TAO3.Internal
 {
@@ -31,7 +30,7 @@ namespace TAO3.Internal
         {
             Debugger.Launch();
 
-            IExcelService excel = new ExcelService();
+            IExcelService excel = new ExcelService((CSharpKernel)kernel.FindKernel("csharp"));
             INotepadService notepad = new NotepadService();
 
             WindowsInterop interop = WindowsInterop.Create();
@@ -61,7 +60,6 @@ namespace TAO3.Internal
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
-            kernel.AddDirective(new RefreshTypesCommand(excel));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));

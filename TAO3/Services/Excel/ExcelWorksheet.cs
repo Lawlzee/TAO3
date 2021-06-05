@@ -4,32 +4,55 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TAO3.Excel.Generation;
 using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
 namespace TAO3.Excel
 {
     public class ExcelWorksheet
     {
+        internal ExcelTypeSafeGenerator TypeGenerator { get; }
         internal Worksheet Worksheet { get; }
         public dynamic Instance => Worksheet;
 
-        public string Name => Worksheet.Name;
+        public string Name
+        {
+            get => Worksheet.Name;
+            set => Worksheet.Name = value;
+        }
+
         public IReadOnlyList<ExcelTable> Tables => Worksheet
             .ListObjects
             .Cast<ListObject>()
-            .Select(x => new ExcelTable(Worksheet, x))
+            .Select(x => new ExcelTable(TypeGenerator, Worksheet, x))
             .ToList();
 
         public ExcelWorksheetCells Cells => new ExcelWorksheetCells(Worksheet);
 
-        internal ExcelWorksheet(Worksheet worksheet)
+        internal ExcelWorksheet(ExcelTypeSafeGenerator typeGenerator, Worksheet worksheet)
         {
+            TypeGenerator = typeGenerator;
             Worksheet = worksheet;
         }
 
-        protected ExcelWorksheet(object worksheet)
+        protected ExcelWorksheet(ExcelWorksheet worksheet)
         {
-            Worksheet = (Worksheet)worksheet;
+            TypeGenerator = worksheet.TypeGenerator;
+            Worksheet = worksheet.Worksheet;
+        }
+
+        public void Activate()
+        {
+            Worksheet.Activate();
+        }
+
+        public void Delete(bool refreshTypes = true)
+        {
+            Worksheet.Delete();
+            if (refreshTypes)
+            {
+                TypeGenerator.RefreshGeneration();
+            }
         }
 
         public object[,] GetUsedRange()
@@ -37,19 +60,29 @@ namespace TAO3.Excel
             return Worksheet.UsedRange.GetValues();
         }
 
-        public ExcelTable CreateTable<T>(string name, string cell)
+        public ExcelTable CreateTable(Type rowType, string position, string? name = null, bool refreshTypes = true)
         {
-            return CreateTable<T>(name, Worksheet.Range[cell]);
+            return CreateTable(rowType, Worksheet.Range[position], name, refreshTypes);
         }
 
-        public ExcelTable CreateTable<T>(string name, int row = 1, int col = 1)
+        public ExcelTable CreateTable(Type rowType, int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
         {
-            return CreateTable<T>(name, Worksheet.Cells[row, col]);
+            return CreateTable(rowType, Worksheet.Cells[row, col], name, refreshTypes);
         }
 
-        private ExcelTable CreateTable<T>(string name, ExcelRange cell)
+        public ExcelTable CreateTable<T>(string position, string? name = null, bool refreshTypes = true)
         {
-            PropertyInfo[] properties = typeof(T).GetProperties();
+            return CreateTable(typeof(T), Worksheet.Range[position], name, refreshTypes);
+        }
+
+        public ExcelTable CreateTable<T>(int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
+        {
+            return CreateTable(typeof(T), Worksheet.Cells[row, col], name, refreshTypes);
+        }
+
+        private ExcelTable CreateTable(Type rowType, ExcelRange cell, string? name, bool refreshTypes)
+        {
+            PropertyInfo[] properties = rowType.GetProperties();
 
             ExcelRange headersRange = Worksheet.Range[cell, Worksheet.Cells[cell.Row, cell.Column + properties.Length - 1]];
             headersRange.NumberFormat = "@";
@@ -73,9 +106,18 @@ namespace TAO3.Excel
             range.Value2 = tableCells;
 
             ListObject newTable = Worksheet.ListObjects.Add(XlListObjectSourceType.xlSrcRange, range, XlListObjectHasHeaders: XlYesNoGuess.xlYes);
-            newTable.Name = name;
 
-            return new ExcelTable(Worksheet, newTable);
+            if (name != null)
+            {
+                newTable.Name = name;
+            }
+
+            if (refreshTypes)
+            {
+                TypeGenerator.RefreshGeneration();
+            }
+
+            return new ExcelTable(TypeGenerator, Worksheet, newTable);
         }
     }
 }

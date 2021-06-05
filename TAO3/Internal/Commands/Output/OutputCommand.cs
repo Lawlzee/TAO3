@@ -53,7 +53,7 @@ namespace TAO3.Internal.Commands.Output
             {
                 object? settingsInstance = null;
 
-                CSharpKernel cSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
+                CSharpKernel cSharpKernel = context.GetCSharpKernel();
                 if (settings != string.Empty && !cSharpKernel.TryGetVariable(settings, out settingsInstance))
                 {
                     context.Fail(new ArgumentException(), $"The variable '{settings}' was not found");

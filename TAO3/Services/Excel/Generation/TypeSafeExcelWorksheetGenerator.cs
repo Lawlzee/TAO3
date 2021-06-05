@@ -1,4 +1,5 @@
 ﻿using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using System;
 using System.Collections.Generic;
@@ -6,20 +7,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.CodeGeneration;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Excel.Generation
 {
     internal static class TypeSafeExcelWorksheetGenerator
     {
-        public static async Task<string> GenerateAsync(CSharpKernel cSharpKernel, ExcelWorksheet sheet)
+        public static string Generate(CSharpKernel cSharpKernel, ExcelWorksheet sheet)
         {
             string className = IdentifierUtils.ToPascalCase(sheet.Name);
 
             List<string> tables = sheet
                 .Tables
-                .Select(t => TypeSafeExcelTableGenerator.GenerateAsync(cSharpKernel, t))
-                .Select(x => x.Result)
-                .Select((name, index) => $"public {name} {name} => new {name}(Instance, Tables[{index}].Instance);")
+                .Select(t => TypeSafeExcelTableGenerator.Generate(cSharpKernel, t))
+                .Select((name, index) => $"public {name} {name} => new {name}(Tables[{index}]);")
                 .ToList();
 
             string getTablesCode = string.Join(@"
@@ -34,13 +35,13 @@ public class {className} : ExcelWorksheet
 {{
     {getTablesCode}
 
-    internal {className}(object worksheet)
+    internal {className}(ExcelWorksheet worksheet)
         : base(worksheet)
     {{
     }}
 }}";
 
-            await cSharpKernel.SubmitCodeAsync(code);
+            cSharpKernel.DeferCommand(new SubmitCode(code));
 
             return className;
         }

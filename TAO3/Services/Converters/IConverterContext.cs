@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Converters
 {
@@ -56,7 +57,7 @@ namespace TAO3.Converters
             _context = context;
             _getTextAsync = getTextAsync;
 
-            CSharpKernel = (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
+            CSharpKernel = context.GetCSharpKernel();
 
             if (!string.IsNullOrEmpty(_settingsName) && CSharpKernel.TryGetVariable(_settingsName, out TSettings s))
             {
