@@ -75,6 +75,7 @@ namespace TAO3.Internal
             inputSource.Register(new NotepadInputSource(notepad));
 
             outputDestination.Register(new ClipboardOutputDestination(clipboard));
+            outputDestination.Register(new NotepadOutputDestination(notepad));
 
             return Task.CompletedTask;
         }

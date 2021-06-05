@@ -17,6 +17,7 @@ namespace TAO3.Notepad
         void Start();
         void FileNew();
         string GetText();
+        void SetText(string text);
     }
 
     internal class NotepadService : INotepadService
@@ -60,6 +61,26 @@ namespace TAO3.Notepad
             finally
             {
                 npp.VirtualFreeEx(memPtr, length + 1);
+            }
+        }
+
+        public void SetText(string text)
+        {
+            text += "\0";
+
+            NppProcess npp = GetNppOrThrow();
+
+            int length = Encoding.UTF8.GetByteCount(text);
+
+            IntPtr memPtr = npp.VirtualAllocEx(length + 1);
+            try
+            {
+                npp.WriteProcessMemory(memPtr, Encoding.UTF8.GetBytes(text));
+                User32.SendMessage(npp.ScintillaMainHandle, (uint)SciMsg.SCI_SETTEXT, 0, memPtr);
+            }
+            finally
+            {
+                npp.VirtualFreeEx(memPtr, length);
             }
         }
 
@@ -136,5 +157,7 @@ namespace TAO3.Notepad
         {
 
         }
+
+        
     }
 }
