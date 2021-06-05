@@ -42,7 +42,7 @@ namespace TAO3.Excel
             ListObject.Delete();
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
         }
 
@@ -51,7 +51,7 @@ namespace TAO3.Excel
             ListObject.Unlist();
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
         }
 

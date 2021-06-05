@@ -43,7 +43,7 @@ namespace TAO3.Excel
 
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
 
             return new ExcelWorksheet(TypeGenerator, worksheet);
@@ -65,7 +65,7 @@ namespace TAO3.Excel
 
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
         }
     }

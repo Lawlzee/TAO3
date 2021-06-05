@@ -31,6 +31,8 @@ namespace TAO3.Internal
             Debugger.Launch();
 
             IExcelService excel = new ExcelService((CSharpKernel)kernel.FindKernel("csharp"));
+            excel.RefreshTypes();
+
             INotepadService notepad = new NotepadService();
 
             WindowsInterop interop = WindowsInterop.Create();

@@ -21,7 +21,7 @@ namespace TAO3.Excel.Generation
             _excelService = excelService;
         }
 
-        public void RefreshGeneration()
+        public void ScheduleRefreshGeneration()
         {
             List<string> workbooks = _excelService.Workbooks
                 .Select(w => TypeSafeExcelWorkbookGenerator.Generate(_cSharpKernel, w))

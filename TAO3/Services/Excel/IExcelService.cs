@@ -43,25 +43,62 @@ namespace TAO3.Excel
             ExcelWorkbook workbook = new ExcelWorkbook(TypeGenerator, Application.Workbooks.Open(path));
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
             return workbook;
         }
 
         public void RefreshTypes()
         {
-            TypeGenerator.RefreshGeneration();
+            TypeGenerator.ScheduleRefreshGeneration();
         }
 
         private Application GetOrOpenExcel()
         {
+            Application application;
+
             try
             {
-                return (Application)GetActiveObject("Excel.Application");
+                application = (Application)GetActiveObject("Excel.Application");
             }
             catch (Exception)//Excel not open
             {
-                return new Application();
+                application = new Application();
+            }
+
+            RegistedRefreshEvents(application);
+            return application;
+        }
+
+        private void RegistedRefreshEvents(Application application)
+        {
+            AppEvents_Event evnts = application;
+            evnts.NewWorkbook += w =>
+            {
+                RegisterWorkbookEvents(w);
+                TypeGenerator.ScheduleRefreshGeneration();
+            };
+
+            evnts.WorkbookOpen += w =>
+            {
+                RegisterWorkbookEvents(w);
+                TypeGenerator.ScheduleRefreshGeneration();
+            };
+
+            evnts.WorkbookBeforeClose += (Workbook w, ref bool cancel) =>
+            {
+                TypeGenerator.ScheduleRefreshGeneration();
+            };
+
+            foreach (Workbook workbook in application.Workbooks)
+            {
+                RegisterWorkbookEvents(workbook);
+            }
+
+            void RegisterWorkbookEvents(Workbook workbook)
+            {
+                workbook.NewSheet += sheet => TypeGenerator.ScheduleRefreshGeneration();
+                workbook.SheetBeforeDelete += sheet => TypeGenerator.ScheduleRefreshGeneration();
             }
         }
 

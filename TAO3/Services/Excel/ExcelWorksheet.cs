@@ -51,7 +51,7 @@ namespace TAO3.Excel
             Worksheet.Delete();
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
         }
 
@@ -60,29 +60,19 @@ namespace TAO3.Excel
             return Worksheet.UsedRange.GetValues();
         }
 
-        public ExcelTable CreateTable(Type rowType, string position, string? name = null, bool refreshTypes = true)
+        public ExcelTable CreateTable<T>(IEnumerable<T> data, string position,  string? name = null, bool refreshTypes = true)
         {
-            return CreateTable(rowType, Worksheet.Range[position], name, refreshTypes);
+            return CreateTable<T>(data, Worksheet.Range[position], name, refreshTypes);
         }
 
-        public ExcelTable CreateTable(Type rowType, int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
+        public ExcelTable CreateTable<T>(IEnumerable<T> data, int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
         {
-            return CreateTable(rowType, Worksheet.Cells[row, col], name, refreshTypes);
+            return CreateTable<T>(data, Worksheet.Cells[row, col], name, refreshTypes);
         }
 
-        public ExcelTable CreateTable<T>(string position, string? name = null, bool refreshTypes = true)
+        private ExcelTable CreateTable<T>(IEnumerable<T> data, ExcelRange cell, string? name, bool refreshTypes)
         {
-            return CreateTable(typeof(T), Worksheet.Range[position], name, refreshTypes);
-        }
-
-        public ExcelTable CreateTable<T>(int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
-        {
-            return CreateTable(typeof(T), Worksheet.Cells[row, col], name, refreshTypes);
-        }
-
-        private ExcelTable CreateTable(Type rowType, ExcelRange cell, string? name, bool refreshTypes)
-        {
-            PropertyInfo[] properties = rowType.GetProperties();
+            PropertyInfo[] properties = typeof(T).GetProperties();
 
             ExcelRange headersRange = Worksheet.Range[cell, Worksheet.Cells[cell.Row, cell.Column + properties.Length - 1]];
             headersRange.NumberFormat = "@";
@@ -112,12 +102,16 @@ namespace TAO3.Excel
                 newTable.Name = name;
             }
 
+            ExcelTable excelTable = new ExcelTable(TypeGenerator, Worksheet, newTable);
+
+            excelTable.Set(data);
+
             if (refreshTypes)
             {
-                TypeGenerator.RefreshGeneration();
+                TypeGenerator.ScheduleRefreshGeneration();
             }
 
-            return new ExcelTable(TypeGenerator, Worksheet, newTable);
+            return excelTable;
         }
     }
 }
