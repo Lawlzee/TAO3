@@ -72,7 +72,7 @@ namespace TAO3.Notepad
 
             int length = Encoding.UTF8.GetByteCount(text);
 
-            IntPtr memPtr = npp.VirtualAllocEx(length + 1);
+            IntPtr memPtr = npp.VirtualAllocEx(length);
             try
             {
                 npp.WriteProcessMemory(memPtr, Encoding.UTF8.GetBytes(text));

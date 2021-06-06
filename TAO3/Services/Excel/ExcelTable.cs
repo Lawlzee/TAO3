@@ -20,7 +20,7 @@ namespace TAO3.Excel
         public string Name
         {
             get => ListObject.Name;
-            set => ListObject.Name = value;
+            set => TypeGenerator.ScheduleRefreshGenerationAfter(() => ListObject.Name = value);
         }
 
         internal ExcelTable(ExcelTypeSafeGenerator typeGenerator, Worksheet worksheet, ListObject listObject)
@@ -39,20 +39,12 @@ namespace TAO3.Excel
 
         public void Delete(bool refreshTypes = true)
         {
-            ListObject.Delete();
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
+            TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => ListObject.Delete());
         }
 
         public void Unlist(bool refreshTypes = true)
         {
-            ListObject.Unlist();
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
+            TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => ListObject.Unlist());
         }
 
         public object[,] GetRawData()
@@ -62,7 +54,7 @@ namespace TAO3.Excel
 
         public void SetRawData(object[,] data)
         {
-            ListObject.DataBodyRange.Value2 = data;
+            TypeGenerator.DisableRefreshGeneration(() => ListObject.DataBodyRange.Value2 = data);
         }
 
         //to do: optimise
@@ -107,45 +99,48 @@ namespace TAO3.Excel
         //to do: optimise
         public void Set<T>(IEnumerable<T> data)
         {
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            ListColumn[] columns = ListObject.ListColumns.Cast<ListColumn>().ToArray();
-
-            List<T> dataList = data.ToList();
-
-            ExcelRange originalRange = ListObject.Range;
-
-            ExcelRange newRange = Worksheet.Range[
-                Worksheet.Cells[originalRange.Row, originalRange.Column],
-                Worksheet.Cells[originalRange.Row + Math.Max(1, dataList.Count), originalRange.Column + columns.Length - 1]];
-
-            int originalRowCountNoHeaders = originalRange.Rows.Count - 1;
-            if (dataList.Count > originalRowCountNoHeaders)
+            TypeGenerator.DisableRefreshGeneration(() =>
             {
-                ListObject.Resize(newRange);
-            }
+                PropertyInfo[] properties = typeof(T).GetProperties();
+                ListColumn[] columns = ListObject.ListColumns.Cast<ListColumn>().ToArray();
 
-            object?[,] newBody = BaseOneArray.Create(Math.Max(originalRowCountNoHeaders, dataList.Count), originalRange.Columns.Count);
-            for (int col = 1; col <= columns.Length; col++)
-            {
-                PropertyInfo? property = GetProperty(properties, columns[col - 1], col - 1);
+                List<T> dataList = data.ToList();
 
-                if (property == null)
+                ExcelRange originalRange = ListObject.Range;
+
+                ExcelRange newRange = Worksheet.Range[
+                    Worksheet.Cells[originalRange.Row, originalRange.Column],
+                    Worksheet.Cells[originalRange.Row + Math.Max(1, dataList.Count), originalRange.Column + columns.Length - 1]];
+
+                int originalRowCountNoHeaders = originalRange.Rows.Count - 1;
+                if (dataList.Count > originalRowCountNoHeaders)
                 {
-                    continue;
+                    ListObject.Resize(newRange);
                 }
 
-                for (int row = 1; row <= dataList.Count; row++)
+                object?[,] newBody = BaseOneArray.Create(Math.Max(originalRowCountNoHeaders, dataList.Count), originalRange.Columns.Count);
+                for (int col = 1; col <= columns.Length; col++)
                 {
-                    newBody[row, col] = property.GetValue(dataList[row - 1])?.ToString();
+                    PropertyInfo? property = GetProperty(properties, columns[col - 1], col - 1);
+
+                    if (property == null)
+                    {
+                        continue;
+                    }
+
+                    for (int row = 1; row <= dataList.Count; row++)
+                    {
+                        newBody[row, col] = property.GetValue(dataList[row - 1])?.ToString();
+                    }
                 }
-            }
 
-            ListObject.DataBodyRange.Value2 = newBody;
+                ListObject.DataBodyRange.Value2 = newBody;
 
-            if (dataList.Count < originalRowCountNoHeaders)
-            {
-                ListObject.Resize(newRange);
-            }
+                if (dataList.Count < originalRowCountNoHeaders)
+                {
+                    ListObject.Resize(newRange);
+                }
+            });
         }
 
         PropertyInfo? GetProperty(PropertyInfo[] properties, ListColumn column, int col)

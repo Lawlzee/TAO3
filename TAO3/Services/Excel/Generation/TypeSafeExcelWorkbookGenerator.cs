@@ -42,7 +42,7 @@ public class {className} : ExcelWorkbook
     }}
 }}";
 
-            cSharpKernel.DeferCommand(new SubmitCode(code));
+            cSharpKernel.ScheduleSubmitCode(code);
 
             return className;
         }

@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.Internal.CodeGeneration;
+using TAO3.Internal.Extensions;
 using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Excel.Generation
@@ -38,7 +39,7 @@ namespace TAO3.Excel.Generation
 
             string code = JsonClassGenerator.WriteClasses(new List<JsonType> { objectType });
 
-            cSharpKernel.DeferCommand(new SubmitCode(code));
+            cSharpKernel.ScheduleSubmitCode(code);
 
             return objectType.AssignedName;
         }
@@ -64,7 +65,7 @@ public class {className} : ExcelTable
 
     public void Set(IEnumerable<{rowTypeName}> data) => Set<{rowTypeName}>(data);
 }}";
-            cSharpKernel.DeferCommand(new SubmitCode(code));
+            cSharpKernel.ScheduleSubmitCode(code);
 
             return className;
         }

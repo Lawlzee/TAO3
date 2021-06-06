@@ -18,7 +18,7 @@ namespace TAO3.Excel
         public string Name
         {
             get => Worksheet.Name;
-            set => Worksheet.Name = value;
+            set => TypeGenerator.ScheduleRefreshGenerationAfter(() => Worksheet.Name = value);
         }
 
         public IReadOnlyList<ExcelTable> Tables => Worksheet
@@ -43,16 +43,12 @@ namespace TAO3.Excel
 
         public void Activate()
         {
-            Worksheet.Activate();
+            TypeGenerator.DisableRefreshGeneration(() => Worksheet.Activate());
         }
 
         public void Delete(bool refreshTypes = true)
         {
-            Worksheet.Delete();
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
+            TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => Worksheet.Delete());
         }
 
         public object[,] GetUsedRange()
@@ -62,56 +58,54 @@ namespace TAO3.Excel
 
         public ExcelTable CreateTable<T>(IEnumerable<T> data, string position,  string? name = null, bool refreshTypes = true)
         {
-            return CreateTable<T>(data, Worksheet.Range[position], name, refreshTypes);
+            return CreateTable(data, Worksheet.Range[position], name, refreshTypes);
         }
 
         public ExcelTable CreateTable<T>(IEnumerable<T> data, int row = 1, int col = 1, string? name = null, bool refreshTypes = true)
         {
-            return CreateTable<T>(data, Worksheet.Cells[row, col], name, refreshTypes);
+            return CreateTable(data, Worksheet.Cells[row, col], name, refreshTypes);
         }
 
         private ExcelTable CreateTable<T>(IEnumerable<T> data, ExcelRange cell, string? name, bool refreshTypes)
         {
-            PropertyInfo[] properties = typeof(T).GetProperties();
-
-            ExcelRange headersRange = Worksheet.Range[cell, Worksheet.Cells[cell.Row, cell.Column + properties.Length - 1]];
-            headersRange.NumberFormat = "@";
-
-            ExcelRange range = Worksheet.Range[cell, Worksheet.Cells[cell.Row + 1, cell.Column + properties.Length - 1]];
-
-            object[,] tableCells = BaseOneArray.Create(2, properties.Length);
-
-            for (int i = 1; i <= properties.Length; i++)
+            return TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () =>
             {
-                PropertyInfo property = properties[i - 1];
-                string columnName = property.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName
-                    ?? property.Name;
+                PropertyInfo[] properties = typeof(T).GetProperties();
 
-                tableCells[1, i] = columnName;
-                ExcelRange bodyCell = Worksheet.Cells[cell.Row + 1, cell.Column + i - 1];
+                ExcelRange headersRange = Worksheet.Range[cell, Worksheet.Cells[cell.Row, cell.Column + properties.Length - 1]];
+                headersRange.NumberFormat = "@";
 
-                bodyCell.NumberFormat = ExcelFormatHelper.GetFormat(property.PropertyType);
-            }
+                ExcelRange range = Worksheet.Range[cell, Worksheet.Cells[cell.Row + 1, cell.Column + properties.Length - 1]];
 
-            range.Value2 = tableCells;
+                object[,] tableCells = BaseOneArray.Create(2, properties.Length);
 
-            ListObject newTable = Worksheet.ListObjects.Add(XlListObjectSourceType.xlSrcRange, range, XlListObjectHasHeaders: XlYesNoGuess.xlYes);
+                for (int i = 1; i <= properties.Length; i++)
+                {
+                    PropertyInfo property = properties[i - 1];
+                    string columnName = property.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName
+                        ?? property.Name;
 
-            if (name != null)
-            {
-                newTable.Name = name;
-            }
+                    tableCells[1, i] = columnName;
+                    ExcelRange bodyCell = Worksheet.Cells[cell.Row + 1, cell.Column + i - 1];
 
-            ExcelTable excelTable = new ExcelTable(TypeGenerator, Worksheet, newTable);
+                    bodyCell.NumberFormat = ExcelFormatHelper.GetFormat(property.PropertyType);
+                }
 
-            excelTable.Set(data);
+                range.Value2 = tableCells;
 
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
+                ListObject newTable = Worksheet.ListObjects.Add(XlListObjectSourceType.xlSrcRange, range, XlListObjectHasHeaders: XlYesNoGuess.xlYes);
 
-            return excelTable;
+                if (name != null)
+                {
+                    newTable.Name = name;
+                }
+
+                ExcelTable excelTable = new ExcelTable(TypeGenerator, Worksheet, newTable);
+
+                excelTable.Set(data);
+
+                return excelTable;
+            });
         }
     }
 }

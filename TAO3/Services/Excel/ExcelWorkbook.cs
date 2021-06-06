@@ -35,38 +35,31 @@ namespace TAO3.Excel
 
         public ExcelWorksheet AddWorksheet(string? name = null, bool refreshTypes = true)
         {
-            Worksheet worksheet = Workbook.Sheets.Add(After: Workbook.Sheets[Workbook.Sheets.Count]);
-            if (name != null)
+            return TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () =>
             {
-                worksheet.Name = name;
-            }
+                Worksheet worksheet = Workbook.Sheets.Add(After: Workbook.Sheets[Workbook.Sheets.Count]);
+                if (name != null)
+                {
+                    worksheet.Name = name;
+                }
 
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
-
-            return new ExcelWorksheet(TypeGenerator, worksheet);
+                return new ExcelWorksheet(TypeGenerator, worksheet);
+            });
         }
 
         public void Save()
         {
-            Workbook.Save();
+            TypeGenerator.DisableRefreshGeneration(() => Workbook.Save());
         }
 
         public void SaveAs(string path)
         {
-            Workbook.SaveAs2(path);
+            TypeGenerator.DisableRefreshGeneration(() => Workbook.SaveAs2(path));
         }
 
         public void Close(bool refreshTypes = true)
         {
-            Workbook.Close();
-
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
+            TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => Workbook.Close());
         }
     }
 }

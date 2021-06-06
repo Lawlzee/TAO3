@@ -9,6 +9,7 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Excel.Generation;
+using TAO3.Excel.Generation.Auto;
 
 namespace TAO3.Excel
 {
@@ -23,7 +24,8 @@ namespace TAO3.Excel
     internal class ExcelService : IExcelService
     {
         internal ExcelTypeSafeGenerator TypeGenerator { get; }
-
+        private readonly AutoExcelTypeProvider _autoExcelTypeProvider;
+        
         private Application? _application = null;
         internal Application Application => _application ??= GetOrOpenExcel();
         public dynamic Instance => Application;
@@ -36,16 +38,12 @@ namespace TAO3.Excel
         public ExcelService(CSharpKernel kernel)
         {
             TypeGenerator = new ExcelTypeSafeGenerator(kernel, this);
+            _autoExcelTypeProvider = new AutoExcelTypeProvider(TypeGenerator);
         }
 
         public ExcelWorkbook Open(string path, bool refreshTypes = true)
         {
-            ExcelWorkbook workbook = new ExcelWorkbook(TypeGenerator, Application.Workbooks.Open(path));
-            if (refreshTypes)
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            }
-            return workbook;
+            return TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => new ExcelWorkbook(TypeGenerator, Application.Workbooks.Open(path)));
         }
 
         public void RefreshTypes()
@@ -66,44 +64,12 @@ namespace TAO3.Excel
                 application = new Application();
             }
 
-            RegistedRefreshEvents(application);
+            _autoExcelTypeProvider.Initialize(application);
             return application;
         }
 
-        private void RegistedRefreshEvents(Application application)
-        {
-            AppEvents_Event evnts = application;
-            evnts.NewWorkbook += w =>
-            {
-                RegisterWorkbookEvents(w);
-                TypeGenerator.ScheduleRefreshGeneration();
-            };
-
-            evnts.WorkbookOpen += w =>
-            {
-                RegisterWorkbookEvents(w);
-                TypeGenerator.ScheduleRefreshGeneration();
-            };
-
-            evnts.WorkbookBeforeClose += (Workbook w, ref bool cancel) =>
-            {
-                TypeGenerator.ScheduleRefreshGeneration();
-            };
-
-            foreach (Workbook workbook in application.Workbooks)
-            {
-                RegisterWorkbookEvents(workbook);
-            }
-
-            void RegisterWorkbookEvents(Workbook workbook)
-            {
-                workbook.NewSheet += sheet => TypeGenerator.ScheduleRefreshGeneration();
-                workbook.SheetBeforeDelete += sheet => TypeGenerator.ScheduleRefreshGeneration();
-            }
-        }
-
         //https://stackoverflow.com/questions/58010510/no-definition-found-for-getactiveobject-from-system-runtime-interopservices-mars
-        [System.Security.SecurityCritical]  // auto-generated_required
+        [SecurityCritical]  // auto-generated_required
         private object GetActiveObject(string progID)
         {
             Guid clsid;
@@ -127,29 +93,31 @@ namespace TAO3.Excel
         [DllImport("ole32.dll", PreserveSig = false)]
         [ResourceExposure(ResourceScope.None)]
         [SuppressUnmanagedCodeSecurity]
-        [System.Security.SecurityCritical]  // auto-generated
+        [SecurityCritical]  // auto-generated
         private static extern void CLSIDFromProgIDEx([MarshalAs(UnmanagedType.LPWStr)] string progId, out Guid clsid);
 
         //[DllImport(Microsoft.Win32.Win32Native.OLE32, PreserveSig = false)]
         [DllImport("ole32.dll", PreserveSig = false)]
         [ResourceExposure(ResourceScope.None)]
         [SuppressUnmanagedCodeSecurity]
-        [System.Security.SecurityCritical]  // auto-generated
+        [SecurityCritical]  // auto-generated
         private static extern void CLSIDFromProgID([MarshalAs(UnmanagedType.LPWStr)] string progId, out Guid clsid);
 
         //[DllImport(Microsoft.Win32.Win32Native.OLEAUT32, PreserveSig = false)]
         [DllImport("oleaut32.dll", PreserveSig = false)]
         [ResourceExposure(ResourceScope.None)]
         [SuppressUnmanagedCodeSecurity]
-        [System.Security.SecurityCritical]  // auto-generated
+        [SecurityCritical]  // auto-generated
         private static extern void GetActiveObject(ref Guid rclsid, IntPtr reserved, [MarshalAs(UnmanagedType.Interface)] out object ppunk);
 
         //https://stackoverflow.com/questions/158706/how-do-i-properly-clean-up-excel-interop-objects
         public void Dispose()
         {
             //todo: Close excel application?
-
+            _autoExcelTypeProvider.Dispose();
             _application = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }

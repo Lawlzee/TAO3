@@ -14,15 +14,68 @@ namespace TAO3.Excel.Generation
     {
         private readonly CSharpKernel _cSharpKernel;
         private readonly IExcelService _excelService;
+        public bool RefreshEnable { get; private set; }
 
         public ExcelTypeSafeGenerator(CSharpKernel cSharpKernel, IExcelService excelService)
         {
             _cSharpKernel = cSharpKernel;
             _excelService = excelService;
+            RefreshEnable = true;
+        }
+
+        public void DisableRefreshGeneration(Action action)
+        {
+            ScheduleRefreshGenerationAfter(refresh: false, action);
+        }
+
+        public T DisableRefreshGeneration<T>(Func<T> func)
+        {
+            return ScheduleRefreshGenerationAfter(refresh: false, func);
+        }
+
+        public void ScheduleRefreshGenerationAfter(Action action)
+        {
+            ScheduleRefreshGenerationAfter(refresh: true, action);
+        }
+
+        public void ScheduleRefreshGenerationAfter(bool refresh, Action action)
+        {
+            ScheduleRefreshGenerationAfter(refresh, () => { action(); return true; });
+        }
+
+        public T ScheduleRefreshGenerationAfter<T>(Func<T> func)
+        {
+            return ScheduleRefreshGenerationAfter(refresh: true, func);
+        }
+
+        public T ScheduleRefreshGenerationAfter<T>(bool refresh, Func<T> func)
+        {
+            try
+            {
+                RefreshEnable = false;
+                T result = func();
+                RefreshEnable = true;
+
+                if (refresh)
+                {
+                    ScheduleRefreshGeneration();
+                }
+
+                return result;
+            }
+            finally
+            {
+                RefreshEnable = true;
+            }
         }
 
         public void ScheduleRefreshGeneration()
         {
+            if (!RefreshEnable)
+            {
+                return;
+            }
+
             List<string> workbooks = _excelService.Workbooks
                 .Select(w => TypeSafeExcelWorkbookGenerator.Generate(_cSharpKernel, w))
                 .Select((name, index) => $@"
@@ -38,7 +91,7 @@ public static {name} {name}(this IExcelService excelService)
 
 {getWorkbooksCode}";
 
-            _cSharpKernel.DeferCommand(new SubmitCode(code));
+            _cSharpKernel.ScheduleSubmitCode(code);
         }
     }
 }
