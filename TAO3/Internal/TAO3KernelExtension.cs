@@ -31,7 +31,15 @@ namespace TAO3.Internal
             Debugger.Launch();
 
             IExcelService excel = new ExcelService((CSharpKernel)kernel.FindKernel("csharp"));
-            excel.RefreshTypes();
+            
+            try
+            {
+                excel.RefreshTypes();
+            }
+            catch
+            {
+                //Excel is closed
+            }
 
             INotepadService notepad = new NotepadService();
 

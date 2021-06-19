@@ -27,7 +27,7 @@ namespace TAO3.Excel
         private readonly AutoExcelTypeProvider _autoExcelTypeProvider;
         
         private Application? _application = null;
-        internal Application Application => _application ??= GetOrOpenExcel();
+        internal Application Application => _application ??= GetExcel();
         public dynamic Instance => Application;
 
         public IReadOnlyList<ExcelWorkbook> Workbooks => Application.Workbooks
@@ -43,6 +43,8 @@ namespace TAO3.Excel
 
         public ExcelWorkbook Open(string path, bool refreshTypes = true)
         {
+            _application ??= GetOrOpenExcel();
+
             return TypeGenerator.ScheduleRefreshGenerationAfter(refreshTypes, () => new ExcelWorkbook(TypeGenerator, Application.Workbooks.Open(path)));
         }
 
@@ -51,19 +53,34 @@ namespace TAO3.Excel
             TypeGenerator.ScheduleRefreshGeneration();
         }
 
+        private Application GetExcel()
+        {
+            try
+            {
+                Application application = (Application)GetActiveObject("Excel.Application");
+                _autoExcelTypeProvider.Initialize(application);
+                return application;
+            }
+            catch
+            {
+                throw new Exception("Excel is closed");
+            }   
+        }
+
         private Application GetOrOpenExcel()
         {
-            Application application;
-
+            Application application = null!;
             try
             {
                 application = (Application)GetActiveObject("Excel.Application");
             }
-            catch (Exception)//Excel not open
+            catch
             {
-                application = new Application();
+                application = new Application()
+                {
+                    Visible = true
+                };
             }
-
             _autoExcelTypeProvider.Initialize(application);
             return application;
         }
