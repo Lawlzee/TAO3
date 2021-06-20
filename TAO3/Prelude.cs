@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
@@ -33,6 +34,7 @@ namespace TAO3
         public static IFormatConverterService FormatConverter => Services.FormatConverter;
         public static IInputSourceService InputSource => Services.InputSource;
         public static IOutputDestinationService OutputDestination => Services.OutputDestination;
+        public static ICellService Cells => Services.Cells;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);

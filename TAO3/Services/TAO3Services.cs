@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
@@ -24,8 +25,9 @@ namespace TAO3.Services
         public IFormatConverterService FormatConverter { get; }
         public IInputSourceService InputSource { get; }
         public IOutputDestinationService OutputDestination { get; }
+        public ICellService Cells { get; }
 
-        public TAO3Services(IExcelService excel, INotepadService notepad, IKeyboardService keyboard, IClipboardService clipboard, IToastService toast, IFormatConverterService formatConverter, IInputSourceService inputSource, IOutputDestinationService outputDestination)
+        public TAO3Services(IExcelService excel, INotepadService notepad, IKeyboardService keyboard, IClipboardService clipboard, IToastService toast, IFormatConverterService formatConverter, IInputSourceService inputSource, IOutputDestinationService outputDestination, ICellService cells)
         {
             Excel = excel;
             Notepad = notepad;
@@ -35,6 +37,7 @@ namespace TAO3.Services
             FormatConverter = formatConverter;
             InputSource = inputSource;
             OutputDestination = outputDestination;
+            Cells = cells;
         }
 
         public void Dispose()
@@ -47,6 +50,7 @@ namespace TAO3.Services
             FormatConverter.Dispose();
             InputSource.Dispose();
             OutputDestination.Dispose();
+            Cells.Dispose();
         }
     }
 }

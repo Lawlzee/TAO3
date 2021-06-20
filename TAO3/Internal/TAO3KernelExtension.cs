@@ -21,6 +21,8 @@ using TAO3.Toast;
 using TAO3.OutputDestinations;
 using TAO3.Excel;
 using Microsoft.DotNet.Interactive.CSharp;
+using TAO3.Cell;
+using TAO3.Internal.Commands.Cell;
 
 namespace TAO3.Internal
 {
@@ -53,6 +55,8 @@ namespace TAO3.Internal
             IInputSourceService inputSource = new InputSourceService();
             IOutputDestinationService outputDestination = new OutputDestinationService();
 
+            ICellService cellService = new CellService();
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -61,7 +65,8 @@ namespace TAO3.Internal
                 toast,
                 formatConverter,
                 inputSource,
-                outputDestination);
+                outputDestination,
+                cellService);
 
             Prelude.Kernel = kernel;
 
@@ -70,6 +75,7 @@ namespace TAO3.Internal
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
+            kernel.AddDirective(new CellCommand(cellService));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));

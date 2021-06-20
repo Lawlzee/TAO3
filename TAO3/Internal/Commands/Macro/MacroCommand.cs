@@ -173,13 +173,25 @@ namespace TAO3.Internal.Commands.Macro
             string[] body = (returnValueProduced != null, commandFailed != null, silent) switch
             {
                 (true, _, _) => returnValueProduced!.FormattedValues.Select(x => x.Value).ToArray(),
-                (_, true, _) => Regex.Split(commandFailed!.Exception.ToString(), @"\r\n|\r|\n"),
+                (_, true, _) => FormatCommandFailedBody(),
                 (_, _, true) => new[] { title },
                 _ => Array.Empty<string>()
             };
 
             string json = JsonConvert.SerializeObject(body);
             await javascriptKernel.SendAsync(new SubmitJsCodeCommand($@"{cellId}_Print({json})"));
+
+            string[] FormatCommandFailedBody()
+            {
+                string[] body = Regex.Split(commandFailed!.Message, @"\r\n|\r|\n");
+
+                if (commandFailed!.Exception == null)
+                {
+                    return body;
+                }
+                
+                return body.Concat(Regex.Split(commandFailed!.Exception.ToString(), @"\r\n|\r|\n")).ToArray();
+            }
         }
 
         private string FormatToastBody(Stopwatch stopwatch, CommandFailed? commandFailed)
@@ -191,7 +203,12 @@ namespace TAO3.Internal.Commands.Macro
 
             if (commandFailed != null)
             {
-                body.Append(commandFailed.Exception.ToString());
+                body.Append(commandFailed.Message);
+                if (commandFailed.Exception != null)
+                {
+                    body.AppendLine();
+                    body.Append(commandFailed.Exception.ToString());
+                }
             }
 
             return body.ToString();
