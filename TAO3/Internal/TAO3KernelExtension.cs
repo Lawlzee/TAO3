@@ -83,6 +83,7 @@ namespace TAO3.Internal
             formatConverter.Register(new XmlConverter());
             formatConverter.Register(new LineConverter());
             formatConverter.Register(new TextConveter());
+            formatConverter.Register(new HtmlConverter());
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());
