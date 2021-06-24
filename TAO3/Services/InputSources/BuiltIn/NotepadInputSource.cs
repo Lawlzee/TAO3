@@ -18,7 +18,7 @@ namespace TAO3.InputSources
             _notepad = notepad;
         }
 
-        public Task<string> GetTextAsync(KernelInvocationContext context)
+        public Task<string> GetTextAsync()
         {
             return Task.Run(_notepad.GetText);
         }

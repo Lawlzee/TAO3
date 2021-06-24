@@ -12,7 +12,8 @@ namespace TAO3.OutputDestinations
     {
         IObservable<IOutputDestinationEvent> Events { get; }
         void Register(IOutputDestination outputDestination);
-        Task SetTextAsync(string destination, string text, KernelInvocationContext context);
+        bool Remove(string name);
+        Task SetTextAsync(string destination, string text);
     }
 
     public class OutputDestinationService : IOutputDestinationService
@@ -29,11 +30,28 @@ namespace TAO3.OutputDestinations
 
         public void Register(IOutputDestination outputDestination)
         {
+            if (_destinationByName.TryGetValue(outputDestination.Name, out IOutputDestination? old))
+            {
+                _events.OnNext(new OutputDestinationRemovedEvent(old));
+            }
+
             _destinationByName[outputDestination.Name] = outputDestination;
             _events.OnNext(new OutputDestinationAddedEvent(outputDestination));
         }
 
-        public Task SetTextAsync(string destination, string text, KernelInvocationContext context)
+        public bool Remove(string name)
+        {
+            if (_destinationByName.TryGetValue(name, out IOutputDestination? outputDestination))
+            {
+                _events.OnNext(new OutputDestinationRemovedEvent(outputDestination));
+                _destinationByName.Remove(name);
+                return true;
+            }
+
+            return false;
+        }
+
+        public Task SetTextAsync(string destination, string text)
         {
             IOutputDestination? outputDestination = _destinationByName.GetValueOrDefault(destination);
 
@@ -42,12 +60,13 @@ namespace TAO3.OutputDestinations
                 throw new ArgumentException($"No output destination found for '{destination}'");
             }
 
-            return outputDestination.SetTextAsync(text, context);
+            return outputDestination.SetTextAsync(text);
         }
 
         public void Dispose()
         {
-
+            _destinationByName.Clear();
+            _events.Dispose();
         }
     }
 }

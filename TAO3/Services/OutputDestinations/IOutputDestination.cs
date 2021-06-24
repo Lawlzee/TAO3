@@ -10,6 +10,6 @@ namespace TAO3.OutputDestinations
     public interface IOutputDestination
     {
         public string Name { get; }
-        public Task SetTextAsync(string text, KernelInvocationContext context);
+        public Task SetTextAsync(string text);
     }
 }

@@ -18,7 +18,7 @@ namespace TAO3.InputSources
             _clipboard = clipboard;
         }
 
-        public async Task<string> GetTextAsync(KernelInvocationContext context)
+        public async Task<string> GetTextAsync()
         {
             return await _clipboard.GetTextAsync();
         }

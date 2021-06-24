@@ -13,36 +13,32 @@ using TAO3.Converters;
 using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.OutputDestinations;
 using System.Reactive.Linq;
+using System.Reactive.Disposables;
 
 namespace TAO3.Internal.Commands.Output
 {
     internal class OutputCommand : Command
     {
-        public OutputCommand(IOutputDestinationService outputDestination, IFormatConverterService formatConverter) 
+        public OutputCommand(IOutputDestinationService outputDestination, IFormatConverterService formatConverter)
             : base("#!out", "Copy returned value to clipboard")
-{
-            outputDestination.Events.Subscribe(outputDestinationEvent =>
-            {
-                if (outputDestinationEvent is OutputDestinationAddedEvent addedEvent)
+        {
+            outputDestination.Events.RegisterChildCommand<IOutputDestinationEvent, OutputDestinationAddedEvent, OutputDestinationRemovedEvent>(
+                this,
+                x => x.OutputDestination.Name,
+                evnt =>
                 {
-                    Command outputDestinationCommand = new Command(addedEvent.OutputDestination.Name);
+                    Command command = new Command(evnt.OutputDestination.Name);
 
-                    Add(outputDestinationCommand);
+                    IDisposable formatSubscription = formatConverter.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
+                        command,
+                        x => x.Converter.Format,
+                        (formatAddedEvent) => CreateConverterCommand(evnt.OutputDestination, formatAddedEvent.Converter));
 
-                    formatConverter.Events.Subscribe(formatConverterEvent =>
-                    {
-                        if (formatConverterEvent is ConverterRegisteredEvent registeredEvent)
-                        {
-                            AddConverterCommand(outputDestinationCommand, addedEvent.OutputDestination, formatConverterEvent.Converter);
-                        }
-                    });
-                }
-            });
-
-            
+                    return (command, formatSubscription);
+                });
         }
 
-        private void AddConverterCommand(Command parentCommand, IOutputDestination outputDestination, IConverter converter)
+        private Command CreateConverterCommand(IOutputDestination outputDestination, IConverter converter)
         {
             Command command = new Command(converter.Format)
             {
@@ -74,7 +70,7 @@ namespace TAO3.Internal.Commands.Output
                             if (e is ReturnValueProduced valueProduced)
                             {
                                 string resultText = converter.Serialize(valueProduced.Value, settingsInstance);
-                                outputDestination.SetTextAsync(resultText, context);
+                                outputDestination.SetTextAsync(resultText);
                                 disposable.Dispose();
                             }
 
@@ -95,7 +91,7 @@ namespace TAO3.Internal.Commands.Output
                     });
             });
 
-            parentCommand.Add(command);
+            return command;
         }
     }
 }

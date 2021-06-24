@@ -19,7 +19,7 @@ namespace TAO3.OutputDestinations
             _notepad = notepad;
         }
 
-        public Task SetTextAsync(string text, KernelInvocationContext context)
+        public Task SetTextAsync(string text)
         {
             _notepad.SetText(text);
             return Task.CompletedTask;

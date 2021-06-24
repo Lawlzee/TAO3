@@ -13,14 +13,17 @@ namespace TAO3.InputSources
 {
     public interface IInputSourceService : IDisposable
     {
-        IObservable<InputSourceAddedEvent> Events { get; }
+        IObservable<IInputSourceEvent> Events { get; }
         
-        Task<string> GetTextAsync(string source, KernelInvocationContext context);
+        Task<string> GetTextAsync(string source);
+        
         void Register(IInputSource inputSource);
-        void Register(string name, Func<KernelInvocationContext, Task<string>> getText);
-        void Register(string name, Func<KernelInvocationContext, string> getText);
+        void Register(string name, Func<Task<string>> getText);
+        void Register(string name, Func<string> getText);
         void RegisterFile(string name, string path, Encoding? encoding = null);
         void RegisterUri(string name, string uri);
+
+        bool Remove(string name);
     }
 
     public class InputSourceService : IInputSourceService
@@ -28,8 +31,8 @@ namespace TAO3.InputSources
         private readonly HttpClient _httpClient;
 
         private readonly Dictionary<string, IInputSource> _sourceByName;
-        private readonly ReplaySubject<InputSourceAddedEvent> _events;
-        public IObservable<InputSourceAddedEvent> Events => _events;
+        private readonly ReplaySubject<IInputSourceEvent> _events;
+        public IObservable<IInputSourceEvent> Events => _events;
 
         public InputSourceService()
         {
@@ -40,11 +43,16 @@ namespace TAO3.InputSources
 
         public void Register(IInputSource inputSource)
         {
+            if (_sourceByName.TryGetValue(inputSource.Name, out IInputSource? oldInputSource))
+            {
+                _events.OnNext(new InputSourceRemovedEvent(oldInputSource));
+            }
+
             _sourceByName[inputSource.Name] = inputSource;
             _events.OnNext(new InputSourceAddedEvent(inputSource));
         }
 
-        public Task<string> GetTextAsync(string source, KernelInvocationContext context)
+        public Task<string> GetTextAsync(string source)
         {
             IInputSource? inputSource = _sourceByName.GetValueOrDefault(source);
 
@@ -53,43 +61,55 @@ namespace TAO3.InputSources
                 throw new ArgumentException($"No input source found for '{source}'");
             }
 
-            return inputSource.GetTextAsync(context);
+            return inputSource.GetTextAsync();
         }
 
         public void RegisterFile(string name, string path, Encoding? encoding = null)
         {
-            Register(name, c => File.ReadAllTextAsync(path, encoding ?? Encoding.UTF8));
+            Register(name, () => File.ReadAllTextAsync(path, encoding ?? Encoding.UTF8));
         }
 
         public void RegisterUri(string name, string uri)
         {
-            Register(name, async c => await _httpClient.GetStringAsync(uri));
+            Register(name, async () => await _httpClient.GetStringAsync(uri));
         }
 
-        public void Register(string name, Func<KernelInvocationContext, Task<string>> getText)
+        public void Register(string name, Func<Task<string>> getText)
         {
             Register(new CustomInputSource(name, getText));
         }
 
-        public void Register(string name, Func<KernelInvocationContext, string> getText)
+        public void Register(string name, Func<string> getText)
         {
-            Register(new CustomInputSource(name, c => Task.Run(() => getText(c))));
+            Register(new CustomInputSource(name, () => Task.Run(() => getText())));
+        }
+
+        public bool Remove(string name)
+        {
+            if (_sourceByName.TryGetValue(name, out var source))
+            {
+                _sourceByName.Remove(name);
+                _events.OnNext(new InputSourceRemovedEvent(source));
+                return true;
+            }
+
+            return false;
         }
 
         private class CustomInputSource : IInputSource
         {
-            private readonly Func<KernelInvocationContext, Task<string>> _getText;
+            private readonly Func<Task<string>> _getText;
             public string Name { get; }
 
-            public CustomInputSource(string name, Func<KernelInvocationContext, Task<string>> getText)
+            public CustomInputSource(string name, Func<Task<string>> getText)
             {
                 Name = name;
                 _getText = getText;
             }
 
-            public Task<string> GetTextAsync(KernelInvocationContext context)
+            public Task<string> GetTextAsync()
             {
-                return _getText(context);
+                return _getText();
             }
 
             public override string? ToString()
@@ -100,6 +120,7 @@ namespace TAO3.InputSources
 
         public void Dispose()
         {
+            _sourceByName.Clear();
             _httpClient.Dispose();
             _events.Dispose();
         }

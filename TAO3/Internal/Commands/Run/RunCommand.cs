@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Cell;
+using TAO3.Internal.Extensions;
 using NotebookCell = Microsoft.DotNet.Interactive.Notebook.NotebookCell;
 using TAO3NotebookCell = TAO3.Cell.NotebookCell;
 
@@ -30,21 +31,23 @@ namespace TAO3.Internal.Commands.Run
         {
             Command command = new Command("cell");
 
-            cellService.Events.Subscribe(evnt =>
-            {
-                if (evnt is CellAddedEvent cellAddedEvent)
+            Dictionary<string, Command> commandByCellName = new();
+
+            cellService.Events.RegisterChildCommand<ICellEvent, CellAddedEvent, CellRemovedEvent>(
+                this,
+                x => x.Cell.Name,
+                evnt =>
                 {
-                    TAO3NotebookCell cell = cellAddedEvent.Cell;
+                    TAO3NotebookCell cell = evnt.Cell;
                     Command runCellCommand = new Command(cell.Name);
 
-                    runCellCommand.Handler = CommandHandler.Create(async (KernelInvocationContext context) =>
+                    runCellCommand.Handler = CommandHandler.Create(async () =>
                     {
                         await cell.Kernel.ParentKernel.SendAsync(new SubmitCode(cell.Code, targetKernelName: cell.Kernel.Name));
                     });
 
-                    command.Add(runCellCommand);
-                }
-            });
+                    return runCellCommand;
+                });
 
             return command;
         }

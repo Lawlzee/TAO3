@@ -9,39 +9,41 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TAO3.Converters;
 using TAO3.InputSources;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Internal.Commands.Input
 {
     internal class InputCommand : Command
     {
         public InputCommand(
-            IInputSourceService inputSource,
+            IInputSourceService inputSourceService,
             IFormatConverterService formatConverter) 
             : base("#!in", "Get a value from a source and convert it to C# object")
         {
-            inputSource.Events.Subscribe(inputSourceEvent =>
-            {
-                Command inputSourceCommand = new Command(inputSourceEvent.InputSource.Name);
-
-                Add(inputSourceCommand);
-
-                formatConverter.Events.Subscribe(formatConveterEvenet =>
+            inputSourceService.Events.RegisterChildCommand<IInputSourceEvent, InputSourceAddedEvent, InputSourceRemovedEvent>(
+                this,
+                x => x.InputSource.Name,
+                evnt =>
                 {
-                    if (formatConveterEvenet is ConverterRegisteredEvent registeredEvent)
-                    {
-                        AddConverterCommand(inputSourceCommand, inputSourceEvent.InputSource, formatConveterEvenet.Converter);
-                    }
+                    Command command = new Command(evnt.InputSource.Name);
+
+                    IDisposable formatSubscription = formatConverter.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
+                        command,
+                        x => x.Converter.Format,
+                        (formatAdded) => CreateConverterCommand(evnt.InputSource, formatAdded.Converter));
+
+                    return (command, formatSubscription);
                 });
-            });
         }
 
-        private void AddConverterCommand(Command parentCommand, IInputSource inputSource, IConverter converter)
+        private Command CreateConverterCommand(IInputSource inputSource, IConverter converter)
         {
             Command command = new Command(converter.Format)
             {
@@ -68,7 +70,7 @@ namespace TAO3.Internal.Commands.Input
                 });
             }
 
-            parentCommand.Add(command);
+            return command;
         }
     }
 }

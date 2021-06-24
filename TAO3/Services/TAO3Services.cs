@@ -15,31 +15,17 @@ using TAO3.Toast;
 
 namespace TAO3.Services
 {
-    public class TAO3Services : IDisposable
+    public record TAO3Services(
+        IExcelService Excel,
+        INotepadService Notepad,
+        IKeyboardService Keyboard,
+        IClipboardService Clipboard,
+        IToastService Toast,
+        IFormatConverterService FormatConverter,
+        IInputSourceService InputSource,
+        IOutputDestinationService OutputDestination,
+        ICellService Cells) : IDisposable
     {
-        public IExcelService Excel { get; }
-        public INotepadService Notepad { get; }
-        public IKeyboardService Keyboard { get; }
-        public IClipboardService Clipboard { get; }
-        public IToastService Toast { get; }
-        public IFormatConverterService FormatConverter { get; }
-        public IInputSourceService InputSource { get; }
-        public IOutputDestinationService OutputDestination { get; }
-        public ICellService Cells { get; }
-
-        public TAO3Services(IExcelService excel, INotepadService notepad, IKeyboardService keyboard, IClipboardService clipboard, IToastService toast, IFormatConverterService formatConverter, IInputSourceService inputSource, IOutputDestinationService outputDestination, ICellService cells)
-        {
-            Excel = excel;
-            Notepad = notepad;
-            Keyboard = keyboard;
-            Clipboard = clipboard;
-            Toast = toast;
-            FormatConverter = formatConverter;
-            InputSource = inputSource;
-            OutputDestination = outputDestination;
-            Cells = cells;
-        }
-
         public void Dispose()
         {
             Excel.Dispose();

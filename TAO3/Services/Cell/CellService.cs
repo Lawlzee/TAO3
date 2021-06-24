@@ -70,7 +70,7 @@ namespace TAO3.Cell
             }
 
             _cells.Clear();
-            _events.OnCompleted();
+            _events.Dispose();
         }
     }
 }

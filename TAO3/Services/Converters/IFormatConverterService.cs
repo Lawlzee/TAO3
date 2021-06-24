@@ -7,17 +7,17 @@ namespace TAO3.Converters
 {
     public interface IFormatConverterService : IDisposable
     {
-        IObservable<IConverterServiceEvent> Events { get; }
+        IObservable<IConverterEvent> Events { get; }
         IConverter? TryGetConverter(string format);
         void Register(IConverter converter);
-        bool UnregisterConverter(string format);
+        bool Remove(string format);
     }
 
     public class FormatConverterService : IFormatConverterService
     {
         private readonly Dictionary<string, IConverter> _converters;
-        private readonly ReplaySubject<IConverterServiceEvent> _events;
-        public IObservable<IConverterServiceEvent> Events => _events;
+        private readonly ReplaySubject<IConverterEvent> _events;
+        public IObservable<IConverterEvent> Events => _events;
 
         public FormatConverterService()
         {
@@ -31,7 +31,7 @@ namespace TAO3.Converters
             _events.OnNext(new ConverterRegisteredEvent(converter));
         }
 
-        public bool UnregisterConverter(string format)
+        public bool Remove(string format)
         {
             IConverter? converter = _converters.GetValueOrDefault(format);
             if (converter == null)
