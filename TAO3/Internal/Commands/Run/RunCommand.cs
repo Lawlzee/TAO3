@@ -23,7 +23,7 @@ namespace TAO3.Internal.Commands.Run
         {
             Add(CreateRunCellCommand(cellService));
             Add(CreateRunVariableCommand());
-            Add(CreateRunNotebookCommand());
+            Add(CreateRunFileCommand());
         }
 
         private Command CreateRunCellCommand(ICellService cellService)
@@ -59,11 +59,11 @@ namespace TAO3.Internal.Commands.Run
             return command;
         }
 
-        private Command CreateRunNotebookCommand()
+        private Command CreateRunFileCommand()
         {
-            Command command = new Command("notebook")
+            Command command = new Command("file")
             {
-                new FilePathArgument()
+                new FilePathArgument("path", "Path to a .dib, .ipynb, .csx or .cs file")
             };
 
             command.Handler = CommandHandler.Create(async (string path, KernelInvocationContext context) =>
@@ -73,12 +73,53 @@ namespace TAO3.Internal.Commands.Run
                     throw new FileNotFoundException("File not found", path);
                 }
 
-                NotebookDocument notebook = Kernel.Current.ParentKernel.ParseNotebook(path, File.ReadAllBytes(path));
-                foreach (NotebookCell cell in notebook.Cells)
+                string extension = Path.GetExtension(path);
+
+                if (extension.Equals(".dib", StringComparison.OrdinalIgnoreCase) 
+                    || extension.Equals(".ipynb", StringComparison.OrdinalIgnoreCase))
                 {
-                    //todo: handle errors
-                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
+                    NotebookDocument notebook = Kernel.Current.ParentKernel.ParseNotebook(path, File.ReadAllBytes(path));
+                    foreach (NotebookCell cell in notebook.Cells)
+                    {
+                        //todo: handle errors
+                        await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
+                    }
                 }
+                else if (extension.Equals(".csx", StringComparison.OrdinalIgnoreCase))
+                {
+                    string code = File.ReadAllText(path);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(code, "C#"));
+                }
+                else if (extension.Equals(".fs", StringComparison.OrdinalIgnoreCase)
+                    || extension.Equals(".fsi", StringComparison.OrdinalIgnoreCase)
+                    || extension.Equals(".fsx", StringComparison.OrdinalIgnoreCase)
+                    || extension.Equals(".fsscript", StringComparison.OrdinalIgnoreCase))
+                {
+                    string code = File.ReadAllText(path);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(code, "F#"));
+                }
+                else if (extension.Equals(".js", StringComparison.OrdinalIgnoreCase))
+                {
+                    string code = File.ReadAllText(path);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(code, "javascript"));
+                }
+                else if (extension.Equals(".html", StringComparison.OrdinalIgnoreCase))
+                {
+                    string code = File.ReadAllText(path);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(code, "html"));
+                }
+                else if (extension.Equals(".ps1", StringComparison.OrdinalIgnoreCase))
+                {
+                    string code = File.ReadAllText(path);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(code, "powershell"));
+                }
+                else
+                {
+                    string rawCode = File.ReadAllText(path);
+                    string preprocessedCode = NamespaceRemover.RemoveNamespaces(rawCode);
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(preprocessedCode, "C#"));
+                }
+                
             });
 
             return command;
@@ -86,7 +127,8 @@ namespace TAO3.Internal.Commands.Run
 
         private class FilePathArgument : Argument<string>
         {
-            public FilePathArgument() : base("path", "Path to a .dib or .ipynb file")
+            public FilePathArgument(string name, string? description = null) 
+                : base(name, description)
             {
             }
 
