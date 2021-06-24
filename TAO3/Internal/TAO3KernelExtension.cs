@@ -23,6 +23,7 @@ using TAO3.Excel;
 using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.Cell;
 using TAO3.Internal.Commands.Cell;
+using TAO3.Internal.Commands.Run;
 
 namespace TAO3.Internal
 {
@@ -76,6 +77,7 @@ namespace TAO3.Internal
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
             kernel.AddDirective(new CellCommand(cellService));
+            kernel.AddDirective(new RunCommand(cellService));
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));
