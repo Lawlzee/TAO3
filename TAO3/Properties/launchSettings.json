@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TAO3": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

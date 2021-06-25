@@ -13,7 +13,6 @@ using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
 using TAO3.Services;
-using TAO3.Avalonia;
 using TAO3.Clipboard;
 using TAO3.Keyboard;
 using TAO3.Notepad;
@@ -24,6 +23,7 @@ using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.Cell;
 using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
+using TAO3.Windows;
 
 namespace TAO3.Internal
 {
@@ -46,9 +46,13 @@ namespace TAO3.Internal
 
             INotepadService notepad = new NotepadService();
 
-            WindowsInterop interop = WindowsInterop.Create();
-            IKeyboardService keyboard = interop.Keyboard;
-            IClipboardService clipboard = interop.Clipboard;
+            //WindowsInterop interop = WindowsInterop.Create();
+            //IKeyboardService keyboard = interop.Keyboard;
+            //IClipboardService clipboard = null!;// interop.Clipboard;
+
+            IWindowsService windowsService = new WindowsService();
+            IKeyboardService keyboard = windowsService.Keyboard;
+            IClipboardService clipboard = windowsService.Clipboard;
 
             IToastService toast = new ToastService();
             IFormatConverterService formatConverter = new FormatConverterService();
@@ -67,7 +71,8 @@ namespace TAO3.Internal
                 formatConverter,
                 inputSource,
                 outputDestination,
-                cellService);
+                cellService,
+                windowsService);
 
             Prelude.Kernel = kernel;
 

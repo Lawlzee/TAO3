@@ -71,11 +71,5 @@
   <ItemGroup>
     <Folder Include="Libs\CsvClassGenerator\" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Services\Avalonia\AvaloniaApp.axaml.cs">
-      <DependentUpon>AvaloniaApp.axaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
   
 </Project>

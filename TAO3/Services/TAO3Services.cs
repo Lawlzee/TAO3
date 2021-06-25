@@ -12,6 +12,7 @@ using TAO3.Keyboard;
 using TAO3.Notepad;
 using TAO3.OutputDestinations;
 using TAO3.Toast;
+using TAO3.Windows;
 
 namespace TAO3.Services
 {
@@ -24,7 +25,8 @@ namespace TAO3.Services
         IFormatConverterService FormatConverter,
         IInputSourceService InputSource,
         IOutputDestinationService OutputDestination,
-        ICellService Cells) : IDisposable
+        ICellService Cells,
+        IWindowsService WindowsService) : IDisposable
     {
         public void Dispose()
         {
@@ -37,6 +39,7 @@ namespace TAO3.Services
             InputSource.Dispose();
             OutputDestination.Dispose();
             Cells.Dispose();
+            WindowsService.Dispose();
         }
     }
 }

@@ -2,14 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TAO3.Clipboard
 {
     public interface IClipboardService : IDisposable
     {
-        Task ClearAsync();
-        Task<string> GetTextAsync();
+        IObservable<object> OnClipboardChange { get; }
+
+        string? GetText();
+        void SetText(string text);
+
+        Task<string?> GetTextAsync();
+        Task<string?> GetTextAsync(CancellationToken cancellation);
         Task SetTextAsync(string text);
+        Task SetTextAsync(string text, CancellationToken cancellation);
+        
+        void Clear();
+        Task<List<string>> GetFilesAsync();
     }
 }
