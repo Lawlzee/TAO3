@@ -44,14 +44,14 @@ namespace TAO3.Converters
 
                 if (type == "dynamic")
                 {
-                    await converterContext.DefaultHandle();
+                    await converterContext.DefaultHandleAsync();
                     return;
                 }
 
                 string text = await converterContext.GetTextAsync();
 
-                string clipboardVariableName = await converterContext.CreatePrivateVariable(text, typeof(string));
-                string settingsVariableName = await converterContext.CreatePrivateVariable(converterContext.Settings, typeof(JsonSerializerSettings));
+                string clipboardVariableName = await converterContext.CreatePrivateVariableAsync(text, typeof(string));
+                string settingsVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Settings, typeof(JsonSerializerSettings));
                 if (string.IsNullOrEmpty(type))
                 {
                     string className = IdentifierUtils.ToPascalCase(name);

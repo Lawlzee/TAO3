@@ -23,9 +23,9 @@ namespace TAO3.Internal.CodeGeneration.Generators
 
             string classDefinition = JsonClassGenerator.WriteClasses(new List<JsonType> { typeDefinition });
 
-            string clipboardVariableName = await context.CreatePrivateVariable(await context.GetTextAsync(), typeof(string));
-            string converterVariableName = await context.CreatePrivateVariable(context.Converter, typeof(CsvConverter));
-            string settingsVariableName = await context.CreatePrivateVariable(context.Settings, typeof(CsvConfiguration));
+            string clipboardVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
+            string converterVariableName = await context.CreatePrivateVariableAsync(context.Converter, typeof(CsvConverter));
+            string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
 
             string code = $@"using System.Globalization;
 using System.IO;

@@ -66,7 +66,7 @@ namespace TAO3.Internal.Commands.Input
                 command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
                 {
                     IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
-                    await convertionContext.DefaultHandle();
+                    await convertionContext.DefaultHandleAsync();
                 });
             }
 

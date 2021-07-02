@@ -24,6 +24,7 @@ using TAO3.Cell;
 using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
 using TAO3.Windows;
+using TAO3.Internal.Commands.Sql;
 
 namespace TAO3.Internal
 {
@@ -77,6 +78,8 @@ namespace TAO3.Internal
             Prelude.Kernel = kernel;
 
             kernel.RegisterForDisposal(Prelude.Services);
+
+            ((CompositeKernel)kernel).UseKernelClientConnection(new TAO3MsSqlKernelConnection());
 
             kernel.AddDirective(new MacroCommand(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));

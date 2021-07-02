@@ -118,7 +118,7 @@ namespace TAO3.Converters
 
                 if (type == "dynamic")
                 {
-                    await converterContext.DefaultHandle();
+                    await converterContext.DefaultHandleAsync();
                     return;
                 }
 
@@ -129,9 +129,9 @@ namespace TAO3.Converters
                 }
                 else
                 {
-                    string clipboardVariableName = await converterContext.CreatePrivateVariable(await converterContext.GetTextAsync(), typeof(string));
-                    string converterVariableName = await converterContext.CreatePrivateVariable(converterContext.Converter, typeof(CsvConverter));
-                    string settingsVariableName = await converterContext.CreatePrivateVariable(converterContext.Settings, typeof(CsvConfiguration));
+                    string clipboardVariableName = await converterContext.CreatePrivateVariableAsync(await converterContext.GetTextAsync(), typeof(string));
+                    string converterVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Converter, typeof(CsvConverter));
+                    string settingsVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Settings, typeof(CsvConfiguration));
 
                     string code = $"{type}[] {name} = ({type}[]){converterVariableName}.Deserialize<{type}>({clipboardVariableName}, {settingsVariableName});";
                     await converterContext.SubmitCodeAsync(code);

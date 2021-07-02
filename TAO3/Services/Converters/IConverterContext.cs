@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.CodeAnalysis.RulesetToEditorconfig;
+﻿using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
 using Newtonsoft.Json;
@@ -23,8 +22,8 @@ namespace TAO3.Converters
         TSettings? Settings { get; set; }
         Task<string> GetTextAsync();
         Task SubmitCodeAsync(string code);
-        Task DefaultHandle();
-        Task<string> CreatePrivateVariable(object? value, Type type);
+        Task DefaultHandleAsync();
+        Task<string> CreatePrivateVariableAsync(object? value, Type type);
     }
 
     internal class ConverterContext<TSettings> : IConverterContext<TSettings>
@@ -85,7 +84,7 @@ namespace TAO3.Converters
             await CSharpKernel.SubmitCodeAsync(code);
         }
 
-        public async Task DefaultHandle()
+        public async Task DefaultHandleAsync()
         {
             string text = await GetTextAsync();
             object? result = Converter.Deserialize<ExpandoObject>(text, Settings);
@@ -94,7 +93,7 @@ namespace TAO3.Converters
             CSharpKernel.ScriptState.GetVariable(VariableName).Value = result;
         }
 
-        public async Task<string> CreatePrivateVariable(object? value, Type type)
+        public async Task<string> CreatePrivateVariableAsync(object? value, Type type)
         {
             string name = $"__internal_{Guid.NewGuid().ToString("N")}";
             await CSharpKernel.SetVariableAsync(name, value, type);

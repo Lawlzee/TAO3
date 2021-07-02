@@ -62,7 +62,7 @@ namespace TAO3.Converters
 
                 if (type == "dynamic")
                 {
-                    await converterContext.DefaultHandle();
+                    await converterContext.DefaultHandleAsync();
                     return;
                 }
 
@@ -73,7 +73,7 @@ namespace TAO3.Converters
 
                 string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
 
-                string clipboardVariableName = await converterContext.CreatePrivateVariable(jsonInput, typeof(string));
+                string clipboardVariableName = await converterContext.CreatePrivateVariableAsync(jsonInput, typeof(string));
 
                 if (string.IsNullOrEmpty(type))
                 {
