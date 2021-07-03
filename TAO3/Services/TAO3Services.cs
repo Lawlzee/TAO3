@@ -7,6 +7,7 @@ using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
+using TAO3.InitializerGenerator;
 using TAO3.InputSources;
 using TAO3.Keyboard;
 using TAO3.Notepad;
@@ -26,7 +27,8 @@ namespace TAO3.Services
         IInputSourceService InputSource,
         IOutputDestinationService OutputDestination,
         ICellService Cells,
-        IWindowsService WindowsService) : IDisposable
+        IWindowsService WindowsService,
+        IInitializerGeneratorService InitializerGenerator) : IDisposable
     {
         public void Dispose()
         {
@@ -40,6 +42,7 @@ namespace TAO3.Services
             OutputDestination.Dispose();
             Cells.Dispose();
             WindowsService.Dispose();
+            InitializerGenerator.Dispose();
         }
     }
 }

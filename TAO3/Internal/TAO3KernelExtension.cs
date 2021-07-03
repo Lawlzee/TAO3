@@ -25,6 +25,7 @@ using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
 using TAO3.Windows;
 using TAO3.Internal.Commands.Sql;
+using TAO3.InitializerGenerator;
 
 namespace TAO3.Internal
 {
@@ -59,6 +60,8 @@ namespace TAO3.Internal
 
             ICellService cellService = new CellService();
 
+            IInitializerGeneratorService initializerGenerator = new InitializerGeneratorService();
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -69,7 +72,8 @@ namespace TAO3.Internal
                 inputSource,
                 outputDestination,
                 cellService,
-                windowsService);
+                windowsService,
+                initializerGenerator);
 
             Prelude.Kernel = kernel;
 
@@ -90,7 +94,7 @@ namespace TAO3.Internal
             formatConverter.Register(new LineConverter());
             formatConverter.Register(new TextConveter());
             formatConverter.Register(new HtmlConverter());
-            formatConverter.Register(new CSharpConverter());
+            formatConverter.Register(new CSharpConverter(initializerGenerator));
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());

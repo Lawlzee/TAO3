@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Html;
 using Microsoft.DotNet.Interactive;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +12,9 @@ using System.Xml;
 using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
+using TAO3.Converters.CSharp;
 using TAO3.Excel;
+using TAO3.InitializerGenerator;
 using TAO3.InputSources;
 using TAO3.Keyboard;
 using TAO3.Notepad;
@@ -35,12 +38,15 @@ namespace TAO3
         public static IInputSourceService InputSource => Services.InputSource;
         public static IOutputDestinationService OutputDestination => Services.OutputDestination;
         public static ICellService Cells => Services.Cells;
+        public static IInitializerGeneratorService InitializerGenerator => Services.InitializerGenerator;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);
         public static string ToCsv(object? value, CsvConfiguration? settings = null) => new CsvConverter(hasHeader: false).Serialize(value, settings);
         public static string ToCsvh(object? value, CsvConfiguration? settings = null) => new CsvConverter(hasHeader: true).Serialize(value, settings);
         public static string ToLine(object? value) => new LineConverter().Serialize(value, settings: null);
+        public static string ToHmtl(object? value) => new HtmlConverter().Serialize(value, settings: null);
+        public static string ToCSharp(object? value) => new CSharpConverter(InitializerGenerator).Serialize(value, settings: null);
 
         public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)new JsonConverter().Deserialize<T>(text, settings)!;
         public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)new XmlConverter().Deserialize<T>(text, settings)!;
@@ -52,5 +58,7 @@ namespace TAO3
         public static string[] FromCsv(string text, CsvConfiguration? settings = null) => (string[])new CsvConverter(hasHeader: false).Deserialize<ExpandoObject>(text, settings)!;
         public static string[] FromCsvh(string text, CsvConfiguration? settings = null) => (string[])new CsvConverter(hasHeader: true).Deserialize<ExpandoObject>(text, settings)!;
         public static string[] FromLine(string text) => (string[])new LineConverter().Deserialize<string>(text, settings: null)!;
+        public static HtmlString FromHmtl(string text) => (HtmlString)new HtmlConverter().Deserialize<object>(text, settings: null)!;
+        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)new CSharpConverter(InitializerGenerator).Deserialize<CSharpCompilationUnit>(text, settings: null)!;
     }
 }

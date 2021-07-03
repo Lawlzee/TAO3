@@ -8,13 +8,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters.CSharp;
+using TAO3.InitializerGenerator;
 
 namespace TAO3.Converters
 {
     public class CSharpConverter : IConverter
     {
+        private readonly IInitializerGeneratorService _initializerGenerator;
+
         public string Format => "C#";
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
+
+        public CSharpConverter(IInitializerGeneratorService initializerGenerator)
+        {
+            _initializerGenerator = initializerGenerator;
+        }
 
         public object? Deserialize<T>(string text, object? settings = null)
         {
@@ -56,7 +64,7 @@ namespace TAO3.Converters
             }
 
 
-            throw new NotSupportedException(value.GetType().FullName);
+            return _initializerGenerator.Generate(value);
         }
     }
 }
