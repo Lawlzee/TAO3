@@ -14,6 +14,7 @@ using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.OutputDestinations;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
+using System.Reactive;
 
 namespace TAO3.Internal.Commands.Output
 {
@@ -60,8 +61,8 @@ namespace TAO3.Internal.Commands.Output
                 KernelCommand submitCodeCommand = context.Command.GetRootCommand();
 
                 IDisposable disposable = null!;
-                disposable = rootKernel.KernelEvents.Subscribe(
-                    onNext: e =>
+                disposable = rootKernel.KernelEvents
+                    .SelectMany(async e =>
                     {
                         KernelCommand rootCommand = e.Command.GetRootCommand();
 
@@ -69,9 +70,15 @@ namespace TAO3.Internal.Commands.Output
                         {
                             if (e is ReturnValueProduced valueProduced)
                             {
-                                string resultText = converter.Serialize(valueProduced.Value, settingsInstance);
-                                outputDestination.SetTextAsync(resultText);
-                                disposable.Dispose();
+                                try
+                                {
+                                    string resultText = converter.Serialize(valueProduced.Value, settingsInstance);
+                                    await outputDestination.SetTextAsync(resultText);
+                                }
+                                finally
+                                {
+                                    disposable.Dispose();
+                                }
                             }
 
                             if (e is CommandSucceeded commandSucceeded && commandSucceeded.Command == submitCodeCommand)
@@ -84,11 +91,10 @@ namespace TAO3.Internal.Commands.Output
                                 disposable.Dispose();
                             }
                         }
-                    },
-                    onError: e =>
-                    {
-                        disposable.Dispose();
-                    });
+
+                        return Unit.Default;
+                    })
+                    .Subscribe();
             });
 
             return command;

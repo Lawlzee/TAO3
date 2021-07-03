@@ -30,7 +30,7 @@ namespace TAO3.Internal
 {
     public class TAO3KernelExtension : IKernelExtension
     {
-        public Task OnLoadAsync(Kernel kernel)
+        public async Task OnLoadAsync(Kernel kernel)
         {
             Debugger.Launch();
 
@@ -46,10 +46,6 @@ namespace TAO3.Internal
             }
 
             INotepadService notepad = new NotepadService();
-
-            //WindowsInterop interop = WindowsInterop.Create();
-            //IKeyboardService keyboard = interop.Keyboard;
-            //IClipboardService clipboard = null!;// interop.Clipboard;
 
             IWindowsService windowsService = new WindowsService();
             IKeyboardService keyboard = windowsService.Keyboard;
@@ -81,7 +77,7 @@ namespace TAO3.Internal
 
             ((CompositeKernel)kernel).UseKernelClientConnection(new TAO3MsSqlKernelConnection());
 
-            kernel.AddDirective(new MacroCommand(keyboard, toast));
+            kernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
             kernel.AddDirective(new CellCommand(cellService));
@@ -94,6 +90,7 @@ namespace TAO3.Internal
             formatConverter.Register(new LineConverter());
             formatConverter.Register(new TextConveter());
             formatConverter.Register(new HtmlConverter());
+            formatConverter.Register(new CSharpConverter());
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());
@@ -101,8 +98,6 @@ namespace TAO3.Internal
 
             outputDestination.Register(new ClipboardOutputDestination(clipboard));
             outputDestination.Register(new NotepadOutputDestination(notepad));
-
-            return Task.CompletedTask;
         }
     }
 }

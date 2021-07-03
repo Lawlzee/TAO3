@@ -42,7 +42,12 @@ namespace TAO3.Converters
         public string Serialize(object? value, XmlWriterSettings? settings)
         {
             string json = new JsonConverter().Serialize(value, settings: null);
-            XmlDocument doc = JsonConvert.DeserializeXmlNode(json);
+            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json);
+
+            if (doc == null)
+            {
+                throw new ArgumentException(nameof(value));
+            }
 
             StringBuilder sb = new();
             using XmlWriter writer = XmlWriter.Create(sb, settings ?? _defaultSettings);

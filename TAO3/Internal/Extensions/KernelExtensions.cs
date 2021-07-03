@@ -4,6 +4,8 @@ using Microsoft.DotNet.Interactive.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -38,8 +40,8 @@ namespace TAO3.Internal.Extensions
                 KernelInvocationContext context = KernelInvocationContext.Current;
 
                 IDisposable disposable = null!;
-                disposable = kernel.ParentKernel.KernelEvents.Subscribe(
-                    onNext: async e =>
+                disposable = kernel.ParentKernel.KernelEvents
+                    .SelectMany(async e =>
                     {
                         KernelCommand rootCommand = e.Command.GetRootCommand();
 
@@ -49,7 +51,6 @@ namespace TAO3.Internal.Extensions
                             {
                                 disposable.Dispose();
                                 await kernel.ParentKernel.SubmitCodeAsync(code);
-
                             }
 
                             if (e is CommandFailed failed)
@@ -57,7 +58,10 @@ namespace TAO3.Internal.Extensions
                                 disposable.Dispose();
                             }
                         }
-                    });
+
+                        return Unit.Default;
+                    })
+                    .Subscribe();
             }
         }
     }

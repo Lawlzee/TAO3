@@ -20,7 +20,7 @@ namespace TAO3.InputSources
 
         public async Task<string> GetTextAsync()
         {
-            return await _clipboard.GetTextAsync();
+            return (await _clipboard.GetTextAsync()) ?? string.Empty;
         }
     }
 }

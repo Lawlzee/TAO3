@@ -76,6 +76,7 @@
 
   <ItemGroup>
     <Folder Include="Libs\CsvClassGenerator\" />
+    <Folder Include="Services\Converters\BuiltIn\CSharp\Internal\" />
   </ItemGroup>
   
 </Project>

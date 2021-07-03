@@ -39,7 +39,7 @@ namespace TAO3.Windows
             IntPtr handle = IntPtr.Zero;
             IKeyboardService keyboard = null!;
 
-            Task.Run(() =>
+            _ = Task.Run(() =>
             {
                 _windowsClass = new WNDCLASSEX
                 {

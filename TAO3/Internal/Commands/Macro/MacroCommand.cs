@@ -1,6 +1,7 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.Events;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,11 +21,9 @@ namespace TAO3.Internal.Commands.Macro
 {
     internal class MacroCommand : Command
     {
-        public MacroCommand(IKeyboardService keyboard, IToastService toast)
+        private MacroCommand(IKeyboardService keyboard, IToastService toast)
             : base("#!macro", "Add a macro that run the code in the cell")
         {
-            RegisterSendJavascriptCodeCommand();
-
             Add(new Argument<string>("shortcut", "Ex. CTRL+SHIFT+1"));
             Add(new Option<string>(new[] { "-n", "--name" }, "Macro name"));
             Add(new Option(new[] { "-s", "--silent" }, "Disable the toast notifications"));
@@ -48,7 +47,7 @@ namespace TAO3.Internal.Commands.Macro
                         stopwatch.Start();
                     }
 
-                    Task.Run(async () =>
+                    _ = Task.Run(async () =>
                     {
                         context.Display(DateTime.Now);
 
@@ -105,11 +104,17 @@ namespace TAO3.Internal.Commands.Macro
             });
         }
 
-        private void RegisterSendJavascriptCodeCommand()
+        public static async Task<MacroCommand> CreateAsync(IKeyboardService keyboard, IToastService toast)
+        {
+            await RegisterSendJavascriptCodeCommandAsync();
+            return new MacroCommand(keyboard, toast);
+        }
+
+        private static async Task RegisterSendJavascriptCodeCommandAsync()
         {
             Kernel jsKernel = Kernel.Root.FindKernel("javascript");
             jsKernel.RegisterCommandType<SubmitJsCodeCommand>();
-            jsKernel.SubmitCodeAsync(@"
+            await jsKernel.SubmitCodeAsync(@"
                 interactive.registerCommandHandler({commandType: 'SubmitJsCodeCommand', handle: c => {
                     eval(c.command.code);
                 }});");

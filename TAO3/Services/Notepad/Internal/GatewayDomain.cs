@@ -130,14 +130,14 @@ namespace TAO3.Notepad.Internal
             return "Postion: " + pos;
         }
 
-        public bool Equals(Position other)
+        public bool Equals(Position? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return pos == other.pos;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -230,7 +230,7 @@ namespace TAO3.Notepad.Internal
             public IntPtr lpstrText;
         }
         public IntPtr NativePointer { get { _initNativeStruct(); return _ptrSciTextRange; } }
-        public string lpstrText { get { _readNativeStruct(); return Marshal.PtrToStringAnsi(_sciTextRange.lpstrText); } }
+        public string? lpstrText { get { _readNativeStruct(); return Marshal.PtrToStringAnsi(_sciTextRange.lpstrText); } }
         public CharacterRange chrg { get { _readNativeStruct(); return _sciTextRange.chrg; } set { _sciTextRange.chrg = value; _initNativeStruct(); } }
 
         void _initNativeStruct()
@@ -243,7 +243,7 @@ namespace TAO3.Notepad.Internal
         void _readNativeStruct()
         {
             if (_ptrSciTextRange != IntPtr.Zero)
-                _sciTextRange = (Sci_TextRange)Marshal.PtrToStructure(_ptrSciTextRange, typeof(Sci_TextRange));
+                _sciTextRange = (Sci_TextRange)Marshal.PtrToStructure(_ptrSciTextRange, typeof(Sci_TextRange))!;
         }
 
         public void Dispose()

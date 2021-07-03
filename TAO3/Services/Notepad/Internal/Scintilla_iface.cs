@@ -3260,7 +3260,7 @@ namespace TAO3.Notepad.Internal
         void _readNativeStruct()
         {
             if (_ptrSciTextToFind != IntPtr.Zero)
-                _sciTextToFind = (Sci_TextToFind)Marshal.PtrToStructure(_ptrSciTextToFind, typeof(Sci_TextToFind));
+                _sciTextToFind = (Sci_TextToFind)Marshal.PtrToStructure(_ptrSciTextToFind, typeof(Sci_TextToFind))!;
         }
 
         void _freeNativeString()
