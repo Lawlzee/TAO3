@@ -40,11 +40,18 @@ namespace TAO3.TextSerializer.CSharp
 
             ObjectSerializerOptions elementOptions = options.Indent();
 
+            bool isFirst = true;
             foreach (T element in obj)
             {
+                if (!isFirst)
+                {
+                    sb.AppendLine(",");
+                }
+
                 sb.Append(elementOptions.Indentation);
                 serializer.Serialize(sb, element, elementOptions);
-                sb.AppendLine(",");
+
+                isFirst = false;
             }
 
             sb.Append(options.Indentation);

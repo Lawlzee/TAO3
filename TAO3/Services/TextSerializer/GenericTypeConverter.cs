@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace TAO3.TextSerializer.CSharp.Internal
+namespace TAO3.TextSerializer
 {
     internal class GenericTypeConverter : ITypeConverter
     {

@@ -8,7 +8,7 @@ using TAO3.Internal.Types;
 
 namespace TAO3.TextSerializer.CSharp
 {
-    public class EnumTypeConverter : TypeConverter<Enum>
+    internal class EnumTypeConverter : TypeConverter<Enum>
     {
         public override bool Convert(StringBuilder sb, Enum obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TAO3.TextSerializer.CSharp
 {
-    public class SyntaxNodeTypeConverter : TypeConverter<SyntaxNode>
+    internal class SyntaxNodeTypeConverter : TypeConverter<SyntaxNode>
     {
         public override bool Convert(StringBuilder sb, SyntaxNode obj, ObjectSerializer generator, ObjectSerializerOptions options)
         {

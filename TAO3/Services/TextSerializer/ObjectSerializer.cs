@@ -4,9 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Types;
-using TAO3.TextSerializer.CSharp;
-using TAO3.TextSerializer.CSharp.Internal;
-
 namespace TAO3.TextSerializer
 {
     public interface IObjectSerializer : IDisposable

@@ -7,7 +7,7 @@ using TAO3.Converters.CSharp;
 
 namespace TAO3.TextSerializer.CSharp
 {
-    public class ICSharpNodeTypeConverter : TypeConverter<ICSharpNode>
+    internal class ICSharpNodeTypeConverter : TypeConverter<ICSharpNode>
     {
         public override bool Convert(StringBuilder sb, ICSharpNode obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
