@@ -1,13 +1,16 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace TAO3.Converters.CSharp
 {
-    public class CSharpParameter
+    public class CSharpParameter : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public ParameterSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public IReadOnlyList<CSharpAttribute> Attributes { get; }
         public CSharpModifiers Modifiers { get; }
         public CSharpType Type { get; }

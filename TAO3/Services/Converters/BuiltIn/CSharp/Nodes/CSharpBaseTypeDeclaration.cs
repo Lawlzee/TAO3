@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -60,10 +61,12 @@ namespace TAO3.Converters.CSharp
         }
     }
 
-    public class CSharpTypeParameter
+    public class CSharpTypeParameter : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public TypeParameterSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public string Name { get; }
         public bool IsIn { get; }
         public bool IsOut { get; }

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -64,10 +65,12 @@ namespace TAO3.Converters.CSharp
         }
     }
 
-    public class CSharpPropertyArrowGetter
+    public class CSharpPropertyArrowGetter : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public ArrowExpressionClauseSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public string Expression { get; }
 
         public CSharpPropertyArrowGetter(ArrowExpressionClauseSyntax syntax)
@@ -77,10 +80,12 @@ namespace TAO3.Converters.CSharp
         }
     }
 
-    public class CSharpPropertyAccessor
+    public class CSharpPropertyAccessor : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public AccessorDeclarationSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public IReadOnlyList<CSharpAttribute> Attributes { get; }
         public CSharpModifiers Modifiers { get; }
         public string? Expression { get; }

@@ -40,9 +40,9 @@
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />
     <PackageReference Include="CsvHelper" Version="19.0.0" />
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21309.3" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21309.3" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.21309.3" />
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21357.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21357.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.21357.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -76,6 +76,7 @@
 
   <ItemGroup>
     <Folder Include="Libs\CsvClassGenerator\" />
+    <Folder Include="Services\TextSerializer\SQL\" />
   </ItemGroup>
   
 </Project>

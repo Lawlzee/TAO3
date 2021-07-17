@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace TAO3.InitializerGenerator.Converters.Internal
+namespace TAO3.TextSerializer.CSharp.Internal
 {
     internal class GenericTypeConverter : ITypeConverter
     {
         private readonly Dictionary<Type, ITypeConverter> _convertersCache = new Dictionary<Type, ITypeConverter>();
 
         public Type TypeToConvert { get; }
+
         private readonly Type _typeConverterType;
 
         public GenericTypeConverter(Type typeConverterType)
@@ -33,7 +34,7 @@ namespace TAO3.InitializerGenerator.Converters.Internal
             _typeConverterType = typeConverterType;
         }
 
-        public bool Convert(StringBuilder sb, object obj, Type objectType, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public bool Convert(StringBuilder sb, object obj, Type objectType, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             if (!objectType.IsGenericType
                 || objectType.GetGenericTypeDefinition() != TypeToConvert.GetGenericTypeDefinition())
@@ -46,14 +47,14 @@ namespace TAO3.InitializerGenerator.Converters.Internal
             ITypeConverter? cachedTypeConverter = _convertersCache.GetValueOrDefault(objectType);
             if (cachedTypeConverter != null)
             {
-                return cachedTypeConverter.Convert(sb, obj, objectType, generator, options);
+                return cachedTypeConverter.Convert(sb, obj, objectType, serializer, options);
             }
 
             Type typeConverterType = CreateConcreteTypeConverterType(objectType);
             ITypeConverter typeConverter = (ITypeConverter)Activator.CreateInstance(typeConverterType)!;
             _convertersCache[objectType] = typeConverter;
 
-            return typeConverter.Convert(sb, obj, objectType, generator, options);
+            return typeConverter.Convert(sb, obj, objectType, serializer, options);
         }
 
         //to do: support nested types. Ex A<B<C>, D>

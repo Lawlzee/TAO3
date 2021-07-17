@@ -25,7 +25,8 @@ using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
 using TAO3.Windows;
 using TAO3.Internal.Commands.Sql;
-using TAO3.InitializerGenerator;
+using TAO3.TextSerializer;
+using TAO3.TextSerializer.CSharp;
 
 namespace TAO3.Internal
 {
@@ -60,7 +61,7 @@ namespace TAO3.Internal
 
             ICellService cellService = new CellService();
 
-            IInitializerGeneratorService initializerGenerator = new InitializerGeneratorService();
+            ICSharpObjectSerializer csharpObjectSerializer = new CSharpObjectSerializer();
 
             Prelude.Services = new TAO3Services(
                 excel,
@@ -73,7 +74,7 @@ namespace TAO3.Internal
                 outputDestination,
                 cellService,
                 windowsService,
-                initializerGenerator);
+                csharpObjectSerializer);
 
             Prelude.Kernel = kernel;
 
@@ -94,7 +95,7 @@ namespace TAO3.Internal
             formatConverter.Register(new LineConverter());
             formatConverter.Register(new TextConveter());
             formatConverter.Register(new HtmlConverter());
-            formatConverter.Register(new CSharpConverter(initializerGenerator));
+            formatConverter.Register(new CSharpConverter(csharpObjectSerializer));
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());

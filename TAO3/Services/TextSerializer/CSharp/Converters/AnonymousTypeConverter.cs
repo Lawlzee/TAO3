@@ -2,18 +2,24 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using TAO3.Internal.Types;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
-    internal class AnonymousTypeConverter : ITypeConverter
+    internal class AnonymousTypeConverter : TypeConverter<object>
     {
-        public bool Convert(StringBuilder sb, object obj, Type objectType, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
+            if (!obj.GetType().IsAnonymous())
+            {
+                return false;
+            }
+
             sb.AppendLine("new");
             sb.Append(options.Indentation);
             sb.Append("{");
 
-            InitializerGeneratorOptions propOptions = options.Indent();
+            ObjectSerializerOptions propOptions = options.Indent();
 
             PropertyInfo[] properties = obj.GetType().GetProperties();
 
@@ -26,7 +32,7 @@ namespace TAO3.InitializerGenerator.Converters
                 sb.Append(propertyInfo.Name);
                 sb.Append(" = ");
 
-                generator.Generate(sb, propertyInfo.GetValue(obj), propOptions);
+                serializer.Serialize(sb, propertyInfo.GetValue(obj), propOptions);
 
                 i++;
                 if (i != properties.Length)
@@ -42,7 +48,7 @@ namespace TAO3.InitializerGenerator.Converters
             return true;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
 
         }

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
     internal class CharTypeConverter : TypeConverter<char>
     {
-        public override bool Convert(StringBuilder sb, char obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, char obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             sb.Append("'");
             //to do: escape caracteres

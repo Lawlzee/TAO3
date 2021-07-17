@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace TAO3.Converters.CSharp
 {
-    public class CSharpCompilationUnit
+    public class CSharpCompilationUnit : ICSharpNode 
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public CompilationUnitSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public IReadOnlyList<string> Usings { get; }
         public IReadOnlyList<CSharpAttribute> Attributes { get; }
 

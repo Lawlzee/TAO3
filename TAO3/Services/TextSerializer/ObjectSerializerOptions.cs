@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace TAO3.InitializerGenerator
+namespace TAO3.TextSerializer
 {
-    public class InitializerGeneratorOptions
+    public class ObjectSerializerOptions
     {
         public int IndentationLevel { get; private set; }
         public string IndentationString { get; private set; }
         public string Indentation { get; private set; } 
 
-        public InitializerGeneratorOptions(int indentationLevel = 0, string indentationString = "    ")
+        public ObjectSerializerOptions(int indentationLevel = 0, string indentationString = "    ")
         {
             IndentationLevel = indentationLevel;
             IndentationString = indentationString;
             Indentation = string.Concat(Enumerable.Repeat(IndentationString, IndentationLevel));
         }
 
-        public InitializerGeneratorOptions Indent()
+        public ObjectSerializerOptions Indent()
         {
             return With(x =>
             {
@@ -27,9 +27,9 @@ namespace TAO3.InitializerGenerator
             });
         }
 
-        private InitializerGeneratorOptions With(Action<InitializerGeneratorOptions> setValues)
+        private ObjectSerializerOptions With(Action<ObjectSerializerOptions> setValues)
         {
-            InitializerGeneratorOptions clone = (InitializerGeneratorOptions)MemberwiseClone();
+            ObjectSerializerOptions clone = (ObjectSerializerOptions)MemberwiseClone();
             setValues(clone);
             return clone;
         }

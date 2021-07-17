@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -9,13 +10,15 @@ using System.Threading.Tasks;
 
 namespace TAO3.Converters.CSharp
 {
-    public class CSharpAttribute
+    public class CSharpAttribute : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public AttributeSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public string Name { get; }
         public IReadOnlyList<CSharpAttributeArgument> Arguments { get; }
-
+        
         public CSharpAttribute(AttributeSyntax syntax)
         {
             Syntax = syntax;
@@ -36,10 +39,12 @@ namespace TAO3.Converters.CSharp
         }
     }
 
-    public class CSharpAttributeArgument
+    public class CSharpAttributeArgument : ICSharpNode
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public AttributeArgumentSyntax Syntax { get; }
+        CSharpSyntaxNode ICSharpNode.Syntax => Syntax;
+
         public string? Name { get; }
         public string Expression { get; }
 

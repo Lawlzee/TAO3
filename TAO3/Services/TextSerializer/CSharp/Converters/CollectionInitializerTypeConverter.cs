@@ -5,11 +5,11 @@ using System.Reflection;
 using System.Text;
 using TAO3.Internal.Types;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
     internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable<T>>
     {
-        public override bool Convert(StringBuilder sb, IEnumerable<T> obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, IEnumerable<T> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             int matches = obj.GetType().GetMethods()
                 .Where(x => x.Name == "Add")
@@ -38,12 +38,12 @@ namespace TAO3.InitializerGenerator.Converters
             sb.Append(options.Indentation);
             sb.AppendLine("{");
 
-            InitializerGeneratorOptions elementOptions = options.Indent();
+            ObjectSerializerOptions elementOptions = options.Indent();
 
             foreach (T element in obj)
             {
                 sb.Append(elementOptions.Indentation);
-                generator.Generate(sb, element, elementOptions);
+                serializer.Serialize(sb, element, elementOptions);
                 sb.AppendLine(",");
             }
 

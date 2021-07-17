@@ -8,20 +8,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters.CSharp;
-using TAO3.InitializerGenerator;
+using TAO3.TextSerializer;
+using TAO3.TextSerializer.CSharp;
 
 namespace TAO3.Converters
 {
     public class CSharpConverter : IConverter
     {
-        private readonly IInitializerGeneratorService _initializerGenerator;
+        private readonly ICSharpObjectSerializer _serializer;
 
         public string Format => "C#";
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
 
-        public CSharpConverter(IInitializerGeneratorService initializerGenerator)
+        public CSharpConverter(ICSharpObjectSerializer initializerGenerator)
         {
-            _initializerGenerator = initializerGenerator;
+            _serializer = initializerGenerator;
         }
 
         public object? Deserialize<T>(string text, object? settings = null)
@@ -33,38 +34,7 @@ namespace TAO3.Converters
 
         public string Serialize(object? value, object? settings = null)
         {
-            if (value == null)
-            {
-                return "";
-            }
-
-            if (value is SyntaxNode syntaxNode)
-            {
-                return value.ToString()!;
-            }
-
-            if (value.GetType().Namespace == typeof(CSharpCompilationUnit).Namespace)
-            {
-                return ((dynamic)value).Syntax.ToString();
-            }
-
-            bool isEnumerable = value.GetType().GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                .Where(x => x.GenericTypeArguments[0].IsAssignableTo(typeof(SyntaxNode))
-                    || x.GenericTypeArguments[0].Namespace == typeof(CSharpCompilationUnit).Namespace)
-                .Any();
-
-            if (isEnumerable)
-            {
-                return string.Join(
-                    Environment.NewLine, 
-                    ((IEnumerable)value)
-                        .Cast<object>()
-                        .Select(x => Serialize(x, settings)));
-            }
-
-
-            return _initializerGenerator.Generate(value);
+            return _serializer.Serialize(value);
         }
     }
 }

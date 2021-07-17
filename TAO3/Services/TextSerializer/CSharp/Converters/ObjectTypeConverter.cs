@@ -5,11 +5,11 @@ using System.Reflection;
 using System.Text;
 using TAO3.Internal.Types;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
     internal class ObjectTypeConverter : TypeConverter<object>
     {
-        public override bool Convert(StringBuilder sb, object obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             ConstructorInfo[] constructorInfos = obj.GetType().GetConstructors();
 
@@ -22,16 +22,16 @@ namespace TAO3.InitializerGenerator.Converters
 
             if (constructorInfo.GetParameters().Length == 0)
             {
-                DTOStyleInitialization(sb, obj, generator, options);
+                DTOStyleInitialization(sb, obj, serializer, options);
                 return true;
             }
             else
             {
-                return RecordStyleInitialization(sb, obj, constructorInfo, generator, options);
+                return RecordStyleInitialization(sb, obj, constructorInfo, serializer, options);
             }
         }
 
-        private void DTOStyleInitialization(StringBuilder sb, object obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        private void DTOStyleInitialization(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             PropertyInfo[] propertyInfos = obj.GetType()
                 .GetProperties()
@@ -53,14 +53,14 @@ namespace TAO3.InitializerGenerator.Converters
             sb.Append(options.Indentation);
             sb.AppendLine("{");
 
-            InitializerGeneratorOptions propertyOptions = options.Indent();
+            ObjectSerializerOptions propertyOptions = options.Indent();
 
             foreach (PropertyInfo property in propertyInfos)
             {
                 sb.Append(propertyOptions.Indentation);
                 sb.Append(property.Name);
                 sb.Append(" = ");
-                generator.Generate(sb, property.GetValue(obj), propertyOptions);
+                serializer.Serialize(sb, property.GetValue(obj), propertyOptions);
                 sb.AppendLine(",");
             }
 
@@ -72,8 +72,8 @@ namespace TAO3.InitializerGenerator.Converters
             StringBuilder sb, 
             object obj, 
             ConstructorInfo constructorInfo,
-            InitializerGeneratorService generator, 
-            InitializerGeneratorOptions options)
+            ObjectSerializer serializer, 
+            ObjectSerializerOptions options)
         {
             PropertyInfo[] propertyInfos = obj.GetType().GetProperties();
 
@@ -99,7 +99,7 @@ namespace TAO3.InitializerGenerator.Converters
             sb.Append(obj.GetType().PrettyPrint());
             sb.Append("(");
 
-            InitializerGeneratorOptions argumentsOptions = options.Indent();
+            ObjectSerializerOptions argumentsOptions = options.Indent();
 
             bool isFirstProp = true;
 
@@ -119,7 +119,7 @@ namespace TAO3.InitializerGenerator.Converters
 
                     sb.Append(parameter.Name);
                     sb.Append(": ");
-                    generator.Generate(sb, propertyInfo.GetValue(obj), argumentsOptions);
+                    serializer.Serialize(sb, propertyInfo.GetValue(obj), argumentsOptions);
 
                     isFirstProp = false;
                 }   

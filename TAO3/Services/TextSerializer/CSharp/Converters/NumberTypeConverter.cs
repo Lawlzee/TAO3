@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using TAO3.Internal.Types;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
     internal class NumberTypeConverter<T> : TypeConverter<T>
     {
-        public override bool Convert(StringBuilder sb, T obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, T obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             sb.Append(obj!.ToString());
             string? suffix = NumberHelper.GetNumberSuffix(typeof(T));

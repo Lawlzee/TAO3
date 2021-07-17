@@ -11,7 +11,7 @@ namespace TAO3.Test.Services.Notepad
     [TestClass]
     public class NotepadServiceTest
     {
-        [TestMethod]
+        //[TestMethod]
         public void Test()
         {
             INotepadService notepadService = new NotepadService();

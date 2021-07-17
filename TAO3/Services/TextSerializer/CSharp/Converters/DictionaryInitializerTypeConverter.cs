@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using TAO3.Internal.Types;
 
-namespace TAO3.InitializerGenerator.Converters
+namespace TAO3.TextSerializer.CSharp
 {
     internal class DictionaryInitializerTypeConverter<TKey, TValue> : TypeConverter<IDictionary<TKey, TValue>>
     {
-        public override bool Convert(StringBuilder sb, IDictionary<TKey, TValue> obj, InitializerGeneratorService generator, InitializerGeneratorOptions options)
+        public override bool Convert(StringBuilder sb, IDictionary<TKey, TValue> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
             if (obj.GetType().GetConstructor(Type.EmptyTypes) == null)
             {
@@ -27,15 +27,15 @@ namespace TAO3.InitializerGenerator.Converters
             sb.Append(options.Indentation);
             sb.AppendLine("{");
 
-            InitializerGeneratorOptions elementOptions = options.Indent();
+            ObjectSerializerOptions elementOptions = options.Indent();
 
             foreach (KeyValuePair<TKey, TValue> kvp in obj)
             {
                 sb.Append(elementOptions.Indentation);
                 sb.Append("[");
-                generator.Generate(sb, kvp.Key, elementOptions);
+                serializer.Serialize(sb, kvp.Key, elementOptions);
                 sb.Append("] = ");
-                generator.Generate(sb, kvp.Value, elementOptions);
+                serializer.Serialize(sb, kvp.Value, elementOptions);
                 sb.AppendLine(",");
             }
 

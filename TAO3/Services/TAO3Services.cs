@@ -7,11 +7,11 @@ using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
-using TAO3.InitializerGenerator;
 using TAO3.InputSources;
 using TAO3.Keyboard;
 using TAO3.Notepad;
 using TAO3.OutputDestinations;
+using TAO3.TextSerializer.CSharp;
 using TAO3.Toast;
 using TAO3.Windows;
 
@@ -28,7 +28,7 @@ namespace TAO3.Services
         IOutputDestinationService OutputDestination,
         ICellService Cells,
         IWindowsService WindowsService,
-        IInitializerGeneratorService InitializerGenerator) : IDisposable
+        ICSharpObjectSerializer CSharpSerializer) : IDisposable
     {
         public void Dispose()
         {
@@ -42,7 +42,7 @@ namespace TAO3.Services
             OutputDestination.Dispose();
             Cells.Dispose();
             WindowsService.Dispose();
-            InitializerGenerator.Dispose();
+            CSharpSerializer.Dispose();
         }
     }
 }
