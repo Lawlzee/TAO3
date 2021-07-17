@@ -52,50 +52,15 @@ namespace TAO3.TextSerializer.SQL
 
         private record Member(string Name, object? Value);
 
-        //todo: cache members
-        //todo: support has one relationship (create fk column)
+        //todo: cache infered SqlColumns
         private List<Member> GetMembers(object obj)
         {
-            //todo: complete list/make configurable
-            Type[] supportedColumnsTypes =
-            {
-                typeof(byte),
-                typeof(decimal),
-                typeof(double),
-                typeof(short),
-                typeof(int),
-                typeof(long),
-                typeof(sbyte),
-                typeof(ushort),
-                typeof(uint),
-                typeof(ulong),
-                typeof(float),
-                typeof(bool),
-                typeof(char),
-                typeof(string),
-                typeof(DateTime),
-                typeof(Guid),
-                typeof(Enum)
-            };
-
-            return obj.GetType()
-                .GetMembers()
-                .Where(x => x.MemberType == MemberTypes.Field || x.MemberType == MemberTypes.Property)
-                .Where(x => !(x is PropertyInfo prop) || (prop.CanRead && prop.GetIndexParameters().Length == 0))
-                .Select(x => new
-                {
-                    x.Name,
-                    Type = x is PropertyInfo prop
-                        ? prop.PropertyType
-                        : ((FieldInfo)x).FieldType,
-                    Value = x is PropertyInfo prop2
-                        ? prop2.GetValue(obj, null)
-                        : ((FieldInfo)x).GetValue(obj)
-                })
-                .Where(x => supportedColumnsTypes.Any(type => x.Type.IsAssignableTo(type)))
+            return SqlColumnInferer.InferColumns(obj.GetType())
                 .Select(x => new Member(
                     x.Name,
-                    x.Value))
+                    x.Member is PropertyInfo prop
+                        ? prop.GetValue(obj, null)
+                        : ((FieldInfo)x.Member).GetValue(obj)))
                 .ToList();
 
 

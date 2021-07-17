@@ -29,16 +29,23 @@ namespace TAO3.TextSerializer.CSharp
 
             ObjectSerializerOptions elementOptions = options.Indent();
 
+            bool isFirst = true;
             foreach (KeyValuePair<TKey, TValue> kvp in obj)
             {
+                if (!isFirst)
+                {
+                    sb.AppendLine(",");
+                }
+
                 sb.Append(elementOptions.Indentation);
                 sb.Append("[");
                 serializer.Serialize(sb, kvp.Key, elementOptions);
                 sb.Append("] = ");
                 serializer.Serialize(sb, kvp.Value, elementOptions);
-                sb.AppendLine(",");
+                isFirst = false;
             }
 
+            sb.AppendLine();
             sb.Append(options.Indentation);
             sb.Append("}");
 

@@ -12,6 +12,26 @@ namespace ObjectInitializerGenerator.Test
     public class CollectionInitializerTest
     {
         [TestMethod]
+        public void EmptyArray1dInitializerTest()
+        {
+            int[] values = new int[0];
+            string got = new CSharpObjectSerializer().Serialize(values);
+
+            string expected = @"new int[0]";
+            Assert.AreEqual(expected, got);
+        }
+
+        [TestMethod]
+        public void EmptyArrayOfArrayInitializerTest()
+        {
+            int[][] values = new int[0][];
+            string got = new CSharpObjectSerializer().Serialize(values);
+
+            string expected = @"new int[0][]";
+            Assert.AreEqual(expected, got);
+        }
+
+        [TestMethod]
         public void Array1dInitializerTest()
         {
             int[] values = new int[]
@@ -29,9 +49,19 @@ namespace ObjectInitializerGenerator.Test
     1,
     2,
     3,
-    4,
+    4
 }";
 
+            Assert.AreEqual(expected, got);
+        }
+
+        [TestMethod]
+        public void EmptyListInitializerTest()
+        {
+            List<int> values = new List<int>();
+            string got = new CSharpObjectSerializer().Serialize(values);
+
+            string expected = @"new List<int>()";
             Assert.AreEqual(expected, got);
         }
 
@@ -53,9 +83,19 @@ namespace ObjectInitializerGenerator.Test
     1,
     2,
     3,
-    4,
+    4
 }";
 
+            Assert.AreEqual(expected, got);
+        }
+
+        [TestMethod]
+        public void EmptyDictionaryInitializerTest()
+        {
+            Dictionary<string, int> value = new Dictionary<string, int>();
+            string got = new CSharpObjectSerializer().Serialize(value);
+
+            string expected = @"new Dictionary<string, int>()";
             Assert.AreEqual(expected, got);
         }
 
@@ -75,7 +115,7 @@ namespace ObjectInitializerGenerator.Test
 {
     [@""A""] = 1,
     [@""B""] = 2,
-    [@""C""] = 3,
+    [@""C""] = 3
 }";
 
             Assert.AreEqual(expected, got);

@@ -37,9 +37,10 @@ namespace TAO3.TextSerializer.SQL
             AddConverter<string, StringTypeConverter>();
             AddConverter<DateTime, DateTimeTypeConverter>();
             AddConverter<Guid, GuidTypeConverter>();
+            
+            AddConverter<Type, TypeTypeConverter>();
 
             AddGenericConverter(typeof(CollectionInitializerTypeConverter<>));
-
             AddGenericConverter(typeof(NullableTypeConverter<>));
 
             AddConverter<Enum, EnumTypeConverter>();

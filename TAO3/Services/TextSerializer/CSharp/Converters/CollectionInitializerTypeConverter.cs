@@ -11,7 +11,9 @@ namespace TAO3.TextSerializer.CSharp
     {
         public override bool Convert(StringBuilder sb, IEnumerable<T> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
         {
-            int matches = obj.GetType().GetMethods()
+            Type type = obj.GetType();
+
+            int matches = type.GetMethods()
                 .Where(x => x.Name == "Add")
                 .Where(x => !x.IsStatic)
                 .Where(x => x.GetParameters().Length == 1)
@@ -19,12 +21,12 @@ namespace TAO3.TextSerializer.CSharp
                 .Where(x => x.IsPublic || x.IsAssembly)
                 .Count();
 
-            if (matches != 1 && !obj.GetType().IsArray)
+            if (matches != 1 && !type.IsArray)
             {
                 return false;
             }
 
-            bool isDictionary = obj.GetType()
+            bool isDictionary = type
                 .GetParentTypes()
                 .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
 
@@ -33,7 +35,28 @@ namespace TAO3.TextSerializer.CSharp
                 return false;
             }
 
+            List<T> values = obj.ToList();
+
             sb.Append("new ");
+
+            if (values.Count == 0)
+            {
+                if (type.IsArray)
+                {
+                    //Ugly, but it kinds of works
+                    sb.Append(obj.GetType().PrettyPrint()
+                        .Replace("[", "[0")
+                        .Replace(",", ", 0"));
+                }
+                else
+                {
+                    sb.Append(obj.GetType().PrettyPrint());
+                    sb.Append("()");
+                }
+
+                return true;
+            }
+
             sb.AppendLine(obj.GetType().PrettyPrint());
             sb.Append(options.Indentation);
             sb.AppendLine("{");
@@ -54,6 +77,7 @@ namespace TAO3.TextSerializer.CSharp
                 isFirst = false;
             }
 
+            sb.AppendLine();
             sb.Append(options.Indentation);
             sb.Append("}");
 
