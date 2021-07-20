@@ -33,7 +33,7 @@ namespace TAO3.Excel.Generation
             JsonType objectType = new JsonType(
                 JsonTypeEnum.Object,
                 internalType: null,
-                assignedName: IdentifierUtils.ToPascalCase(table.Name + "Row"),
+                assignedName: IdentifierUtils.ToCSharpIdentifier(table.Name + "Row"),
                 fields,
                 isRoot: true);
 
@@ -46,7 +46,7 @@ namespace TAO3.Excel.Generation
 
         private static string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
         {
-            string className = IdentifierUtils.ToPascalCase(table.Name);
+            string className = IdentifierUtils.ToCSharpIdentifier(table.Name);
 
             string code = $@"using System;
 using System.Collections.Generic;

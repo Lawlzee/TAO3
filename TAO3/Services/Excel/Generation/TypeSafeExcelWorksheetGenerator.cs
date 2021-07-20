@@ -15,7 +15,7 @@ namespace TAO3.Excel.Generation
     {
         public static string Generate(CSharpKernel cSharpKernel, ExcelWorksheet sheet)
         {
-            string className = IdentifierUtils.ToPascalCase(sheet.Name);
+            string className = IdentifierUtils.ToCSharpIdentifier(sheet.Name);
 
             List<string> tables = sheet
                 .Tables

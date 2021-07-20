@@ -8,7 +8,7 @@ namespace TAO3.Internal.CodeGeneration
 {
     internal static class IdentifierUtils
     {
-        internal static string ToPascalCase(string str)
+        internal static string ToCSharpIdentifier(string str)
         {
             StringBuilder? sb = new StringBuilder(str.Length);
             bool shouldUpper = true;

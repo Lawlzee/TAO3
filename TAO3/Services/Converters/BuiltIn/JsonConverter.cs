@@ -54,7 +54,7 @@ namespace TAO3.Converters
                 string settingsVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Settings, typeof(JsonSerializerSettings));
                 if (string.IsNullOrEmpty(type))
                 {
-                    string className = IdentifierUtils.ToPascalCase(name);
+                    string className = IdentifierUtils.ToCSharpIdentifier(name);
                     string classDeclarations = JsonClassGenerator.GenerateClasses(text, className);
 
                     await converterContext.SubmitCodeAsync($@"{classDeclarations}{className} {name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName}, {settingsVariableName});");

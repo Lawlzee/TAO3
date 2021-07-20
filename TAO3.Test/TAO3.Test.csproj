@@ -16,4 +16,8 @@
     <ProjectReference Include="..\TAO3\TAO3.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Sql\" />
+  </ItemGroup>
+
 </Project>

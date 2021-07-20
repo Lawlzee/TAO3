@@ -82,7 +82,7 @@ namespace TAO3.Converters
 
                 if (string.IsNullOrEmpty(type))
                 {
-                    string className = IdentifierUtils.ToPascalCase(name);
+                    string className = IdentifierUtils.ToCSharpIdentifier(name);
                     string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
 
                     await converterContext.SubmitCodeAsync($@"{classDeclarations}{className} {name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");

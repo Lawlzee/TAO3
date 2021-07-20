@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Test.Services.Sql
+namespace TAO3.Test.Internal.Commands.ConnectMSSQL
 {
     public class DbCommandMock : DbCommand
     {

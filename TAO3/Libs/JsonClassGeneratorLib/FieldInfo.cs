@@ -17,7 +17,7 @@ namespace Xamasoft.JsonClassGenerator
         internal FieldInfo(string jsonMemberName, JsonType type)
         {
             JsonMemberName = jsonMemberName;
-            MemberName = IdentifierUtils.ToPascalCase(jsonMemberName);
+            MemberName = IdentifierUtils.ToCSharpIdentifier(jsonMemberName);
             Type = type;
         }
     }

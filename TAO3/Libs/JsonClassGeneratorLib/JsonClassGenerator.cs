@@ -198,7 +198,7 @@ namespace Xamasoft.JsonClassGenerator
 
         private static string CreateUniqueClassName(string name, HashSet<string> usedNames)
         {
-            name = IdentifierUtils.ToPascalCase(name);
+            name = IdentifierUtils.ToCSharpIdentifier(name);
 
             string? finalName = name;
             int i = 2;

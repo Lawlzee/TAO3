@@ -18,7 +18,7 @@ namespace TAO3.Internal.CodeGeneration.Generators
         public async Task<string> GenerateSourceCodeAsync(IConverterContext<CsvConfiguration> context)
         {
             ClassInferer inferedClass = InferClass(await context.GetTextAsync(), context.Settings!);
-            string className = IdentifierUtils.ToPascalCase(context.VariableName);
+            string className = IdentifierUtils.ToCSharpIdentifier(context.VariableName);
             JsonType typeDefinition = inferedClass.CreateJsonType(className);
 
             string classDefinition = JsonClassGenerator.WriteClasses(new List<JsonType> { typeDefinition });

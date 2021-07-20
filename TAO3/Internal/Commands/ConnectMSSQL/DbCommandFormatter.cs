@@ -9,11 +9,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Sql
+namespace TAO3.Internal.Commands.ConnectMSSQL
 {
     internal class DbCommandFormatter
     {
-        //todo: handle stored procedure
         public string Format(DbCommand command)
         {
             using StringReader stringReader = new StringReader(command.CommandText);
@@ -35,10 +34,10 @@ namespace TAO3.Sql
 
             if (command.CommandType == CommandType.StoredProcedure)
             {
-                return FormatStoredProcedure(command.CommandText, parameterValueByName);
+                return IndentQuery(FormatStoredProcedure(command.CommandText, parameterValueByName));
             }
 
-            return FormatQuery(tree, parameterValueByName);
+            return IndentQuery(FormatQuery(tree, parameterValueByName));
         }
 
         private string GetParameterValue(DbParameter sqlParameter)
@@ -65,7 +64,7 @@ namespace TAO3.Sql
                 case DbType.DateTimeOffset:
                     return ((DateTime)sqlParameter.Value).ToString("yyyy-MM-dd HH:mm:ss:fff");
                 case DbType.Boolean:
-                    return ((bool)sqlParameter.Value) ? "1" : "0";
+                    return (bool)sqlParameter.Value ? "1" : "0";
                 case DbType.Decimal:
                     return ((decimal)sqlParameter.Value).ToString(CultureInfo.InvariantCulture);
                 case DbType.Single:
@@ -79,7 +78,7 @@ namespace TAO3.Sql
 
 
         private string FormatStoredProcedure(
-            string storedProcedureName, 
+            string storedProcedureName,
             Dictionary<string, string> parameterValueByName)
         {
             StringBuilder sb = new StringBuilder();
@@ -108,7 +107,7 @@ namespace TAO3.Sql
         }
 
         private string FormatQuery(
-            TSqlFragment tree, 
+            TSqlFragment tree,
             Dictionary<string, string> parameterValueByName)
         {
             StringBuilder result = new StringBuilder();
@@ -126,6 +125,30 @@ namespace TAO3.Sql
             }
 
             return result.ToString();
+        }
+
+        private string IndentQuery(string query)
+        {
+            using StringReader stringReader = new StringReader(query);
+
+            TSql150Parser parser = new TSql150Parser(true, SqlEngineType.All);
+            TSqlFragment tree = parser.Parse(stringReader, out IList<ParseError> errors);
+
+            if (errors.Count > 0)
+            {
+                //todo: add custom exception with errors and formatted message
+                throw new Exception();
+            }
+
+            Sql150ScriptGenerator scriptGenerator = new Sql150ScriptGenerator(new SqlScriptGeneratorOptions
+            {
+                AlignClauseBodies = false,
+                AlignSetClauseItem = false,
+                
+            });
+            scriptGenerator.GenerateScript(tree, out string script);
+
+            return script.Trim();
         }
     }
 }

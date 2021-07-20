@@ -24,9 +24,9 @@ using TAO3.Cell;
 using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
 using TAO3.Windows;
-using TAO3.Internal.Commands.Sql;
 using TAO3.TextSerializer;
 using TAO3.TextSerializer.CSharp;
+using TAO3.Internal.Commands.ConnectMSSQL;
 
 namespace TAO3.Internal
 {
@@ -80,13 +80,12 @@ namespace TAO3.Internal
 
             kernel.RegisterForDisposal(Prelude.Services);
 
-            ((CompositeKernel)kernel).UseKernelClientConnection(new TAO3MsSqlKernelConnection());
-
             kernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
             kernel.AddDirective(new InputCommand(inputSource, formatConverter));
             kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
             kernel.AddDirective(new CellCommand(cellService));
             kernel.AddDirective(new RunCommand(cellService));
+            kernel.AddDirective(new ConnectMSSQLCommand());
 
             formatConverter.Register(new CsvConverter(true));
             formatConverter.Register(new CsvConverter(false));
