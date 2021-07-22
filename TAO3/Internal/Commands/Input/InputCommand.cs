@@ -55,18 +55,21 @@ namespace TAO3.Internal.Commands.Input
 
             if (converter is IConfigurableConverter configurableConverter)
             {
+                configurableConverter.Configure(command);
+            }
+
+            if (converter is IHandleCommand commandHandler)
+            {
                 command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
 
-                configurableConverter.ConfigureCommand(
-                    command,
-                    convertionContextProvider);
+                command.Handler = commandHandler.CreateHandler(convertionContextProvider);
             }
             else
             {
                 command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
                 {
                     IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
-                    await convertionContext.DefaultHandleAsync();
+                    await convertionContext.DefaultHandleCommandAsync();
                 });
             }
 

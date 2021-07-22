@@ -22,7 +22,7 @@ namespace TAO3.Converters
         TSettings? Settings { get; set; }
         Task<string> GetTextAsync();
         Task SubmitCodeAsync(string code);
-        Task DefaultHandleAsync();
+        Task DefaultHandleCommandAsync();
         Task<string> CreatePrivateVariableAsync(object? value, Type type);
     }
 
@@ -84,7 +84,7 @@ namespace TAO3.Converters
             await CSharpKernel.SubmitCodeAsync(code);
         }
 
-        public async Task DefaultHandleAsync()
+        public async Task DefaultHandleCommandAsync()
         {
             string text = await GetTextAsync();
             object? result = Converter.Deserialize<ExpandoObject>(text, Settings);

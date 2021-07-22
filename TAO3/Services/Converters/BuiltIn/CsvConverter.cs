@@ -16,7 +16,15 @@ using TAO3.Internal.CodeGeneration.Generators;
 
 namespace TAO3.Converters
 {
-    public class CsvConverter : IConverter<CsvConfiguration>,  IConfigurableConverter
+    public class CsvConverterParameters : ConverterCommandParameters
+    {
+        public string? Separator { get; set; }
+        public string? Type { get; set; }
+    }
+
+    public class CsvConverter : 
+        IConverter<CsvConfiguration>,  
+        IHandleCommand<CsvConfiguration, CsvConverterParameters>
     {
         private readonly CsvConfiguration _defaultSettings;
 
@@ -100,45 +108,42 @@ namespace TAO3.Converters
             return GetGenericTypeUsage(baseType, genericType);
         }
 
-        public void ConfigureCommand(Command command, ConvertionContextProvider contextProvider)
+        public void Configure(Command command)
         {
             command.Add(new Option<string>(new[] { "-s", "--separator" }, "Value separator"));
             command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+        }
 
-            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string separator, string type, KernelInvocationContext context) =>
+        public async Task HandleCommandAsync(IConverterContext<CsvConfiguration> context, CsvConverterParameters args)
+        {
+            context.Settings ??= _defaultSettings;
+
+            if (!string.IsNullOrEmpty(args.Separator))
             {
-                IConverterContext<CsvConfiguration> converterContext = contextProvider.Invoke<CsvConfiguration>(name, settings, verbose, context);
+                context.Settings.Delimiter = Regex.Unescape(args.Separator);
+            }
 
-                converterContext.Settings ??= _defaultSettings;
+            if (args.Type == "dynamic")
+            {
+                await context.DefaultHandleCommandAsync();
+                return;
+            }
 
-                if (!string.IsNullOrEmpty(separator))
-                {
-                    converterContext.Settings.Delimiter = Regex.Unescape(separator);
-                }
+            if (string.IsNullOrEmpty(args.Type))
+            {
+                string code = await new CsvCodeGenerator().GenerateSourceCodeAsync(context);
+                await context.SubmitCodeAsync(code);
+            }
+            else
+            {
+                string clipboardVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
+                string converterVariableName = await context.CreatePrivateVariableAsync(context.Converter, typeof(CsvConverter));
+                string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
 
-                if (type == "dynamic")
-                {
-                    await converterContext.DefaultHandleAsync();
-                    return;
-                }
+                string code = $"{args.Type}[] {args.Name} = ({args.Type}[]){converterVariableName}.Deserialize<{args.Type}>({clipboardVariableName}, {settingsVariableName});";
+                await context.SubmitCodeAsync(code);
 
-                if (string.IsNullOrEmpty(type))
-                {
-                    string code = await new CsvCodeGenerator().GenerateSourceCodeAsync(converterContext);
-                    await converterContext.SubmitCodeAsync(code);
-                }
-                else
-                {
-                    string clipboardVariableName = await converterContext.CreatePrivateVariableAsync(await converterContext.GetTextAsync(), typeof(string));
-                    string converterVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Converter, typeof(CsvConverter));
-                    string settingsVariableName = await converterContext.CreatePrivateVariableAsync(converterContext.Settings, typeof(CsvConfiguration));
-
-                    string code = $"{type}[] {name} = ({type}[]){converterVariableName}.Deserialize<{type}>({clipboardVariableName}, {settingsVariableName});";
-                    await converterContext.SubmitCodeAsync(code);
-
-                }
-            });
-
+            }
         }
     }
 }

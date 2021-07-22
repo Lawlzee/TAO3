@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace TAO3.Converters
         object? Deserialize<T>(string text, object? settings = null);
     }
 
-    public interface IConverter<TSettings> : IConverter
+    public interface IConverter<TSettings> : IConverter, IConfigurableConverter
     {
         string Serialize(object? value, TSettings? settings);
         object? Deserialize<T>(string text, TSettings? settings);

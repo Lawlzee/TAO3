@@ -14,10 +14,17 @@ using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Converters
 {
+    public class XmlConverterParameters : ConverterCommandParameters
+    {
+        public string? Type { get; set; }
+    }
+
     //We can't use XmlSerializer because when we declare a class in a dot net interactive notebook,
     //the name of class the class if prefixed with "Submission#0+" and the XmlSerializer doesn't like that.
     //We can probably do a lot better then this, but it works for now
-    public class XmlConverter : IConverter<XmlWriterSettings>, IConfigurableConverter
+    public class XmlConverter : 
+        IConverter<XmlWriterSettings>, 
+        IHandleCommand<XmlWriterSettings, XmlConverterParameters>
     {
         private readonly XmlWriterSettings _defaultSettings = new XmlWriterSettings
         {
@@ -55,45 +62,43 @@ namespace TAO3.Converters
             return sb.ToString();
         }
 
-        public void ConfigureCommand(Command command, ConvertionContextProvider contextProvider)
+        public void Configure(Command command)
         {
             command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+        }
 
-            command.Handler = CommandHandler.Create(async (string name, string settings, bool verbose, string type, KernelInvocationContext context) =>
+        public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlConverterParameters args)
+        {
+            context.Settings ??= _defaultSettings;
+
+            if (args.Type == "dynamic")
             {
-                IConverterContext<XmlWriterSettings> converterContext = contextProvider.Invoke<XmlWriterSettings>(name, settings, verbose, context);
+                await context.DefaultHandleCommandAsync();
+                return;
+            }
 
-                converterContext.Settings ??= _defaultSettings;
+            string text = await context.GetTextAsync();
 
-                if (type == "dynamic")
-                {
-                    await converterContext.DefaultHandleAsync();
-                    return;
-                }
+            XDocument document = XDocument.Parse(text);
+            XElement rootElement = document.Root!;
 
-                string text = await converterContext.GetTextAsync();
+            string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
 
-                XDocument document = XDocument.Parse(text);
-                XElement rootElement = document.Root!;
+            string clipboardVariableName = await context.CreatePrivateVariableAsync(jsonInput, typeof(string));
 
-                string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
+            if (string.IsNullOrEmpty(args.Type))
+            {
+                string className = IdentifierUtils.ToCSharpIdentifier(args.Type!);
+                string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
 
-                string clipboardVariableName = await converterContext.CreatePrivateVariableAsync(jsonInput, typeof(string));
+                await context.SubmitCodeAsync($@"{classDeclarations}{className} {args.Name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");
+            }
+            else
+            {
+                await context.SubmitCodeAsync($@"using Newtonsoft.Json;
 
-                if (string.IsNullOrEmpty(type))
-                {
-                    string className = IdentifierUtils.ToCSharpIdentifier(name);
-                    string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
-
-                    await converterContext.SubmitCodeAsync($@"{classDeclarations}{className} {name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");
-                }
-                else
-                {
-                    await converterContext.SubmitCodeAsync($@"using Newtonsoft.Json;
-
-{type} {name} = JsonConvert.DeserializeObject<{type}>({clipboardVariableName});");
-                }
-            });
+{args.Type} {args.Name} = JsonConvert.DeserializeObject<{args.Type}>({clipboardVariableName});");
+            }
         }
     }
 }
