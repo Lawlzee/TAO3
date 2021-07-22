@@ -11,12 +11,12 @@ namespace TAO3.Converters
         public string Format => "text";
         public string DefaultType => "string";
 
-        public object? Deserialize<T>(string text, object? settings = null)
+        public object? Deserialize<T>(string text)
         {
             return text;
         }
 
-        public string Serialize(object? value, object? settings = null)
+        public string Serialize(object? value)
         {
             return value?.ToString() ?? string.Empty;
         }

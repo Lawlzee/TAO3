@@ -13,12 +13,12 @@ namespace TAO3.Converters
 
         public string DefaultType => "string[]";
 
-        public object? Deserialize<T>(string text, object? settings)
+        public object? Deserialize<T>(string text)
         {
             return Regex.Split(text, @"\r\n|\r|\n");
         }
 
-        public string Serialize(object? value, object? settings)
+        public string Serialize(object? value)
         {
             if (value is IEnumerable enumerable)
             {

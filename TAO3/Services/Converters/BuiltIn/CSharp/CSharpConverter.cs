@@ -25,14 +25,14 @@ namespace TAO3.Converters
             _serializer = serializer;
         }
 
-        public object? Deserialize<T>(string text, object? settings = null)
+        public object? Deserialize<T>(string text)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(text);
             CompilationUnitSyntax compilation = tree.GetCompilationUnitRoot();
             return new CSharpCompilationUnit(compilation);
         }
 
-        public string Serialize(object? value, object? settings = null)
+        public string Serialize(object? value)
         {
             return _serializer.Serialize(value);
         }

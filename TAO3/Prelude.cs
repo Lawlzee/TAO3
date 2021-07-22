@@ -46,9 +46,9 @@ namespace TAO3
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => Converters.Xml.Serialize(value, settings);
         public static string ToCsv(object? value, CsvConfiguration? settings = null) => Converters.Csv.Serialize(value, settings);
         public static string ToCsvh(object? value, CsvConfiguration? settings = null) => Converters.Csvh.Serialize(value, settings);
-        public static string ToLine(object? value) => Converters.Line.Serialize(value, settings: null);
-        public static string ToHmtl(object? value) => Converters.Html.Serialize(value, settings: null);
-        public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value, settings: null);
+        public static string ToLine(object? value) => Converters.Line.Serialize(value);
+        public static string ToHmtl(object? value) => Converters.Html.Serialize(value);
+        public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value);
 
         public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)Converters.Json.Deserialize<T>(text, settings)!;
         public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)Converters.Xml.Deserialize<T>(text, settings)!;
@@ -59,9 +59,9 @@ namespace TAO3
         public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings)!;
         public static string[] FromCsv(string text, CsvConfiguration? settings = null) => (string[])Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
         public static string[] FromCsvh(string text, CsvConfiguration? settings = null) => (string[])Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromLine(string text) => (string[])Converters.Line.Deserialize<string>(text, settings: null)!;
-        public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text, settings: null)!;
-        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text, settings: null)!;
+        public static string[] FromLine(string text) => (string[])Converters.Line.Deserialize<string>(text)!;
+        public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
+        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text)!;
 
         public static void ConfigureTranslator(string url, string? apiKey = null)
         {
