@@ -27,6 +27,8 @@ using TAO3.Windows;
 using TAO3.TextSerializer;
 using TAO3.TextSerializer.CSharp;
 using TAO3.Internal.Commands.ConnectMSSQL;
+using System.Net.Http;
+using TAO3.Translation;
 
 namespace TAO3.Internal
 {
@@ -63,6 +65,10 @@ namespace TAO3.Internal
 
             ICSharpObjectSerializer csharpObjectSerializer = new CSharpObjectSerializer();
 
+            HttpClient httpClient = new HttpClient();
+
+            ITranslationService translationService = new TranslationService(httpClient);
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -74,7 +80,9 @@ namespace TAO3.Internal
                 outputDestination,
                 cellService,
                 windowsService,
-                csharpObjectSerializer);
+                csharpObjectSerializer,
+                httpClient,
+                translationService);
 
             Prelude.Kernel = kernel;
 

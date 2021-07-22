@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -21,6 +22,7 @@ using TAO3.OutputDestinations;
 using TAO3.Services;
 using TAO3.TextSerializer.CSharp;
 using TAO3.Toast;
+using TAO3.Translation;
 using JsonConverter = TAO3.Converters.JsonConverter;
 
 namespace TAO3
@@ -39,6 +41,8 @@ namespace TAO3
         public static IOutputDestinationService OutputDestination => Services.OutputDestination;
         public static ICellService Cells => Services.Cells;
         public static ICSharpObjectSerializer CSharpGenerator => Services.CSharpSerializer;
+        public static HttpClient HttpClient => Services.HttpClient;
+        public static ITranslationService Translation => Services.Translation;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);
@@ -60,5 +64,30 @@ namespace TAO3
         public static string[] FromLine(string text) => (string[])new LineConverter().Deserialize<string>(text, settings: null)!;
         public static HtmlString FromHmtl(string text) => (HtmlString)new HtmlConverter().Deserialize<object>(text, settings: null)!;
         public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)new CSharpConverter(CSharpGenerator).Deserialize<CSharpCompilationUnit>(text, settings: null)!;
+
+        public static void ConfigureTranslator(string url, string? apiKey = null)
+        {
+            Translation.Configure(url, apiKey);
+        }
+
+        public static Translator CreateTranslator(string sourceLanguage, string targetLanguage)
+        {
+            return Translation.CreateTranslator(sourceLanguage, targetLanguage);
+        }
+
+        public static Translator CreateTranslator(Language sourceLanguage, Language targetLanguage)
+        {
+            return Translation.CreateTranslator(sourceLanguage, targetLanguage);
+        }
+
+        public static Task<string?> TranslateAsync(string sourceLanguage, string targetLanguage, string text)
+        {
+            return Translation.TranslateAsync(sourceLanguage, targetLanguage, text);
+        }
+
+        public static Task<string?> TranslateAsync(Language sourceLanguage, Language targetLanguage, string text)
+        {
+            return Translation.TranslateAsync(sourceLanguage, targetLanguage, text);
+        }
     }
 }

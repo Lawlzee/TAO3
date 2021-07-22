@@ -1,0 +1,52 @@
+#!markdown
+
+- [ ] Support dataflows
+  - [ ] Support a change notification for each sources (IWatchable interface)
+- [ ] SQL Converter
+  - [x] Serializer
+  - [ ] Deserializer
+- [ ] Add support for a UI framework
+  - [ ] Support T Edit<T>(T obj)
+  - [ ] Support dynamic Edit(dynamic obj)
+  - [ ] Support T Create<T>();
+  - [ ] Support dynamic Create(Type type);
+  - [ ] Support T Create<T>(T example);//For anonymous types
+- [ ] Support alias for converters
+- [ ] Optimise Excel integration performance for large Excel files
+- [ ] Support multiple tabs in notepad++ text source
+- [ ] Automaticaly set the language of the notepad++ tab depending on the converter used
+- [ ] Add a way to add user defined properties to converters
+  - Ex. Notepad++ language of the converter
+- [ ] Add a type generator for the C# converter
+- [ ] Reimplement the toast notifier to not use PowerShell
+- [ ] Reimplement the json class generator
+- [ ] Reimplement the class generator
+  - [ ] Enable user to add generation rules
+    - Ex. Let user add an anotation to every properties to support their type converter
+- [ ] Add file system type generator
+- [ ] Add the concept of intermediate source
+  - [ ] ILeafSourceNode, ITextSource, TObjectSource, IntermediateSource 
+  - Ex. File => TextSource, Directory => IntermediateSource
+  - [ ] Support serialization of IntermediateSources
+    - Ex. Let user convert a directory structure to json
+- [ ] Add a Http client with automatique object serialization/deserialization with TAO3 converters
+- [ ] Add methods to the C# syntax node wrapper to enable mutation of the C# code
+- [ ] Use the Win32 source generator instead of manually adding the method stubs
+  - (https://github.com/microsoft/CsWin32?fbclid=IwAR3DvmqCXRJ3AYcA5gQIilkGl1piuKAYSrHPwmL0ZRZnIhUl1VKuT7bHAgU)
+- [ ] Support a Markdown Converter
+  - [ ] Support Markdown table serialization/deserialization
+- [ ] Add an UI for non programmer
+  - [ ] Load notebook
+  - [ ] View Macros
+  - [ ] Enable/Disable macros
+- [ ] Add support formatters the text converters
+- [ ] Add support Clipboard files as a text source
+- [ ] Add an image .net interactive formatter
+- [ ] Add a fluent api to add serialization rules to ObjectSerializer
+  - [ ] Rules to serialize an object of some type
+- [ ] Refactor ObjectSerializer to support custom context type and custom options type
+- [ ] Add an "head-less" version of TAO3 that can execute notebooks without a text editor (VSCode)
+- [ ] Add #!out $destination $format $variableName
+- [ ] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
+- [ ] Add a spelling checker API
+- [x] Add a translation API

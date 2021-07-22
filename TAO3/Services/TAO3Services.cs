@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Cell;
@@ -13,6 +14,7 @@ using TAO3.Notepad;
 using TAO3.OutputDestinations;
 using TAO3.TextSerializer.CSharp;
 using TAO3.Toast;
+using TAO3.Translation;
 using TAO3.Windows;
 
 namespace TAO3.Services
@@ -28,7 +30,9 @@ namespace TAO3.Services
         IOutputDestinationService OutputDestination,
         ICellService Cells,
         IWindowsService WindowsService,
-        ICSharpObjectSerializer CSharpSerializer) : IDisposable
+        ICSharpObjectSerializer CSharpSerializer,
+        HttpClient HttpClient,
+        ITranslationService Translation) : IDisposable
     {
         public void Dispose()
         {
@@ -43,6 +47,8 @@ namespace TAO3.Services
             Cells.Dispose();
             WindowsService.Dispose();
             CSharpSerializer.Dispose();
+            HttpClient.Dispose();
+            Translation.Dispose();
         }
     }
 }
