@@ -75,7 +75,6 @@
 
 	<ItemGroup>
 		<Folder Include="Libs\CsvClassGenerator\" />
-		<Folder Include="Services\Sql\" />
 	</ItemGroup>
 
 </Project>

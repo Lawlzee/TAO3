@@ -49,6 +49,7 @@ namespace TAO3
         public static string ToLine(object? value) => Converters.Line.Serialize(value);
         public static string ToHmtl(object? value) => Converters.Html.Serialize(value);
         public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value);
+        public static string ToSql(object? value) => Converters.Sql.Serialize(value);
 
         public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)Converters.Json.Deserialize<T>(text, settings)!;
         public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)Converters.Xml.Deserialize<T>(text, settings)!;

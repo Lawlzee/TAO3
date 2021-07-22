@@ -24,11 +24,11 @@ using TAO3.Cell;
 using TAO3.Internal.Commands.Cell;
 using TAO3.Internal.Commands.Run;
 using TAO3.Windows;
-using TAO3.TextSerializer;
-using TAO3.TextSerializer.CSharp;
+using TAO3.Converters.CSharp;
 using TAO3.Internal.Commands.ConnectMSSQL;
 using System.Net.Http;
 using TAO3.Translation;
+using TAO3.Converters.SQL;
 
 namespace TAO3.Internal
 {
@@ -38,7 +38,9 @@ namespace TAO3.Internal
         {
             Debugger.Launch();
 
-            IExcelService excel = new ExcelService((CSharpKernel)kernel.FindKernel("csharp"));
+            CompositeKernel compositeKernel = (CompositeKernel)kernel;
+
+            IExcelService excel = new ExcelService((CSharpKernel)compositeKernel.FindKernel("csharp"));
             
             try
             {
@@ -66,16 +68,16 @@ namespace TAO3.Internal
             HttpClient httpClient = new HttpClient();
             ITranslationService translationService = new TranslationService(httpClient);
 
-            ICSharpObjectSerializer csharpObjectSerializer = new CSharpObjectSerializer();
             TAO3Converters converters = new TAO3Converters(
-                new CSharpConverter(csharpObjectSerializer),
+                new CSharpConverter(new CSharpObjectSerializer()),
                 new CsvConverter(false),
                 new CsvConverter(true),
                 new HtmlConverter(),
                 new JsonConverter(),
                 new LineConverter(),
                 new TextConverter(),
-                new XmlConverter());
+                new XmlConverter(),
+                new SqlConverter(new SqlObjectSerializer()));
 
             Prelude.Services = new TAO3Services(
                 excel,
@@ -92,16 +94,16 @@ namespace TAO3.Internal
                 translationService,
                 converters);
 
-            Prelude.Kernel = kernel;
+            Prelude.Kernel = compositeKernel;
 
-            kernel.RegisterForDisposal(Prelude.Services);
+            compositeKernel.RegisterForDisposal(Prelude.Services);
 
-            kernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
-            kernel.AddDirective(new InputCommand(inputSource, formatConverter));
-            kernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
-            kernel.AddDirective(new CellCommand(cellService));
-            kernel.AddDirective(new RunCommand(cellService));
-            kernel.AddDirective(new ConnectMSSQLCommand());
+            compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
+            compositeKernel.AddDirective(new InputCommand(inputSource, formatConverter));
+            compositeKernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
+            compositeKernel.AddDirective(new CellCommand(cellService));
+            compositeKernel.AddDirective(new RunCommand(cellService));
+            compositeKernel.AddDirective(new ConnectMSSQLCommand());
 
             formatConverter.Register(converters.Csv);
             formatConverter.Register(converters.Csvh);

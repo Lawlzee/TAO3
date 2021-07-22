@@ -8,21 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters.CSharp;
-using TAO3.TextSerializer;
-using TAO3.TextSerializer.CSharp;
 
 namespace TAO3.Converters
 {
     public class CSharpConverter : IConverter
     {
-        private readonly ICSharpObjectSerializer _serializer;
+        public ICSharpObjectSerializer Serializer { get; }
 
         public string Format => "C#";
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
 
         public CSharpConverter(ICSharpObjectSerializer serializer)
         {
-            _serializer = serializer;
+            Serializer = serializer;
         }
 
         public object? Deserialize<T>(string text)
@@ -34,7 +32,7 @@ namespace TAO3.Converters
 
         public string Serialize(object? value)
         {
-            return _serializer.Serialize(value);
+            return Serializer.Serialize(value);
         }
     }
 }
