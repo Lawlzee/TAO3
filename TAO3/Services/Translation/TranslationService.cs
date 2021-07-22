@@ -17,6 +17,9 @@ namespace TAO3.Translation
 
         Task<string?> TranslateAsync(string sourceLanguage, string targetLanguage, string text);
         Task<string?> TranslateAsync(Language sourceLanguage, Language targetLanguage, string text);
+
+        Task<string?[]> TranslateAsync(string sourceLanguage, string targetLanguage, params string[] texts);
+        Task<string?[]> TranslateAsync(Language sourceLanguage, Language targetLanguage, params string[] texts);
     }
 
     public class TranslationService : ITranslationService
@@ -77,6 +80,24 @@ namespace TAO3.Translation
             }
 
             return null;
+        }
+
+        public Task<string?[]> TranslateAsync(Language sourceLanguage, Language targetLanguage, params string[] texts)
+        {
+            return TranslateAsync(sourceLanguage.ToString(), targetLanguage.ToString(), texts);
+        }
+
+        public async Task<string?[]> TranslateAsync(string sourceLanguage, string targetLanguage, params string[] texts)
+        {
+            Task<string?>[] translations = texts
+               .Select(text => TranslateAsync(sourceLanguage, targetLanguage, text))
+               .ToArray();
+
+            await Task.WhenAll(translations);
+
+            return translations
+                .Select(x => x.Result)
+                .ToArray();
         }
 
         public void Dispose()

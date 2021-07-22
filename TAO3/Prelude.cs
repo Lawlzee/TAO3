@@ -89,5 +89,15 @@ namespace TAO3
         {
             return Translation.TranslateAsync(sourceLanguage, targetLanguage, text);
         }
+
+        public static Task<string?[]> TranslateAsync(string sourceLanguage, string targetLanguage, params string[] texts)
+        {
+            return Translation.TranslateAsync(sourceLanguage, targetLanguage, texts);
+        }
+
+        public static Task<string?[]> TranslateAsync(Language sourceLanguage, Language targetLanguage, params string[] texts)
+        {
+            return Translation.TranslateAsync(sourceLanguage, targetLanguage, texts);
+        }
     }
 }

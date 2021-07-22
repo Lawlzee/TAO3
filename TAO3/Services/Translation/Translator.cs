@@ -26,6 +26,11 @@ namespace TAO3.Translation
             return _translationService.TranslateAsync(SourceLanguage, TargetLanguage, text);
         }
 
+        public Task<string?[]> TranslateAsync(params string[] texts)
+        {
+            return _translationService.TranslateAsync(SourceLanguage, TargetLanguage, texts);
+        }
+
         public void AddKernel(string name)
         {
             ((CompositeKernel)Kernel.Root).Add(new TranslationKernel(this, name));
