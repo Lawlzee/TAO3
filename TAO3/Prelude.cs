@@ -20,10 +20,8 @@ using TAO3.Keyboard;
 using TAO3.Notepad;
 using TAO3.OutputDestinations;
 using TAO3.Services;
-using TAO3.TextSerializer.CSharp;
 using TAO3.Toast;
 using TAO3.Translation;
-using JsonConverter = TAO3.Converters.JsonConverter;
 
 namespace TAO3
 {
@@ -40,30 +38,30 @@ namespace TAO3
         public static IInputSourceService InputSource => Services.InputSource;
         public static IOutputDestinationService OutputDestination => Services.OutputDestination;
         public static ICellService Cells => Services.Cells;
-        public static ICSharpObjectSerializer CSharpGenerator => Services.CSharpSerializer;
         public static HttpClient HttpClient => Services.HttpClient;
         public static ITranslationService Translation => Services.Translation;
+        public static TAO3Converters Converters => Services.Converters;
 
-        public static string ToJson(object? value, JsonSerializerSettings? settings = null) => new JsonConverter().Serialize(value, settings);
-        public static string ToXml(object? value, XmlWriterSettings? settings = null) => new XmlConverter().Serialize(value, settings);
-        public static string ToCsv(object? value, CsvConfiguration? settings = null) => new CsvConverter(hasHeader: false).Serialize(value, settings);
-        public static string ToCsvh(object? value, CsvConfiguration? settings = null) => new CsvConverter(hasHeader: true).Serialize(value, settings);
-        public static string ToLine(object? value) => new LineConverter().Serialize(value, settings: null);
-        public static string ToHmtl(object? value) => new HtmlConverter().Serialize(value, settings: null);
-        public static string ToCSharp(object? value) => new CSharpConverter(CSharpGenerator).Serialize(value, settings: null);
+        public static string ToJson(object? value, JsonSerializerSettings? settings = null) => Converters.Json.Serialize(value, settings);
+        public static string ToXml(object? value, XmlWriterSettings? settings = null) => Converters.Xml.Serialize(value, settings);
+        public static string ToCsv(object? value, CsvConfiguration? settings = null) => Converters.Csv.Serialize(value, settings);
+        public static string ToCsvh(object? value, CsvConfiguration? settings = null) => Converters.Csvh.Serialize(value, settings);
+        public static string ToLine(object? value) => Converters.Line.Serialize(value, settings: null);
+        public static string ToHmtl(object? value) => Converters.Html.Serialize(value, settings: null);
+        public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value, settings: null);
 
-        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)new JsonConverter().Deserialize<T>(text, settings)!;
-        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)new XmlConverter().Deserialize<T>(text, settings)!;
-        public static T[] FromCsv<T>(string text, CsvConfiguration? settings = null) => (T[])new CsvConverter(hasHeader: false).Deserialize<T>(text, settings)!;
-        public static T[] FromCsvh<T>(string text, CsvConfiguration? settings = null) => (T[])new CsvConverter(hasHeader: true).Deserialize<T>(text, settings)!;
+        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)Converters.Json.Deserialize<T>(text, settings)!;
+        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)Converters.Xml.Deserialize<T>(text, settings)!;
+        public static T[] FromCsv<T>(string text, CsvConfiguration? settings = null) => (T[])Converters.Csv.Deserialize<T>(text, settings)!;
+        public static T[] FromCsvh<T>(string text, CsvConfiguration? settings = null) => (T[])Converters.Csvh.Deserialize<T>(text, settings)!;
 
-        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => new JsonConverter().Deserialize<ExpandoObject>(text, settings)!;
-        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => new XmlConverter().Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromCsv(string text, CsvConfiguration? settings = null) => (string[])new CsvConverter(hasHeader: false).Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromCsvh(string text, CsvConfiguration? settings = null) => (string[])new CsvConverter(hasHeader: true).Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromLine(string text) => (string[])new LineConverter().Deserialize<string>(text, settings: null)!;
-        public static HtmlString FromHmtl(string text) => (HtmlString)new HtmlConverter().Deserialize<object>(text, settings: null)!;
-        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)new CSharpConverter(CSharpGenerator).Deserialize<CSharpCompilationUnit>(text, settings: null)!;
+        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings)!;
+        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings)!;
+        public static string[] FromCsv(string text, CsvConfiguration? settings = null) => (string[])Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
+        public static string[] FromCsvh(string text, CsvConfiguration? settings = null) => (string[])Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
+        public static string[] FromLine(string text) => (string[])Converters.Line.Deserialize<string>(text, settings: null)!;
+        public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text, settings: null)!;
+        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text, settings: null)!;
 
         public static void ConfigureTranslator(string url, string? apiKey = null)
         {

@@ -20,9 +20,9 @@ namespace TAO3.Converters
         public string Format => "C#";
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
 
-        public CSharpConverter(ICSharpObjectSerializer initializerGenerator)
+        public CSharpConverter(ICSharpObjectSerializer serializer)
         {
-            _serializer = initializerGenerator;
+            _serializer = serializer;
         }
 
         public object? Deserialize<T>(string text, object? settings = null)

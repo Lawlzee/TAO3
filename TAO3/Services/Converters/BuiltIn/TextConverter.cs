@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TAO3.Converters
 {
-    public class TextConveter : IConverter
+    public class TextConverter : IConverter
     {
         public string Format => "text";
         public string DefaultType => "string";

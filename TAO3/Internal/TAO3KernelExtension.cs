@@ -63,11 +63,19 @@ namespace TAO3.Internal
 
             ICellService cellService = new CellService();
 
-            ICSharpObjectSerializer csharpObjectSerializer = new CSharpObjectSerializer();
-
             HttpClient httpClient = new HttpClient();
-
             ITranslationService translationService = new TranslationService(httpClient);
+
+            ICSharpObjectSerializer csharpObjectSerializer = new CSharpObjectSerializer();
+            TAO3Converters converters = new TAO3Converters(
+                new CSharpConverter(csharpObjectSerializer),
+                new CsvConverter(false),
+                new CsvConverter(true),
+                new HtmlConverter(),
+                new JsonConverter(),
+                new LineConverter(),
+                new TextConverter(),
+                new XmlConverter());
 
             Prelude.Services = new TAO3Services(
                 excel,
@@ -80,9 +88,9 @@ namespace TAO3.Internal
                 outputDestination,
                 cellService,
                 windowsService,
-                csharpObjectSerializer,
                 httpClient,
-                translationService);
+                translationService,
+                converters);
 
             Prelude.Kernel = kernel;
 
@@ -95,14 +103,14 @@ namespace TAO3.Internal
             kernel.AddDirective(new RunCommand(cellService));
             kernel.AddDirective(new ConnectMSSQLCommand());
 
-            formatConverter.Register(new CsvConverter(true));
-            formatConverter.Register(new CsvConverter(false));
-            formatConverter.Register(new JsonConverter());
-            formatConverter.Register(new XmlConverter());
-            formatConverter.Register(new LineConverter());
-            formatConverter.Register(new TextConveter());
-            formatConverter.Register(new HtmlConverter());
-            formatConverter.Register(new CSharpConverter(csharpObjectSerializer));
+            formatConverter.Register(converters.Csv);
+            formatConverter.Register(converters.Csvh);
+            formatConverter.Register(converters.Json);
+            formatConverter.Register(converters.Xml);
+            formatConverter.Register(converters.Line);
+            formatConverter.Register(converters.Text);
+            formatConverter.Register(converters.Html);
+            formatConverter.Register(converters.CSharp);
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());
