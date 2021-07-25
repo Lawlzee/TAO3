@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using TAO3.Internal.CodeGeneration;
+using TAO3.CodeGeneration;
 using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Converters

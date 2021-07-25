@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Internal.CodeGeneration
+namespace TAO3.CodeGeneration
 {
     internal static class IdentifierUtils
     {
@@ -28,6 +28,18 @@ namespace TAO3.Internal.CodeGeneration
             }
 
             return sb.ToString();
+        }
+
+        internal static string GetUniqueIdentifier(string identifier, HashSet<string> usedIdentifiers)
+        {
+            for (int i = 2; true; i++)
+            {
+                string newIdentifier = identifier + i;
+                if (!usedIdentifiers.Contains(newIdentifier))
+                {
+                    return newIdentifier;
+                }
+            }
         }
     }
 }

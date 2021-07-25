@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Globalization;
 using Xamasoft.JsonClassGenerator.CodeWriters;
-using TAO3.Internal.CodeGeneration;
+using TAO3.CodeGeneration;
 
 namespace Xamasoft.JsonClassGenerator
 {

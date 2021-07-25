@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.CodeGeneration;
 using TAO3.Converters;
 using Xamasoft.JsonClassGenerator;
 

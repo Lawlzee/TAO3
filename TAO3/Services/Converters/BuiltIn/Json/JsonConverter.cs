@@ -7,7 +7,7 @@ using System.CommandLine.Invocation;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration;
+using TAO3.CodeGeneration;
 using Xamasoft.JsonClassGenerator;
 
 namespace TAO3.Converters

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration;
+using TAO3.CodeGeneration;
 
 namespace TAO3.Internal.Commands.ConnectMSSQL
 {

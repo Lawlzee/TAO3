@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration;
+using TAO3.CodeGeneration;
 using TAO3.Internal.Extensions;
 using Xamasoft.JsonClassGenerator;
 
