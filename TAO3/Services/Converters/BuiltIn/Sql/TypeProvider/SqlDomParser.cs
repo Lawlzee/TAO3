@@ -37,7 +37,6 @@ namespace TAO3.Converters.Sql
             private List<string> _columns;
 
             private IDomType? _currentType;
-            private bool _isNullable;
 
             private Visitor()
             {
@@ -103,7 +102,6 @@ namespace TAO3.Converters.Sql
                 foreach (ScalarExpression value in node.ColumnValues)
                 {
                     _currentType = null;
-                    _isNullable = false;
                     value.Accept(this);
                     values.Add(_currentType ?? new DomLiteral(typeof(string)));
                 }

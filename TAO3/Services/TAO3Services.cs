@@ -14,6 +14,7 @@ using TAO3.Notepad;
 using TAO3.OutputDestinations;
 using TAO3.Toast;
 using TAO3.Translation;
+using TAO3.TypeProvider;
 using TAO3.Windows;
 
 namespace TAO3.Services
@@ -31,7 +32,8 @@ namespace TAO3.Services
         IWindowsService WindowsService,
         HttpClient HttpClient,
         ITranslationService Translation,
-        TAO3Converters Converters) : IDisposable
+        TAO3Converters Converters,
+        ITypeProviders TypeProviders) : IDisposable
     {
         public void Dispose()
         {
@@ -48,6 +50,7 @@ namespace TAO3.Services
             HttpClient.Dispose();
             Translation.Dispose();
             Converters.Dispose();
+            TypeProviders.Dispose();
         }
     }
 }

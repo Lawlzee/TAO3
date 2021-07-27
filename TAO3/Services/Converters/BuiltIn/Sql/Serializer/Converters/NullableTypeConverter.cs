@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.TextSerializer;
 
-namespace TAO3.Converters.SQL
+namespace TAO3.Converters.Sql
 {
     internal class NullableTypeConverter<T> : TypeConverter<T?>
         where T : struct

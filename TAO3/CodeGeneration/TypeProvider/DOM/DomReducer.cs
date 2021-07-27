@@ -47,6 +47,7 @@ namespace TAO3.TypeProvider
             _currentSchema = new TypeReferenceSchema(
                 new ClassSchema(
                     node.Name,
+                    IdentifierUtils.ToCSharpIdentifier(node.Name),
                     properties),
                 false);
 

@@ -8,9 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.CodeGeneration;
-using Xamasoft.JsonClassGenerator;
+using TAO3.Converters.Json;
+using TAO3.TypeProvider;
 
-namespace TAO3.Converters
+namespace TAO3.Converters.Json
 {
     public class JsonConverterParameters : ConverterCommandParameters
     {
@@ -26,8 +27,15 @@ namespace TAO3.Converters
             Formatting = Formatting.Indented
         };
 
+        private readonly ITypeProvider<JsonSource> _typeProvider;
+
         public string Format => "json";
         public string DefaultType => "dynamic";
+
+        public JsonConverter(ITypeProvider<JsonSource> typeProvider)
+        {
+            _typeProvider = typeProvider;
+        }
 
         public object? Deserialize<T>(string text, JsonSerializerSettings? settings)
         {
@@ -54,16 +62,16 @@ namespace TAO3.Converters
                 return;
             }
 
-            string text = await context.GetTextAsync();
+            string json = await context.GetTextAsync();
 
-            string clipboardVariableName = await context.CreatePrivateVariableAsync(text, typeof(string));
+            string clipboardVariableName = await context.CreatePrivateVariableAsync(json, typeof(string));
             string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(JsonSerializerSettings));
             if (string.IsNullOrEmpty(args.Type))
             {
-                string className = IdentifierUtils.ToCSharpIdentifier(args.Name!);
-                string classDeclarations = JsonClassGenerator.GenerateClasses(text, className);
+                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(args.Name!, json));
+                await context.SubmitCodeAsync($@"{schema.Code}
 
-                await context.SubmitCodeAsync($@"{classDeclarations}{className} {args.Name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName}, {settingsVariableName});");
+{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName}, {settingsVariableName});");
             }
             else
             {

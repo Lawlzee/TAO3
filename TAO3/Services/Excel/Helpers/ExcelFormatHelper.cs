@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Xamasoft.JsonClassGenerator;
 using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
 namespace TAO3.Excel
@@ -37,6 +36,7 @@ namespace TAO3.Excel
             }
         }
 
+        /*
         public static JsonTypeEnum GetCellType(ExcelRange range)
         {
             string? numberFormat = range.NumberFormat as string;
@@ -95,6 +95,7 @@ namespace TAO3.Excel
 
             return JsonTypeEnum.String | (isNullable ? JsonTypeEnum.Nullable : 0);
         }
+        */
 
         public static object? ParseCellValue(object? value, Type type)
         {

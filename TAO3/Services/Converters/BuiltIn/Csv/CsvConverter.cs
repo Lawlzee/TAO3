@@ -12,9 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using TAO3.Internal.CodeGeneration.Generators;
+using TAO3.TypeProvider;
 
-namespace TAO3.Converters
+namespace TAO3.Converters.Csv
 {
     public class CsvConverterParameters : ConverterCommandParameters
     {
@@ -28,13 +28,16 @@ namespace TAO3.Converters
     {
         private readonly CsvConfiguration _defaultSettings;
 
+        private readonly ITypeProvider<CsvSource> _typeProvider;
         private readonly bool _hasHeader;
+
         public string Format => _hasHeader ? "csvh" : "csv";
 
         public string DefaultType => "string[][]";
 
-        public CsvConverter(bool hasHeader)
+        public CsvConverter(ITypeProvider<CsvSource> typeProvider, bool hasHeader)
         {
+            _typeProvider = typeProvider;
             _hasHeader = hasHeader;
             _defaultSettings = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -129,20 +132,25 @@ namespace TAO3.Converters
                 return;
             }
 
+            string sourceVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
+            string converterVariableName = await context.CreatePrivateVariableAsync(context.Converter, typeof(CsvConverter));
+            string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
+
             if (string.IsNullOrEmpty(args.Type))
             {
-                string code = await new CsvCodeGenerator().GenerateSourceCodeAsync(context);
+                string csv = await context.GetTextAsync();
+                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(args.Name!, csv, context.Settings));
+
+                string code = $@"{schema.Code}
+
+{schema.ElementType}[] {context.VariableName} = ({schema.ElementType}[]){converterVariableName}.Deserialize<{schema.ElementType}>({sourceVariableName}, {settingsVariableName});";
+
                 await context.SubmitCodeAsync(code);
             }
             else
             {
-                string clipboardVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
-                string converterVariableName = await context.CreatePrivateVariableAsync(context.Converter, typeof(CsvConverter));
-                string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
-
-                string code = $"{args.Type}[] {args.Name} = ({args.Type}[]){converterVariableName}.Deserialize<{args.Type}>({clipboardVariableName}, {settingsVariableName});";
+                string code = $"{args.Type}[] {args.Name} = ({args.Type}[]){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
                 await context.SubmitCodeAsync(code);
-
             }
         }
     }

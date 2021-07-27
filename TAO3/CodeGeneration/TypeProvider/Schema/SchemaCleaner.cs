@@ -83,6 +83,7 @@ namespace TAO3.TypeProvider
                 {
                     string newIdentifier = IdentifierUtils.GetUniqueIdentifier(clazz.Identifier, identifiersUsed);
                     replacementRules[clazz] = new ClassSchema(
+                        clazz.FullName,
                         newIdentifier,
                         clazz.Properties);
 

@@ -40,15 +40,21 @@ namespace TAO3.TypeProvider
             return Serializer.Serialize(schema, _classAnnonators, _propertyAnnonators);
         }
 
+        public string PrettyPrint(ISchema type)
+        {
+            return Serializer.PrettyPrint(type);
+        }
+
         private class Serializer : SchemaVisitor
         {
             private readonly string _format;
             private StringBuilder _sb;
             private readonly HashSet<string> _namespaces;
+            private int _propertyIndex;
 
             private readonly List<IClassAnnotator> _classAnnonators;
             private readonly List<IPropertyAnnotator> _propertyAnnonators;
-            private readonly AnnotatorContext _context;
+            private readonly ClassAnnotatorContext _context;
 
             private Serializer(
                 string format,
@@ -60,7 +66,7 @@ namespace TAO3.TypeProvider
                 _namespaces = new HashSet<string>();
                 _classAnnonators = classAnnonators;
                 _propertyAnnonators = propertyAnnonators;
-                _context = new AnnotatorContext(_sb, _namespaces, _format);
+                _context = new ClassAnnotatorContext(_sb, _namespaces, _format);
             }
 
             public static SchemaSerialization Serialize(
@@ -91,6 +97,11 @@ namespace TAO3.TypeProvider
                 domSchema.Schema.Accept(serializer);
                 string rootType = serializer._sb.ToString();
 
+                //todo: cleanup
+                serializer._sb = new StringBuilder();
+                (domSchema.Schema is CollectionTypeSchema col ? col.InnerType : domSchema.Schema).Accept(serializer);
+                string elementType = serializer._sb.ToString();
+
                 StringBuilder sb = new StringBuilder();
                 foreach (string @namespace in serializer._namespaces.OrderBy(x => x))
                 {
@@ -109,7 +120,19 @@ namespace TAO3.TypeProvider
 
                 return new SchemaSerialization(
                     code,
-                    rootType);
+                    rootType,
+                    elementType);
+            }
+
+            public static string PrettyPrint(ISchema type)
+            {
+                Serializer serializer = new Serializer(
+                    "",
+                    new List<IClassAnnotator>(),
+                    new List<IPropertyAnnotator>());
+
+                type.Accept(serializer);
+                return serializer._sb.ToString();
             }
 
             private void SerializeClass(ClassSchema clazz)
@@ -124,9 +147,16 @@ namespace TAO3.TypeProvider
                 AppendLine();
                 AppendLine("{");
 
+                _propertyIndex = 0;
                 foreach (ClassPropertySchema prop in clazz.Properties)
                 {
+                    if (_propertyIndex > 0)
+                    {
+                        AppendLine();
+                    }
+
                     Visit(prop);
+                    _propertyIndex++;
                 }
 
                 Append("}");
@@ -148,12 +178,18 @@ namespace TAO3.TypeProvider
 
             public override void Visit(ClassPropertySchema node)
             {
+                Append("    ");
+
                 foreach (IPropertyAnnotator annotator in _propertyAnnonators)
                 {
-                    annotator.Annotate(node, _context);
+                    annotator.Annotate(node, new PropertyAnnotatorContext(
+                        _sb,
+                        _namespaces,
+                        _format,
+                        _propertyIndex));
                 }
 
-                Append("    public ");
+                Append("public ");
                 base.Visit(node);
 
                 Append(" ");

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace TAO3.Converters.Xml.TypeProvider
+namespace TAO3.Converters.Xml
 {
     public class ValueToList<T> : Newtonsoft.Json.JsonConverter<List<T>>
     {

@@ -1,5 +1,4 @@
 ﻿using System;
-using Xamasoft.JsonClassGenerator;
 using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
 namespace TAO3.Excel
@@ -19,11 +18,11 @@ namespace TAO3.Excel
             return _cell.Value2;
         }
 
-        public dynamic Get()
+        /*public dynamic Get()
         {
             Type inferedType = ExcelFormatHelper.GetCellType(_cell).ToClrType();
             return ExcelFormatHelper.ParseCellValue(_cell.Value2, inferedType);
-        }
+        }*/
 
         public string? GetString()
         {

@@ -10,41 +10,34 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.CodeGeneration;
 using TAO3.Internal.Extensions;
-using Xamasoft.JsonClassGenerator;
+using TAO3.TypeProvider;
 
 namespace TAO3.Excel.Generation
 {
-    internal static class TypeSafeExcelTableGenerator
+    internal class TypeSafeExcelTableGenerator
     {
-        public static string Generate(CSharpKernel cSharpKernel, ExcelTable table)
+        private readonly ITypeProvider<ExcelTable> _typeProvider;
+
+        public TypeSafeExcelTableGenerator(ITypeProvider<ExcelTable> typeProvider)
+        {
+            _typeProvider = typeProvider;
+        }
+
+        public string Generate(CSharpKernel cSharpKernel, ExcelTable table)
         {
             string rowTypeName = GenerateRowType(cSharpKernel, table);
             string tableTypeName = GenerateTableType(cSharpKernel, table, rowTypeName);
             return tableTypeName;
         }
 
-        private static string GenerateRowType(CSharpKernel cSharpKernel, ExcelTable table)
+        private string GenerateRowType(CSharpKernel cSharpKernel, ExcelTable table)
         {
-            List<FieldInfo> fields = table.ListObject.ListColumns
-                .Cast<ListColumn>()
-                .Select(x => new FieldInfo(x.Name, new JsonType(ExcelFormatHelper.GetCellType(x.DataBodyRange))))
-                .ToList();
-
-            JsonType objectType = new JsonType(
-                JsonTypeEnum.Object,
-                internalType: null,
-                assignedName: IdentifierUtils.ToCSharpIdentifier(table.Name + "Row"),
-                fields,
-                isRoot: true);
-
-            string code = JsonClassGenerator.WriteClasses(new List<JsonType> { objectType });
-
-            cSharpKernel.ScheduleSubmitCode(code);
-
-            return objectType.AssignedName;
+            SchemaSerialization schema = _typeProvider.ProvideTypes(table);
+            cSharpKernel.ScheduleSubmitCode(schema.Code);
+            return schema.ElementType;
         }
 
-        private static string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
+        private string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
         {
             string className = IdentifierUtils.ToCSharpIdentifier(table.Name);
 

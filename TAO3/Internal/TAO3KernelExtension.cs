@@ -28,7 +28,15 @@ using TAO3.Converters.CSharp;
 using TAO3.Internal.Commands.ConnectMSSQL;
 using System.Net.Http;
 using TAO3.Translation;
-using TAO3.Converters.SQL;
+using TAO3.Converters.Sql;
+using TAO3.TypeProvider;
+using TAO3.Converters.Json;
+using TAO3.Converters.Csv;
+using TAO3.Converters.Html;
+using TAO3.Converters.Line;
+using TAO3.Converters.Text;
+using TAO3.Converters.Xml;
+using TAO3.Excel.Generation;
 
 namespace TAO3.Internal
 {
@@ -40,17 +48,6 @@ namespace TAO3.Internal
 
             CompositeKernel compositeKernel = (CompositeKernel)kernel;
 
-            IExcelService excel = new ExcelService((CSharpKernel)compositeKernel.FindKernel("csharp"));
-            
-            try
-            {
-                excel.RefreshTypes();
-            }
-            catch
-            {
-                //Excel is closed
-            }
-
             INotepadService notepad = new NotepadService();
 
             IWindowsService windowsService = new WindowsService();
@@ -59,7 +56,7 @@ namespace TAO3.Internal
 
             IToastService toast = new ToastService();
             IFormatConverterService formatConverter = new FormatConverterService();
-            
+
             IInputSourceService inputSource = new InputSourceService();
             IOutputDestinationService outputDestination = new OutputDestinationService();
 
@@ -68,16 +65,75 @@ namespace TAO3.Internal
             HttpClient httpClient = new HttpClient();
             ITranslationService translationService = new TranslationService(httpClient);
 
+            IDomSchematizer domSchematizer = IDomSchematizer.Default;
+
+            ICSharpSchemaSerializer cSharpSchemaSerializer = new CSharpSchemaSerializer();
+            cSharpSchemaSerializer.AddPropertyAnnotator(new JsonPropertyAnnotator());
+            cSharpSchemaSerializer.AddPropertyAnnotator(new CsvIndexAnnotator());
+            cSharpSchemaSerializer.AddPropertyAnnotator(new CsvColumnNameAnnotator());
+            cSharpSchemaSerializer.AddPropertyAnnotator(new ValueToListAnnotator(cSharpSchemaSerializer));
+
+            ITypeProvider<string> sqlTypeProvider = new TypeProvider<string>(
+                "sql",
+                new SqlDomParser(),
+                domSchematizer,
+                cSharpSchemaSerializer);
+
+            ITypeProvider<JsonSource> jsonTypeProvider = new TypeProvider<JsonSource>(
+                "json",
+                new JsonDomParser(),
+                domSchematizer,
+                cSharpSchemaSerializer);
+
+            ITypeProvider<JsonSource> xmlTypeProvider = new TypeProvider<JsonSource>(
+                "xml",
+                new JsonDomParser(),
+                domSchematizer,
+                cSharpSchemaSerializer);
+
+            ITypeProvider<CsvSource> csvTypeProvider = new TypeProvider<CsvSource>(
+                "csv",
+                new CsvDomParser(),
+                domSchematizer,
+                cSharpSchemaSerializer);
+
+            ITypeProvider<ExcelTable> excelTypeProvider = new TypeProvider<ExcelTable>(
+                "excel",
+                new ExcelDomParser(),
+                domSchematizer,
+                cSharpSchemaSerializer);
+
+            ITypeProviders typeProviders = new TypeProviders(
+                cSharpSchemaSerializer,
+                sqlTypeProvider,
+                jsonTypeProvider,
+                csvTypeProvider);
+
+            JsonConverter jsonConverter = new JsonConverter(jsonTypeProvider);
+
             TAO3Converters converters = new TAO3Converters(
                 new CSharpConverter(new CSharpObjectSerializer()),
-                new CsvConverter(false),
-                new CsvConverter(true),
+                new CsvConverter(csvTypeProvider, false),
+                new CsvConverter(csvTypeProvider, true),
                 new HtmlConverter(),
-                new JsonConverter(),
+                jsonConverter,
                 new LineConverter(),
                 new TextConverter(),
-                new XmlConverter(),
-                new SqlConverter(new SqlObjectSerializer()));
+                new XmlConverter(jsonConverter, xmlTypeProvider),
+                new SqlConverter(sqlTypeProvider, new SqlObjectSerializer()));
+
+            IExcelService excel = new ExcelService(
+                (CSharpKernel)compositeKernel.FindKernel("csharp"),
+                excelTypeProvider);
+
+            try
+            {
+                excel.RefreshTypes();
+            }
+            catch
+            {
+                //Excel is closed
+            }
 
             Prelude.Services = new TAO3Services(
                 excel,
@@ -92,7 +148,8 @@ namespace TAO3.Internal
                 windowsService,
                 httpClient,
                 translationService,
-                converters);
+                converters,
+                typeProviders);
 
             Prelude.Kernel = compositeKernel;
 

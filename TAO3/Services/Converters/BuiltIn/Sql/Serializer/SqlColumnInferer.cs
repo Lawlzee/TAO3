@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Converters.SQL
+namespace TAO3.Converters.Sql
 {
     internal record SqlColumn(
         string Name,

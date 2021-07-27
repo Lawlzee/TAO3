@@ -135,7 +135,7 @@ namespace TAO3.Internal.Commands.Run
             {
             }
 
-            public override IEnumerable<string?> GetSuggestions(ParseResult? parseResult = null, string? textToMatch = null)
+            public override IEnumerable<string> GetSuggestions(ParseResult? parseResult = null, string? textToMatch = null)
             {
                 if (textToMatch == null || parseResult == null)
                 {

@@ -22,6 +22,7 @@ using TAO3.OutputDestinations;
 using TAO3.Services;
 using TAO3.Toast;
 using TAO3.Translation;
+using TAO3.TypeProvider;
 
 namespace TAO3
 {
@@ -41,6 +42,7 @@ namespace TAO3
         public static HttpClient HttpClient => Services.HttpClient;
         public static ITranslationService Translation => Services.Translation;
         public static TAO3Converters Converters => Services.Converters;
+        public static ITypeProviders TypeProviders => Services.TypeProviders;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => Converters.Json.Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => Converters.Xml.Serialize(value, settings);

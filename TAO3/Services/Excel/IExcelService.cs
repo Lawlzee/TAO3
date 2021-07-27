@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Excel.Generation;
 using TAO3.Excel.Generation.Auto;
+using TAO3.TypeProvider;
 
 namespace TAO3.Excel
 {
@@ -35,9 +36,9 @@ namespace TAO3.Excel
             .Select(x => new ExcelWorkbook(TypeGenerator, x))
             .ToList();
 
-        public ExcelService(CSharpKernel kernel)
+        public ExcelService(CSharpKernel kernel, ITypeProvider<ExcelTable> typeProvider)
         {
-            TypeGenerator = new ExcelTypeSafeGenerator(kernel, this);
+            TypeGenerator = new ExcelTypeSafeGenerator(kernel, this, typeProvider);
             _autoExcelTypeProvider = new AutoExcelTypeProvider(TypeGenerator);
         }
 

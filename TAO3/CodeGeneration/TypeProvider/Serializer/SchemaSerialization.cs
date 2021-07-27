@@ -10,11 +10,13 @@ namespace TAO3.TypeProvider
     {
         public string Code { get; }
         public string RootType { get; }
+        public string ElementType { get; }
 
-        public SchemaSerialization(string code, string rootType)
+        public SchemaSerialization(string code, string rootType, string elementType)
         {
             Code = code;
             RootType = rootType;
+            ElementType = elementType;
         }
     }
 }

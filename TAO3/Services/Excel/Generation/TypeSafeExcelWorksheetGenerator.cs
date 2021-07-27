@@ -11,15 +11,22 @@ using TAO3.CodeGeneration;
 
 namespace TAO3.Excel.Generation
 {
-    internal static class TypeSafeExcelWorksheetGenerator
+    internal class TypeSafeExcelWorksheetGenerator
     {
-        public static string Generate(CSharpKernel cSharpKernel, ExcelWorksheet sheet)
+        private readonly TypeSafeExcelTableGenerator _tableGenerator;
+
+        public TypeSafeExcelWorksheetGenerator(TypeSafeExcelTableGenerator tableGenerator)
+        {
+            _tableGenerator = tableGenerator;
+        }
+
+        public string Generate(CSharpKernel cSharpKernel, ExcelWorksheet sheet)
         {
             string className = IdentifierUtils.ToCSharpIdentifier(sheet.Name);
 
             List<string> tables = sheet
                 .Tables
-                .Select(t => TypeSafeExcelTableGenerator.Generate(cSharpKernel, t))
+                .Select(t => _tableGenerator.Generate(cSharpKernel, t))
                 .Select((name, index) => $"public {name} {name} => new {name}(Tables[{index}]);")
                 .ToList();
 

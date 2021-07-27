@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-namespace TAO3.Converters
+
+namespace TAO3.Converters.Line
 {
     public class LineConverter : IConverter
     {

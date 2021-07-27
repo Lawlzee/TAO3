@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Converters
+namespace TAO3.Converters.Html
 {
     public class HtmlConverter : IConverter
     {

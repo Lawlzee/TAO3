@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
+using TAO3.TypeProvider;
 
 namespace TAO3.Excel.Generation
 {
@@ -14,12 +15,20 @@ namespace TAO3.Excel.Generation
     {
         private readonly CSharpKernel _cSharpKernel;
         private readonly IExcelService _excelService;
+        private readonly TypeSafeExcelWorkbookGenerator _typeSafeGenerator;
+
         public bool RefreshEnable { get; private set; }
 
-        public ExcelTypeSafeGenerator(CSharpKernel cSharpKernel, IExcelService excelService)
+        public ExcelTypeSafeGenerator(
+            CSharpKernel cSharpKernel, 
+            IExcelService excelService, 
+            ITypeProvider<ExcelTable> excelTypeProvider)
         {
             _cSharpKernel = cSharpKernel;
             _excelService = excelService;
+            _typeSafeGenerator = new TypeSafeExcelWorkbookGenerator(
+                new TypeSafeExcelWorksheetGenerator(
+                    new TypeSafeExcelTableGenerator(excelTypeProvider)));
             RefreshEnable = true;
         }
 
@@ -77,7 +86,7 @@ namespace TAO3.Excel.Generation
             }
 
             List<string> workbooks = _excelService.Workbooks
-                .Select(w => TypeSafeExcelWorkbookGenerator.Generate(_cSharpKernel, w))
+                .Select(w => _typeSafeGenerator.Generate(_cSharpKernel, w))
                 .Select((name, index) => $@"
 public static {name} {name}(this IExcelService excelService)
 {{

@@ -99,6 +99,11 @@ namespace TAO3.TypeProvider
 
         public Type Merge(Type typeA, Type typeB)
         {
+            if (typeA == typeB)
+            {
+                return typeA;
+            }
+
             return _mergeTable.GetValueOrDefault((typeA, typeB))
                 ?? _mergeTable.GetValueOrDefault((typeB, typeA))
                 ?? MergeWhenNoMatch(typeA, typeB);

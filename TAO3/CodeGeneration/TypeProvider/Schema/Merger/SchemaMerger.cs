@@ -91,6 +91,7 @@ namespace TAO3.TypeProvider
         public ClassSchema MergeClasses(ClassSchema classA, ClassSchema classB)
         {
             return new ClassSchema(
+                classA.FullName,
                 classA.Identifier,
                 MergeProperties().ToList());
 

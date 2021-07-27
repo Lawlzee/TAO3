@@ -23,6 +23,7 @@ namespace TAO3.TypeProvider
         public virtual ClassSchema Visit(ClassSchema node)
         {
             return new ClassSchema(
+                node.FullName,
                 node.Identifier,
                 node.Properties
                     .Select(prop => prop.Accept(this))

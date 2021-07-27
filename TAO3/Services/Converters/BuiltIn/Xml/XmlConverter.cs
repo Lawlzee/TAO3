@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using TAO3.CodeGeneration;
-using Xamasoft.JsonClassGenerator;
+using TAO3.Converters.Json;
+using TAO3.TypeProvider;
 
-namespace TAO3.Converters
+namespace TAO3.Converters.Xml
 {
     public class XmlConverterParameters : ConverterCommandParameters
     {
@@ -26,7 +27,7 @@ namespace TAO3.Converters
         IConverter<XmlWriterSettings>, 
         IHandleCommand<XmlWriterSettings, XmlConverterParameters>
     {
-        private readonly XmlWriterSettings _defaultSettings = new XmlWriterSettings
+        private static readonly XmlWriterSettings _defaultSettings = new XmlWriterSettings
         {
             Indent = true,
             IndentChars = "    ",
@@ -34,8 +35,17 @@ namespace TAO3.Converters
             NewLineHandling = NewLineHandling.Replace
         };
 
+        private readonly TAO3.Converters.Json.JsonConverter _jsonConverter;
+        private readonly ITypeProvider<JsonSource> _typeProvider;
+
         public string Format => "xml";
         public string DefaultType => "dynamic";
+
+        public XmlConverter(TAO3.Converters.Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
+        {
+            _jsonConverter = jsonConverter;
+            _typeProvider = typeProvider;
+        }
 
         public object? Deserialize<T>(string text, XmlWriterSettings? settings)
         {
@@ -43,12 +53,12 @@ namespace TAO3.Converters
             XElement rootElement = document.Root!;
 
             string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
-            return new JsonConverter().Deserialize<T>(jsonInput, settings: null);
+            return _jsonConverter.Deserialize<T>(jsonInput, settings: null);
         }
 
         public string Serialize(object? value, XmlWriterSettings? settings)
         {
-            string json = new JsonConverter().Serialize(value, settings: null);
+            string json = _jsonConverter.Serialize(value, settings: null);
             XmlDocument? doc = JsonConvert.DeserializeXmlNode(json);
 
             if (doc == null)
@@ -88,10 +98,10 @@ namespace TAO3.Converters
 
             if (string.IsNullOrEmpty(args.Type))
             {
-                string className = IdentifierUtils.ToCSharpIdentifier(args.Type!);
-                string classDeclarations = JsonClassGenerator.GenerateClasses(jsonInput, className);
+                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(rootElement.Name.LocalName, jsonInput));
+                await context.SubmitCodeAsync($@"{schema.Code}
 
-                await context.SubmitCodeAsync($@"{classDeclarations}{className} {args.Name} = JsonConvert.DeserializeObject<{className}>({clipboardVariableName});");
+{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName});");
             }
             else
             {
