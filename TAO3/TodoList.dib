@@ -4,7 +4,8 @@
   - [ ] Support a change notification for each sources (IWatchable interface)
 - [ ] SQL Converter
   - [x] Serializer
-  - [ ] Deserializer
+  - [x] Deserializer
+  - [ ] ExpendoObject Deserializer  
 - [ ] Add support for a UI framework
   - [ ] Support T Edit<T>(T obj)
   - [ ] Support dynamic Edit(dynamic obj)
@@ -20,8 +21,8 @@
 - [ ] Add a type generator for the C# converter
 - [ ] Reimplement the toast notifier to not use PowerShell
 - [ ] Reimplement the json class generator
-- [ ] Reimplement the class generator
-  - [ ] Enable user to add generation rules
+- [x] Reimplement the class generator
+  - [x] Enable user to add generation rules
     - Ex. Let user add an anotation to every properties to support their type converter
 - [ ] Add file system type generator
 - [ ] Add the concept of intermediate source

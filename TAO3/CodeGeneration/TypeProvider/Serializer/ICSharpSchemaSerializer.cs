@@ -10,8 +10,8 @@ namespace TAO3.TypeProvider
 {
     public interface ICSharpSchemaSerializer : IDomSchemaSerializer
     {
-        void AddClassAnnotator(IClassAnnotator annotator);
-        void AddPropertyAnnotator(IPropertyAnnotator annotator);
+        void AddAnnotator(IClassAnnotator annotator);
+        void AddAnnotator(IPropertyAnnotator annotator);
     }
 
     public class CSharpSchemaSerializer : ICSharpSchemaSerializer
@@ -25,12 +25,12 @@ namespace TAO3.TypeProvider
             _propertyAnnonators = new List<IPropertyAnnotator>();
         }
 
-        public void AddClassAnnotator(IClassAnnotator annotator)
+        public void AddAnnotator(IClassAnnotator annotator)
         {
             _classAnnonators.Add(annotator);
         }
 
-        public void AddPropertyAnnotator(IPropertyAnnotator annotator)
+        public void AddAnnotator(IPropertyAnnotator annotator)
         {
             _propertyAnnonators.Add(annotator);
         }

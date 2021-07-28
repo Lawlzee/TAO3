@@ -68,10 +68,11 @@ namespace TAO3.Internal
             IDomSchematizer domSchematizer = IDomSchematizer.Default;
 
             ICSharpSchemaSerializer cSharpSchemaSerializer = new CSharpSchemaSerializer();
-            cSharpSchemaSerializer.AddPropertyAnnotator(new JsonPropertyAnnotator());
-            cSharpSchemaSerializer.AddPropertyAnnotator(new CsvIndexAnnotator());
-            cSharpSchemaSerializer.AddPropertyAnnotator(new CsvColumnNameAnnotator());
-            cSharpSchemaSerializer.AddPropertyAnnotator(new ValueToListAnnotator(cSharpSchemaSerializer));
+            cSharpSchemaSerializer.AddAnnotator(new JsonPropertyAnnotator());
+            cSharpSchemaSerializer.AddAnnotator(new CsvIndexAnnotator());
+            cSharpSchemaSerializer.AddAnnotator(new CsvColumnNameAnnotator());
+            cSharpSchemaSerializer.AddAnnotator(new ValueToListAnnotator(cSharpSchemaSerializer));
+            cSharpSchemaSerializer.AddAnnotator(new TableNameAnnotator());
 
             ITypeProvider<string> sqlTypeProvider = new TypeProvider<string>(
                 "sql",

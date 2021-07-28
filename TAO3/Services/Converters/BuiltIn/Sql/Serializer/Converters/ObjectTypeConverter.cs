@@ -23,7 +23,7 @@ namespace TAO3.Converters.Sql
             }
 
             sb.Append("INSERT INTO [");
-            sb.Append(type.PrettyPrint());
+            sb.Append(GetTableName(type));
             sb.Append("] ([");
 
             for (int i = 0; i < members.Count; i++)
@@ -49,6 +49,11 @@ namespace TAO3.Converters.Sql
             sb.Append(");");
 
             return true;
+        }
+
+        private string GetTableName(Type type)
+        {
+            return type.GetCustomAttribute<TableNameAttribute>()?.Name ?? type.PrettyPrint();
         }
 
         private record Member(string Name, object? Value);
