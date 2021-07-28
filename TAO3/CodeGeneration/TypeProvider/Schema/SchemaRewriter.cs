@@ -15,8 +15,15 @@ namespace TAO3.TypeProvider
 
         public virtual TypeReferenceSchema Visit(TypeReferenceSchema node)
         {
+            ITypeSchema type = node.Type.Accept(this);
+
+            if (node.Type == type)
+            {
+                return node;
+            }
+
             return new TypeReferenceSchema(
-                node.Type.Accept(this),
+                type,
                 node.IsNullable);
         }
 
@@ -32,16 +39,29 @@ namespace TAO3.TypeProvider
 
         public virtual ClassPropertySchema Visit(ClassPropertySchema node)
         {
+            TypeReferenceSchema type = node.Type.Accept(this);
+
+            if (node.Type == type)
+            {
+                return node;
+            }
+
             return new ClassPropertySchema(
                 node.Identifier,
                 node.FullName,
-                node.Type.Accept(this));
+                type);
         }
 
         public virtual CollectionTypeSchema Visit(CollectionTypeSchema node)
         {
-            return new CollectionTypeSchema(
-                node.InnerType.Accept(this));
+            TypeReferenceSchema innerType = node.InnerType.Accept(this);
+
+            if (innerType == node.InnerType)
+            {
+                return node;
+            }
+
+            return new CollectionTypeSchema(innerType);
         }
 
         public virtual LiteralTypeSchema Visit(LiteralTypeSchema node)

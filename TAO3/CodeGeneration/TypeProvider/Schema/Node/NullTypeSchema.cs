@@ -14,5 +14,15 @@
         {
             visitor.Visit(this);
         }
+
+        public override string? ToString()
+        {
+            return "null";
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is NullTypeSchema schema;
+        }
     }
 }

@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace TAO3.Converters.Xml
 {
-    public class ValueToList<T> : Newtonsoft.Json.JsonConverter<List<T>>
+    public class ValueToList<T> : JsonConverter<List<T>>
     {
         public override List<T> ReadJson(JsonReader reader, Type objectType, [AllowNull] List<T> existingValue, bool hasExistingValue, JsonSerializer serializer)
         {

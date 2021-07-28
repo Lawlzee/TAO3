@@ -14,5 +14,15 @@
         {
             visitor.Visit(this);
         }
+
+        public override string? ToString()
+        {
+            return "dynamic";
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is DynamicTypeSchema;
+        }
     }
 }

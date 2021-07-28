@@ -59,7 +59,7 @@ namespace TAO3.Converters.Xml
         public string Serialize(object? value, XmlWriterSettings? settings)
         {
             string json = _jsonConverter.Serialize(value, settings: null);
-            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json);
+            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json, value?.GetType()?.Name ?? "Root");
 
             if (doc == null)
             {

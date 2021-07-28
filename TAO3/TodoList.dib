@@ -50,3 +50,4 @@
 - [ ] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
 - [ ] Add a spelling checker API
 - [x] Add a translation API
+- [ ] Path magic command with intellisense

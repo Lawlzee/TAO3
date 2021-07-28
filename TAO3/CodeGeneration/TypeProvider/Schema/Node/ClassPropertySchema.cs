@@ -1,4 +1,7 @@
-﻿namespace TAO3.TypeProvider
+﻿using System;
+using System.Collections.Generic;
+
+namespace TAO3.TypeProvider
 {
     public class ClassPropertySchema : ISchema
     {
@@ -30,6 +33,19 @@
         public void Accept(SchemaVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+        public override string? ToString()
+        {
+            return $"Property {Type} {Identifier} ({FullName})";
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is ClassPropertySchema schema &&
+                   Identifier == schema.Identifier &&
+                   FullName == schema.FullName &&
+                   Type.AreEquivalent(schema.Type);
         }
     }
 }

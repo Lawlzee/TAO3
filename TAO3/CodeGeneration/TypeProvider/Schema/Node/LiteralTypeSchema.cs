@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using TAO3.Internal.Types;
 
 namespace TAO3.TypeProvider
 {
@@ -21,6 +23,17 @@ namespace TAO3.TypeProvider
         public void Accept(SchemaVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+        public override string? ToString()
+        {
+            return Type.PrettyPrint();
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is LiteralTypeSchema schema &&
+                   Type == schema.Type;
         }
     }
 }

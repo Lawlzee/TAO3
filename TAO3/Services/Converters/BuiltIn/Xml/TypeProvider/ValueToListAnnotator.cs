@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TAO3.TypeProvider;
 
@@ -19,11 +19,11 @@ namespace TAO3.Converters.Xml
 
         public void Annotate(ClassPropertySchema property, PropertyAnnotatorContext context)
         {
-            if (property.Type.Type is CollectionTypeSchema)
+            if (property.Type.Type is CollectionTypeSchema collection)
             {
                 context.Using(typeof(JsonConverterAttribute).Namespace!);
                 context.Using(typeof(ValueToList<>).Namespace!);
-                context.StringBuilder.Append($@"[JsonConverter(typeof(ValueToList<{_serializer.PrettyPrint(property.Type)}>)]
+                context.StringBuilder.Append($@"[JsonConverter(typeof(ValueToList<{_serializer.PrettyPrint(collection.InnerType)}>))]
     ");
             }
         }

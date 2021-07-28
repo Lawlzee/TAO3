@@ -9,10 +9,8 @@ using TAO3.Internal.Types;
 
 namespace TAO3.TypeProvider
 {
-    public class SchemaMerger : ITypeReferenceSchemaMerger, IClassSchemaMerger
+    public class SchemaMerger : ITypeReferenceSchemaMerger
     {
-        public static SchemaMerger Default { get; } = new SchemaMerger(ILiteralTypeMerger.Default);
-
         private readonly ILiteralTypeMerger _literalMerger;
 
         public SchemaMerger(ILiteralTypeMerger literalMerger)
@@ -88,7 +86,7 @@ namespace TAO3.TypeProvider
             
         }
 
-        public ClassSchema MergeClasses(ClassSchema classA, ClassSchema classB)
+        private ClassSchema MergeClasses(ClassSchema classA, ClassSchema classB)
         {
             return new ClassSchema(
                 classA.FullName,

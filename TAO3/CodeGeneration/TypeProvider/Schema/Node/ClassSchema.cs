@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TAO3.TypeProvider
 {
@@ -25,6 +27,25 @@ namespace TAO3.TypeProvider
         public void Accept(SchemaVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+
+
+        public override string? ToString()
+        {
+            return $"Class {Identifier} ({FullName})";
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is ClassSchema schema &&
+                FullName == schema.FullName &&
+                Identifier == schema.Identifier &&
+                Properties.Count ==  schema.Properties.Count &&
+                Properties.OrderBy(x => x.FullName)
+                    .Zip(schema.Properties.OrderBy(x => x.FullName))
+                    .All(x => x.First.AreEquivalent(x.Second)) &&
+                IsValueType == schema.IsValueType;
         }
     }
 }

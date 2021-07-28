@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace TAO3.TypeProvider
 {
@@ -15,7 +16,9 @@ namespace TAO3.TypeProvider
         {
             ClassSchemaFinder classFinder = new ClassSchemaFinder();
             schema.Accept(classFinder);
-            return classFinder._classesFound;
+            return classFinder._classesFound
+                .Distinct()
+                .ToList();
         }
 
         public override void Visit(ClassSchema node)

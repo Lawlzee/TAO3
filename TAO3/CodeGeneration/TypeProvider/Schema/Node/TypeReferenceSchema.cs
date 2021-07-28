@@ -1,4 +1,7 @@
-﻿namespace TAO3.TypeProvider
+﻿using System;
+using System.Collections.Generic;
+
+namespace TAO3.TypeProvider
 {
     public class TypeReferenceSchema : ISchema
     {
@@ -27,6 +30,23 @@
         public void Accept(SchemaVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+        public override string? ToString()
+        {
+            if (IsNullable)
+            {
+                return $"{Type}?";
+            }
+
+            return Type.ToString();
+        }
+
+        public bool AreEquivalent(ISchema obj)
+        {
+            return obj is TypeReferenceSchema schema &&
+                   Type.AreEquivalent(schema.Type) &&
+                   IsNullable == schema.IsNullable;
         }
     }
 }

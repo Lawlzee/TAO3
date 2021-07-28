@@ -4,5 +4,6 @@
     {
         ISchema Accept(SchemaRewriter rewriter);
         void Accept(SchemaVisitor visitor);
+        bool AreEquivalent(ISchema other);
     }
 }
