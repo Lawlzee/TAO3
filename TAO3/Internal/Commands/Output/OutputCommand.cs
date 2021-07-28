@@ -75,6 +75,10 @@ namespace TAO3.Internal.Commands.Output
                                     string resultText = converter.Serialize(valueProduced.Value, settingsInstance);
                                     await outputDestination.SetTextAsync(resultText);
                                 }
+                                catch (Exception ex)
+                                {
+                                    ex.Display();
+                                }
                                 finally
                                 {
                                     disposable.Dispose();

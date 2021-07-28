@@ -111,20 +111,20 @@ namespace TAO3.Converters.Xml
 
             string jsonInput = JsonConvert.SerializeXNode(document, Newtonsoft.Json.Formatting.None);
 
-            string clipboardVariableName = await context.CreatePrivateVariableAsync(jsonInput, typeof(string));
+            string textVariableName = await context.CreatePrivateVariableAsync(jsonInput, typeof(string));
 
             if (string.IsNullOrEmpty(args.Type))
             {
                 SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(args.Name!, jsonInput));
                 await context.SubmitCodeAsync($@"{schema.Code}
 
-{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName});");
+{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({textVariableName});");
             }
             else
             {
                 await context.SubmitCodeAsync($@"using Newtonsoft.Json;
 
-{args.Type} {args.Name} = JsonConvert.DeserializeObject<{args.Type}>({clipboardVariableName});");
+{args.Type} {args.Name} = JsonConvert.DeserializeObject<{args.Type}>({textVariableName});");
             }
         }
     }

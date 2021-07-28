@@ -19,8 +19,15 @@ namespace TAO3.Converters
         {
             return CommandHandler.Create(async (TCommandParameters args) =>
             {
-                IConverterContext<TSettings> converterContext = contextProvider.Invoke<TSettings>(args.Name!, args.Settings!, args.Verbose, args.Context!);
-                await HandleCommandAsync(converterContext, args);
+                try
+                {
+                    IConverterContext<TSettings> converterContext = contextProvider.Invoke<TSettings>(args.Name!, args.Settings!, args.Verbose, args.Context!);
+                    await HandleCommandAsync(converterContext, args);
+                }
+                catch (Exception ex)
+                {
+                    ex.Display();
+                }
             });
         }
     }

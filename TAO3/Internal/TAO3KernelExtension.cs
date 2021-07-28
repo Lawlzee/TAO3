@@ -120,7 +120,7 @@ namespace TAO3.Internal
                 new LineConverter(),
                 new TextConverter(),
                 new XmlConverter(jsonConverter, xmlTypeProvider),
-                new SqlConverter(sqlTypeProvider, new SqlObjectSerializer()));
+                new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
             IExcelService excel = new ExcelService(
                 (CSharpKernel)compositeKernel.FindKernel("csharp"),
@@ -170,6 +170,7 @@ namespace TAO3.Internal
             formatConverter.Register(converters.Text);
             formatConverter.Register(converters.Html);
             formatConverter.Register(converters.CSharp);
+            formatConverter.Register(converters.Sql);
 
             inputSource.Register(new ClipboardInputSource(clipboard));
             inputSource.Register(new CellInputSource());

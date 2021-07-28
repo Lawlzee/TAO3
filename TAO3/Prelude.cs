@@ -55,16 +55,18 @@ namespace TAO3
 
         public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)Converters.Json.Deserialize<T>(text, settings)!;
         public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)Converters.Xml.Deserialize<T>(text, settings)!;
-        public static T[] FromCsv<T>(string text, CsvConfiguration? settings = null) => (T[])Converters.Csv.Deserialize<T>(text, settings)!;
-        public static T[] FromCsvh<T>(string text, CsvConfiguration? settings = null) => (T[])Converters.Csvh.Deserialize<T>(text, settings)!;
+        public static List<T> FromCsv<T>(string text, CsvConfiguration? settings = null) => (List<T>)Converters.Csv.Deserialize<T>(text, settings)!;
+        public static List<T> FromCsvh<T>(string text, CsvConfiguration? settings = null) => (List<T>)Converters.Csvh.Deserialize<T>(text, settings)!;
+        public static List<T> FromSql<T>(string text) => (List<T>)Converters.Sql.Deserialize<T>(text)!;
 
         public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings)!;
         public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromCsv(string text, CsvConfiguration? settings = null) => (string[])Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromCsvh(string text, CsvConfiguration? settings = null) => (string[])Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
-        public static string[] FromLine(string text) => (string[])Converters.Line.Deserialize<string>(text)!;
+        public static List<string> FromCsv(string text, CsvConfiguration? settings = null) => (List<string>)Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
+        public static List<string> FromCsvh(string text, CsvConfiguration? settings = null) => (List<string>)Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
+        public static List<string> FromLine(string text) => (List<string>)Converters.Line.Deserialize<string>(text)!;
         public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
         public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text)!;
+        
 
         public static void ConfigureTranslator(string url, string? apiKey = null)
         {

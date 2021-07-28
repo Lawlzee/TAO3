@@ -33,7 +33,7 @@ namespace TAO3.Converters.Csv
 
         public string Format => _hasHeader ? "csvh" : "csv";
 
-        public string DefaultType => "string[][]";
+        public string DefaultType => "List<string[]>";
 
         public CsvConverter(ITypeProvider<CsvSource> typeProvider, bool hasHeader)
         {
@@ -53,8 +53,8 @@ namespace TAO3.Converters.Csv
             using StringReader reader = new StringReader(text);
             using CsvReader csvReader = new CsvReader(reader, settings ?? _defaultSettings);
             return isDynamic
-                ? GetRows(csvReader).ToArray()
-                : csvReader.GetRecords<T>().ToArray();
+                ? GetRows(csvReader).ToList()
+                : csvReader.GetRecords<T>().ToList();
         }
 
         private IEnumerable<string[]> GetRows(CsvReader csvReader)
@@ -143,13 +143,13 @@ namespace TAO3.Converters.Csv
 
                 string code = $@"{schema.Code}
 
-{schema.ElementType}[] {context.VariableName} = ({schema.ElementType}[]){converterVariableName}.Deserialize<{schema.ElementType}>({sourceVariableName}, {settingsVariableName});";
+{schema.RootType} {context.VariableName} = ({schema.RootType}){converterVariableName}.Deserialize<{schema.ElementType}>({sourceVariableName}, {settingsVariableName});";
 
                 await context.SubmitCodeAsync(code);
             }
             else
             {
-                string code = $"{args.Type}[] {args.Name} = ({args.Type}[]){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
+                string code = $"List<{args.Type}> {args.Name} = (List<{args.Type}>){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
                 await context.SubmitCodeAsync(code);
             }
         }

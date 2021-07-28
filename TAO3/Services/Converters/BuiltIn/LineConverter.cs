@@ -12,15 +12,20 @@ namespace TAO3.Converters.Line
     {
         public string Format => "line";
 
-        public string DefaultType => "string[]";
+        public string DefaultType => "List<string>";
 
         public object? Deserialize<T>(string text)
         {
-            return Regex.Split(text, @"\r\n|\r|\n");
+            return Regex.Split(text, @"\r\n|\r|\n").ToList();
         }
 
         public string Serialize(object? value)
         {
+            if (value is string str)
+            {
+                return str;
+            }
+
             if (value is IEnumerable enumerable)
             {
                 return string.Join(Environment.NewLine, enumerable.Cast<object>());
