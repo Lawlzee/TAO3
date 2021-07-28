@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Xml;
 using System.Xml.Linq;
 using TAO3.CodeGeneration;
 using TAO3.Converters.Json;
+using TAO3.Internal.Utils;
 using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Xml
@@ -50,26 +52,42 @@ namespace TAO3.Converters.Xml
         public object? Deserialize<T>(string text, XmlWriterSettings? settings)
         {
             XDocument document = XDocument.Parse(text);
-            XElement rootElement = document.Root!;
 
-            string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
+            string jsonInput = JsonConvert.SerializeXNode(document, Newtonsoft.Json.Formatting.None);
             return _jsonConverter.Deserialize<T>(jsonInput, settings: null);
         }
 
         public string Serialize(object? value, XmlWriterSettings? settings)
         {
-            string json = _jsonConverter.Serialize(value, settings: null);
-            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json, value?.GetType()?.Name ?? "Root");
+            JsonSerializerSettings jsonSettings = new JsonSerializerSettings
+            {
+                ContractResolver = IgnoreEmptyCollectionContractResolver.Instance,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            string json = _jsonConverter.Serialize(value, jsonSettings);
+            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json);
 
             if (doc == null)
             {
                 throw new ArgumentException(nameof(value));
             }
 
-            StringBuilder sb = new();
-            using XmlWriter writer = XmlWriter.Create(sb, settings ?? _defaultSettings);
+            settings ??= _defaultSettings;
+            using StringWriter stringWriter = new StringWriterWithEncoding(GetEncoding(doc) ?? Encoding.Unicode);
+            using XmlWriter writer = XmlWriter.Create(stringWriter, settings);
             doc.Save(writer);
-            return sb.ToString();
+            return stringWriter.ToString();
+
+            Encoding? GetEncoding(XmlDocument xmlDocument)
+            {
+                if (xmlDocument.FirstChild is XmlDeclaration xmlDeclaration)
+                {
+                    return Encoding.GetEncoding(xmlDeclaration.Encoding);
+                }
+
+                return null;
+            }
         }
 
         public void Configure(Command command)
@@ -90,15 +108,14 @@ namespace TAO3.Converters.Xml
             string text = await context.GetTextAsync();
 
             XDocument document = XDocument.Parse(text);
-            XElement rootElement = document.Root!;
 
-            string jsonInput = JsonConvert.SerializeXNode(rootElement, Newtonsoft.Json.Formatting.None, omitRootObject: true);
+            string jsonInput = JsonConvert.SerializeXNode(document, Newtonsoft.Json.Formatting.None);
 
             string clipboardVariableName = await context.CreatePrivateVariableAsync(jsonInput, typeof(string));
 
             if (string.IsNullOrEmpty(args.Type))
             {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(rootElement.Name.LocalName, jsonInput));
+                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(args.Name!, jsonInput));
                 await context.SubmitCodeAsync($@"{schema.Code}
 
 {schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName});");
