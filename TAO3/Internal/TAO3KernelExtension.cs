@@ -37,6 +37,7 @@ using TAO3.Converters.Line;
 using TAO3.Converters.Text;
 using TAO3.Converters.Xml;
 using TAO3.Excel.Generation;
+using Microsoft.Extensions.Hosting;
 
 namespace TAO3.Internal
 {
@@ -179,6 +180,16 @@ namespace TAO3.Internal
 
             outputDestination.Register(new ClipboardOutputDestination(clipboard));
             outputDestination.Register(new NotepadOutputDestination(notepad));
+
+            IHost blazorHost = Program.CreateHost(Array.Empty<string>());
+            await blazorHost.StartAsync();
+
+            compositeKernel.RegisterForDisposal(() =>
+            {
+                blazorHost.StopAsync().Wait();
+                blazorHost.Dispose();
+            });
+
         }
     }
 }

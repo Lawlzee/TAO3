@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<OutputType>Library</OutputType>
+		<OutputType>Exe</OutputType>
 		<TargetFramework>net5.0</TargetFramework>
 		<IncludeBuildOutput>true</IncludeBuildOutput>
 		<IsPackable>true</IsPackable>
@@ -15,10 +15,12 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<DefineConstants>$(DefineConstants)TRACE</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<DefineConstants>$(DefineConstants)TRACE</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -51,6 +53,13 @@
 		<None Remove="bin\Debug\net5.0\/TAO3.dll" />
 	</ItemGroup>
 
+	<!-- https://github.com/dotnet/aspnetcore/issues/21480 -->
+	<Target Name="resolveInteropOutputPath" BeforeTargets="ResolveComReferences" Condition="'@(COMReference)'!='' or '@(COMFileReference)'!=''">
+		<PropertyGroup Condition=" '$(InteropOutputPath)' == '' ">
+			<InteropOutputPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</InteropOutputPath>
+		</PropertyGroup>
+	</Target>
+
 	<ItemGroup>
 		<COMReference Include="Microsoft.Office.Interop.Excel">
 			<WrapperTool>tlbimp</WrapperTool>
@@ -65,7 +74,13 @@
 
 
 	<ItemGroup>
+		<None Include="$(OutputPath)/wwwroot" Pack="true" PackagePath="wwwroot" />
 		<None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <Folder Include="bin\Feed\" />
 	</ItemGroup>
 
 </Project>

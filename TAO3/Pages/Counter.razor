@@ -1,0 +1,19 @@
+﻿@page "/counter"
+@using Microsoft.Extensions.Hosting
+@inject IHostEnvironment Hosting
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+<p>@Hosting.ContentRootPath</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
