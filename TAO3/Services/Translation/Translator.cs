@@ -30,11 +30,5 @@ namespace TAO3.Translation
         {
             return _translationService.TranslateAsync(SourceLanguage, TargetLanguage, texts);
         }
-
-        public void AddKernel(string name)
-        {
-            ((CompositeKernel)Kernel.Root).Add(new TranslationKernel(this, name));
-            //todo: add message saying that the kernel was added
-        }
     }
 }

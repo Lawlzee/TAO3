@@ -12,9 +12,6 @@ namespace TAO3.Translation
     {
         void Configure(string url, string? apiKey = null);
 
-        Translator CreateTranslator(string sourceLanguage, string targetLanguage);
-        Translator CreateTranslator(Language sourceLanguage, Language targetLanguage);
-
         Task<string?> TranslateAsync(string sourceLanguage, string targetLanguage, string text);
         Task<string?> TranslateAsync(Language sourceLanguage, Language targetLanguage, string text);
 
@@ -37,16 +34,6 @@ namespace TAO3.Translation
         {
             _url = url ?? throw new ArgumentNullException(nameof(url));
             _apiKey = apiKey;
-        }
-
-        public Translator CreateTranslator(string sourceLanguage, string targetLanguage)
-        {
-            return new Translator(this, sourceLanguage, targetLanguage);
-        }
-
-        public Translator CreateTranslator(Language sourceLanguage, Language targetLanguage)
-        {
-            return new Translator(this, sourceLanguage.ToString(), targetLanguage.ToString());
         }
 
         public Task<string?> TranslateAsync(Language sourceLanguage, Language targetLanguage, string text)

@@ -73,16 +73,6 @@ namespace TAO3
             Translation.Configure(url, apiKey);
         }
 
-        public static Translator CreateTranslator(string sourceLanguage, string targetLanguage)
-        {
-            return Translation.CreateTranslator(sourceLanguage, targetLanguage);
-        }
-
-        public static Translator CreateTranslator(Language sourceLanguage, Language targetLanguage)
-        {
-            return Translation.CreateTranslator(sourceLanguage, targetLanguage);
-        }
-
         public static Task<string?> TranslateAsync(string sourceLanguage, string targetLanguage, string text)
         {
             return Translation.TranslateAsync(sourceLanguage, targetLanguage, text);

@@ -36,6 +36,7 @@ using TAO3.Converters.Line;
 using TAO3.Converters.Text;
 using TAO3.Converters.Xml;
 using TAO3.Excel.Generation;
+using TAO3.Internal.Kernels;
 
 namespace TAO3.Internal
 {
@@ -161,6 +162,8 @@ namespace TAO3.Internal
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
+
+            compositeKernel.Add(new TranslateKernel(translationService));
 
             formatConverter.Register(converters.Csv);
             formatConverter.Register(converters.Csvh);

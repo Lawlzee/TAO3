@@ -12,7 +12,7 @@
   - [ ] Support T Create<T>();
   - [ ] Support dynamic Create(Type type);
   - [ ] Support T Create<T>(T example);//For anonymous types
-- [ ] Support alias for converters
+- [x] Support alias for converters
 - [ ] Optimise Excel integration performance for large Excel files
 - [ ] Support multiple tabs in notepad++ text source
 - [ ] Automaticaly set the language of the notepad++ tab depending on the converter used
@@ -20,7 +20,7 @@
   - Ex. Notepad++ language of the converter
 - [ ] Add a type generator for the C# converter
 - [ ] Reimplement the toast notifier to not use PowerShell
-- [ ] Reimplement the json class generator
+- [x] Reimplement the json class generator
 - [x] Reimplement the class generator
   - [x] Enable user to add generation rules
     - Ex. Let user add an anotation to every properties to support their type converter
