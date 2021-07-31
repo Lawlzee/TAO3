@@ -15,7 +15,8 @@ namespace TAO3.Converters.CSharp
     {
         public ICSharpObjectSerializer Serializer { get; }
 
-        public string Format => "C#";
+        public string Format => "csharp";
+        public IReadOnlyList<string> Aliases => new[] { "CSharp", "c#", "C#" };
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
 
         public CSharpConverter(ICSharpObjectSerializer serializer)

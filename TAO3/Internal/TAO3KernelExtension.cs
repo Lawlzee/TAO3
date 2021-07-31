@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters;
-using TAO3.InputSources;
+using TAO3.IO;
 using TAO3.Internal.Commands.Output;
 using TAO3.Internal.Commands.Input;
 using TAO3.Internal.Commands.Macro;
@@ -17,7 +17,6 @@ using TAO3.Clipboard;
 using TAO3.Keyboard;
 using TAO3.Notepad;
 using TAO3.Toast;
-using TAO3.OutputDestinations;
 using TAO3.Excel;
 using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.Cell;
@@ -57,8 +56,8 @@ namespace TAO3.Internal
             IToastService toast = new ToastService();
             IFormatConverterService formatConverter = new FormatConverterService();
 
-            IInputSourceService inputSource = new InputSourceService();
-            IOutputDestinationService outputDestination = new OutputDestinationService();
+            ISourceService sourceService = new SourceService();
+            IDestinationService destinationService = new DestinationService();
 
             ICellService cellService = new CellService();
 
@@ -143,8 +142,8 @@ namespace TAO3.Internal
                 clipboard,
                 toast,
                 formatConverter,
-                inputSource,
-                outputDestination,
+                sourceService,
+                destinationService,
                 cellService,
                 windowsService,
                 httpClient,
@@ -157,8 +156,8 @@ namespace TAO3.Internal
             compositeKernel.RegisterForDisposal(Prelude.Services);
 
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
-            compositeKernel.AddDirective(new InputCommand(inputSource, formatConverter));
-            compositeKernel.AddDirective(new OutputCommand(outputDestination, formatConverter));
+            compositeKernel.AddDirective(new InputCommand(sourceService, formatConverter));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter));
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
@@ -173,12 +172,15 @@ namespace TAO3.Internal
             formatConverter.Register(converters.CSharp);
             formatConverter.Register(converters.Sql);
 
-            inputSource.Register(new ClipboardInputSource(clipboard));
-            inputSource.Register(new CellInputSource());
-            inputSource.Register(new NotepadInputSource(notepad));
+            ClipboardIO clipboardIO = new ClipboardIO(clipboard);
+            NotepadIO notepadIO = new NotepadIO(notepad);
 
-            outputDestination.Register(new ClipboardOutputDestination(clipboard));
-            outputDestination.Register(new NotepadOutputDestination(notepad));
+            sourceService.Register(clipboardIO);
+            sourceService.Register(notepadIO);
+            sourceService.Register(new CellSource());
+
+            destinationService.Register(clipboardIO);
+            destinationService.Register(notepadIO);
         }
     }
 }

@@ -8,10 +8,9 @@ using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
-using TAO3.InputSources;
+using TAO3.IO;
 using TAO3.Keyboard;
 using TAO3.Notepad;
-using TAO3.OutputDestinations;
 using TAO3.Toast;
 using TAO3.Translation;
 using TAO3.TypeProvider;
@@ -26,8 +25,8 @@ namespace TAO3.Services
         IClipboardService Clipboard,
         IToastService Toast,
         IFormatConverterService FormatConverter,
-        IInputSourceService InputSource,
-        IOutputDestinationService OutputDestination,
+        ISourceService SourceService,
+        IDestinationService DestinationService,
         ICellService Cells,
         IWindowsService WindowsService,
         HttpClient HttpClient,
@@ -43,8 +42,8 @@ namespace TAO3.Services
             Clipboard.Dispose();
             Toast.Dispose();
             FormatConverter.Dispose();
-            InputSource.Dispose();
-            OutputDestination.Dispose();
+            SourceService.Dispose();
+            DestinationService.Dispose();
             Cells.Dispose();
             WindowsService.Dispose();
             HttpClient.Dispose();

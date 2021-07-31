@@ -11,6 +11,8 @@ namespace TAO3.Converters.Text
         public string Format => "text";
         public string DefaultType => "string";
 
+        public IReadOnlyList<string> Aliases => new[] { "Text", "string", "String" };
+
         public object? Deserialize<T>(string text)
         {
             return text;

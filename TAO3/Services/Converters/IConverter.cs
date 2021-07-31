@@ -10,6 +10,8 @@ namespace TAO3.Converters
     public interface IConverter
     {
         string Format { get; }
+        IReadOnlyList<string> Aliases { get; }
+
         string DefaultType { get; }
         Type SettingsType => typeof(object);
 

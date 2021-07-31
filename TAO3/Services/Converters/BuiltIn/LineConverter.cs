@@ -14,6 +14,8 @@ namespace TAO3.Converters.Line
 
         public string DefaultType => "List<string>";
 
+        public IReadOnlyList<string> Aliases => new[] { "Line" };
+
         public object? Deserialize<T>(string text)
         {
             return Regex.Split(text, @"\r\n|\r|\n").ToList();

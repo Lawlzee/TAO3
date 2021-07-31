@@ -26,6 +26,8 @@ namespace TAO3.Converters.Sql
         public string Format => "sql";
         public string DefaultType => "dynamic";
 
+        public IReadOnlyList<string> Aliases => new[] { "SQL" };
+
         public SqlConverter(
             ITypeProvider<string> typeProvider, 
             SqlDeserializer deserializer, 

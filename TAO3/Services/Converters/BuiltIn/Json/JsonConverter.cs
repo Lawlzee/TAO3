@@ -32,6 +32,8 @@ namespace TAO3.Converters.Json
         public string Format => "json";
         public string DefaultType => "dynamic";
 
+        public IReadOnlyList<string> Aliases => new[] { "JSON" };
+
         public JsonConverter(ITypeProvider<JsonSource> typeProvider)
         {
             _typeProvider = typeProvider;

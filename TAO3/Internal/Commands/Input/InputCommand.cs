@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TAO3.Converters;
-using TAO3.InputSources;
+using TAO3.IO;
 using TAO3.Internal.Extensions;
 
 namespace TAO3.Internal.Commands.Input
@@ -23,27 +23,30 @@ namespace TAO3.Internal.Commands.Input
     internal class InputCommand : Command
     {
         public InputCommand(
-            IInputSourceService inputSourceService,
+            ISourceService sourceService,
             IFormatConverterService formatConverter) 
-            : base("#!in", "Get a value from a source and convert it to C# object")
+            : base("#!input", "Get a value from a source and convert it to a C# object")
         {
-            inputSourceService.Events.RegisterChildCommand<IInputSourceEvent, InputSourceAddedEvent, InputSourceRemovedEvent>(
+            AddAlias("#!in");
+
+            sourceService.Events.RegisterChildCommand<ISourceEvent, SourceAddedEvent, SourceRemovedEvent>(
                 this,
-                x => x.InputSource.Name,
+                x => x.Source.Name,
                 evnt =>
                 {
-                    Command command = new Command(evnt.InputSource.Name);
+                    Command command = new Command(evnt.Source.Name);
+                    command.AddAliases(evnt.Source.Aliases);
 
                     IDisposable formatSubscription = formatConverter.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                         command,
                         x => x.Converter.Format,
-                        (formatAdded) => CreateConverterCommand(evnt.InputSource, formatAdded.Converter));
+                        formatAdded => CreateConverterCommand(evnt.Source, formatAdded.Converter));
 
                     return (command, formatSubscription);
                 });
         }
 
-        private Command CreateConverterCommand(IInputSource inputSource, IConverter converter)
+        private Command CreateConverterCommand(ISource source, IConverter converter)
         {
             Command command = new Command(converter.Format)
             {
@@ -51,7 +54,9 @@ namespace TAO3.Internal.Commands.Input
                 new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
             };
 
-            ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, inputSource);
+            command.AddAliases(converter.Aliases);
+
+            ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, source);
 
             if (converter is IConfigurableConverter configurableConverter)
             {

@@ -6,11 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.InputSources
+namespace TAO3.IO
 {
-    internal class CellInputSource : IInputSource
+    internal class CellSource : ISource
     {
         public string Name => "cell";
+
+        public IReadOnlyList<string> Aliases => new[] { "Cell" };
 
         public Task<string> GetTextAsync()
         {

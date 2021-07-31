@@ -13,6 +13,8 @@ namespace TAO3.Converters.Html
         public string Format => "html";
         public string DefaultType => "Microsoft.AspNetCore.Html.HtmlString";
 
+        public IReadOnlyList<string> Aliases => new[] { "HTML" };
+
         public object? Deserialize<T>(string text)
         {
             return new HtmlString(text);

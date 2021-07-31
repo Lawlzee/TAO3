@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.OutputDestinations
+namespace TAO3.IO
 {
-    public interface IOutputDestination
+    public interface IDestination
     {
         public string Name { get; }
+        IReadOnlyList<string> Aliases { get; }
+
         public Task SetTextAsync(string text);
     }
 }

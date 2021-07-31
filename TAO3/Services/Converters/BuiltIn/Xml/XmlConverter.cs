@@ -43,6 +43,8 @@ namespace TAO3.Converters.Xml
         public string Format => "xml";
         public string DefaultType => "dynamic";
 
+        public IReadOnlyList<string> Aliases => new[] { "XML" };
+
         public XmlConverter(TAO3.Converters.Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
         {
             _jsonConverter = jsonConverter;

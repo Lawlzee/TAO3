@@ -35,6 +35,11 @@ namespace TAO3.Converters.Csv
 
         public string DefaultType => "List<string[]>";
 
+        public IReadOnlyList<string> Aliases => new[]
+        {
+            _hasHeader ? "CSVH" : "CSV"
+        };
+
         public CsvConverter(ITypeProvider<CsvSource> typeProvider, bool hasHeader)
         {
             _typeProvider = typeProvider;

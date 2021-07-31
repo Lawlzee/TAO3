@@ -39,7 +39,7 @@ namespace TAO3.Internal.Commands.Run
                 evnt =>
                 {
                     TAO3NotebookCell cell = evnt.Cell;
-                    Command runCellCommand = new Command(cell.Name);
+                    Command runCellCommand = new Command(evnt.Cell.Name);
 
                     runCellCommand.Handler = CommandHandler.Create(async () =>
                     {
