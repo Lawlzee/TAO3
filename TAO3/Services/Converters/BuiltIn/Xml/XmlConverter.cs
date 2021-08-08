@@ -68,7 +68,17 @@ namespace TAO3.Converters.Xml
             };
 
             string json = _jsonConverter.Serialize(value, jsonSettings);
-            XmlDocument? doc = JsonConvert.DeserializeXmlNode(json);
+
+            //Todo: do something cleaner
+            XmlDocument? doc;
+            try
+            {
+                doc = JsonConvert.DeserializeXmlNode(json, value?.GetType()?.Name ?? "Root");
+            }
+            catch
+            {
+                doc = JsonConvert.DeserializeXmlNode(json);
+            }
 
             if (doc == null)
             {

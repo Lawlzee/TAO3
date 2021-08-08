@@ -24,7 +24,7 @@ namespace TAO3.Converters.Json
     {
         private static readonly JsonSerializerSettings _defaultSettings = new JsonSerializerSettings
         {
-            Formatting = Formatting.Indented
+            Formatting = Newtonsoft.Json.Formatting.Indented
         };
 
         private readonly ITypeProvider<JsonSource> _typeProvider;

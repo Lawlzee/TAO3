@@ -18,11 +18,11 @@ using TAO3.Excel;
 using TAO3.IO;
 using TAO3.Keyboard;
 using TAO3.Notepad;
-using TAO3.IO;
 using TAO3.Services;
 using TAO3.Toast;
 using TAO3.Translation;
 using TAO3.TypeProvider;
+using TAO3.Formatting;
 
 namespace TAO3
 {
@@ -43,13 +43,14 @@ namespace TAO3
         public static ITranslationService Translation => Services.Translation;
         public static TAO3Converters Converters => Services.Converters;
         public static ITypeProviders TypeProviders => Services.TypeProviders;
+        public static TAO3Formatters Formatters => Services.Formatters;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => Converters.Json.Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => Converters.Xml.Serialize(value, settings);
         public static string ToCsv(object? value, CsvConfiguration? settings = null) => Converters.Csv.Serialize(value, settings);
         public static string ToCsvh(object? value, CsvConfiguration? settings = null) => Converters.Csvh.Serialize(value, settings);
         public static string ToLine(object? value) => Converters.Line.Serialize(value);
-        public static string ToHmtl(object? value) => Converters.Html.Serialize(value);
+        public static string ToHtml(object? value) => Converters.Html.Serialize(value);
         public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value);
         public static string ToSql(object? value) => Converters.Sql.Serialize(value);
 
@@ -64,11 +65,41 @@ namespace TAO3
         public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
         public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
         public static List<string> FromLine(string text) => (List<string>)Converters.Line.Deserialize<string>(text)!;
-        public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
+        public static HtmlString FromHtml(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
         public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text)!;
 
         public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csv.Deserialize<string[]>(text, settings)!;
         public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csvh.Deserialize<string[]>(text, settings)!;
+
+        public static DisplayedValue DisplayAsJson(string json, bool format = true) => (format ? FormatJson(json) : json).DisplayAs("application/json");
+        public static DisplayedValue DisplayAsHtml(string html) => html.DisplayAs("text/html");
+        public static DisplayedValue DisplayAsText(string text) => text.DisplayAs("text/plain");
+        public static DisplayedValue DisplayAsMarkdown(string markdown) => markdown.DisplayAs("text/markdown");
+        public static DisplayedValue DisplayAsCSharp(string csharp, bool format = true) => (format ? FormatCSharp(csharp) : csharp).DisplayAs("text/x-csharp");
+        public static DisplayedValue DisplayAsJavascript(string javascript) => javascript.DisplayAs("text/x-javascript");
+        public static DisplayedValue DisplayAsFSharp(string fsharp) => fsharp.DisplayAs("text/x-fsharp");
+        public static DisplayedValue DisplayAsSql(string sql, bool format = true) => (format ? FormatSql(sql) : sql).DisplayAs("text/x-sql");
+        public static DisplayedValue DisplayAsPowershell(string powershell) => powershell.DisplayAs("text/x-powershell");
+        public static DisplayedValue DisplayAsCss(string css) => css.DisplayAs("text/x-css");
+
+        public static DisplayedValue DisplayAsXml(string xml, bool format = true) => (format ? FormatXml(xml) : xml).DisplayAs("text/plain");
+        public static DisplayedValue DisplayAsCsv(string csv) => csv.DisplayAs("text/plain");
+        public static DisplayedValue DisplayAsCsvh(string csvh) => csvh.DisplayAs("text/plain");
+        public static DisplayedValue DisplayAsLine(string line) => line.DisplayAs("text/plain");
+
+        public static string FormatCSharp(string csharp) => Formatters.CSharp.Format(csharp);
+        public static string FormatJson(string json) => Formatters.Json.Format(json);
+        public static string FormatSql(string sql) => Formatters.Sql.Format(sql);
+        public static string FormatXml(string xml) => Formatters.Xml.Format(xml);
+
+        public static DisplayedValue DisplayToJson(object? value, bool format = true, JsonSerializerSettings? settings = null) => DisplayAsJson(ToJson(value, settings), format);
+        public static DisplayedValue DisplayToXml(object? value, bool format = true, XmlWriterSettings? settings = null) => DisplayAsXml(ToXml(value, settings), format);
+        public static DisplayedValue DisplayToCsv(object? value, CsvConfiguration? settings = null) => DisplayAsCsv(ToCsv(value, settings));
+        public static DisplayedValue DisplayToCsvh(object? value, CsvConfiguration? settings = null) => DisplayAsCsvh(ToCsvh(value, settings));
+        public static DisplayedValue DisplayToLine(object? value) => DisplayAsCsvh(ToLine(value));
+        public static DisplayedValue DisplayToHtml(object? value) => DisplayAsHtml(ToHtml(value));
+        public static DisplayedValue DisplayToCSharp(object? value, bool format = true) => DisplayAsCSharp(ToCSharp(value), format);
+        public static DisplayedValue DisplayToSql(object? value, bool format = true) => DisplayAsSql(ToSql(value), format);
 
         public static void ConfigureTranslator(string url, string? apiKey = null)
         {

@@ -8,6 +8,7 @@ using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
 using TAO3.Excel;
+using TAO3.Formatting;
 using TAO3.IO;
 using TAO3.Keyboard;
 using TAO3.Notepad;
@@ -32,7 +33,8 @@ namespace TAO3.Services
         HttpClient HttpClient,
         ITranslationService Translation,
         TAO3Converters Converters,
-        ITypeProviders TypeProviders) : IDisposable
+        ITypeProviders TypeProviders,
+        TAO3Formatters Formatters) : IDisposable
     {
         public void Dispose()
         {
@@ -50,6 +52,7 @@ namespace TAO3.Services
             Translation.Dispose();
             Converters.Dispose();
             TypeProviders.Dispose();
+            Formatters.Dispose();
         }
     }
 }

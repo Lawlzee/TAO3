@@ -37,6 +37,7 @@ using TAO3.Converters.Text;
 using TAO3.Converters.Xml;
 using TAO3.Excel.Generation;
 using TAO3.Internal.Kernels;
+using TAO3.Formatting;
 
 namespace TAO3.Internal
 {
@@ -136,6 +137,12 @@ namespace TAO3.Internal
                 //Excel is closed
             }
 
+            TAO3Formatters formatters = new TAO3Formatters(
+                new CSharpFormatter(),
+                new JsonFormatter(),
+                new SqlFormatter(),
+                new XmlFormatter());
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -150,7 +157,8 @@ namespace TAO3.Internal
                 httpClient,
                 translationService,
                 converters,
-                typeProviders);
+                typeProviders,
+                formatters);
 
             Prelude.Kernel = compositeKernel;
 
