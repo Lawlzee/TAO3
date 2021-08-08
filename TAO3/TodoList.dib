@@ -52,3 +52,7 @@
 - [ ] Add a spelling checker API
 - [x] Add a translation API
 - [ ] Path magic command with intellisense
+- [ ] Delta/View update helpers
+- [ ] Format json/xml etc
+- [ ] DisplayAsJson() ...
+- [ ] DisplayToJson() ...

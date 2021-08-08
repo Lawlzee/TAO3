@@ -61,12 +61,14 @@ namespace TAO3
 
         public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings)!;
         public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings)!;
-        public static List<string> FromCsv(string text, CsvConfiguration? settings = null) => (List<string>)Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
-        public static List<string> FromCsvh(string text, CsvConfiguration? settings = null) => (List<string>)Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
+        public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
+        public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
         public static List<string> FromLine(string text) => (List<string>)Converters.Line.Deserialize<string>(text)!;
         public static HtmlString FromHmtl(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
         public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text)!;
-        
+
+        public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csv.Deserialize<string[]>(text, settings)!;
+        public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csvh.Deserialize<string[]>(text, settings)!;
 
         public static void ConfigureTranslator(string url, string? apiKey = null)
         {

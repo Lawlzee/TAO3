@@ -1,6 +1,9 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.CSharp;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -12,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TAO3.Internal.CodeGeneration;
 using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Csv
@@ -26,14 +30,12 @@ namespace TAO3.Converters.Csv
         IConverter<CsvConfiguration>,  
         IHandleCommand<CsvConfiguration, CsvConverterParameters>
     {
-        private readonly CsvConfiguration _defaultSettings;
-
         private readonly ITypeProvider<CsvSource> _typeProvider;
         private readonly bool _hasHeader;
 
         public string Format => _hasHeader ? "csvh" : "csv";
 
-        public string DefaultType => "List<string[]>";
+        public string DefaultType => "var";
 
         public IReadOnlyList<string> Aliases => new[]
         {
@@ -44,7 +46,11 @@ namespace TAO3.Converters.Csv
         {
             _typeProvider = typeProvider;
             _hasHeader = hasHeader;
-            _defaultSettings = new CsvConfiguration(CultureInfo.InvariantCulture)
+        }
+
+        private CsvConfiguration GetDefaultConfig()
+        {
+            return new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = ",",
                 HasHeaderRecord = _hasHeader
@@ -54,19 +60,63 @@ namespace TAO3.Converters.Csv
         public object? Deserialize<T>(string text, CsvConfiguration? settings)
         {
             bool isDynamic = typeof(T) == typeof(ExpandoObject);
+            bool isStringArray = typeof(T) == typeof(string[]);
+
+            CsvConfiguration config = settings ?? GetDefaultConfig();
+            
+            //Ugly fix for https://github.com/JoshClose/CsvHelper/issues/1262
+            if (!isDynamic && !isStringArray && !config.HasHeaderRecord)
+            {
+                List<string> propertyNames = typeof(T).GetProperties()
+                    .Select(x => x.GetCustomAttributes(typeof(NameAttribute), inherit: true)
+                        .OfType<NameAttribute>()
+                        .SelectMany(x => x.Names)
+                        .FirstOrDefault() ?? x.Name)
+                    .ToList();
+
+                string header = string.Join(
+                    config.Delimiter,
+                    propertyNames
+                        .Select(x => "\"" + x.Replace("\"", "\"\"") + "\""));
+                
+                config.HasHeaderRecord = true;
+                text = header + config.NewLineString + text;
+            }
 
             using StringReader reader = new StringReader(text);
-            using CsvReader csvReader = new CsvReader(reader, settings ?? _defaultSettings);
-            return isDynamic
-                ? GetRows(csvReader).ToList()
-                : csvReader.GetRecords<T>().ToList();
-        }
+            using CsvReader csvReader = new CsvReader(reader, config);
+            return isStringArray
+                ? GetStringRows().ToList()
+                : isDynamic
+                    ? config.HasHeaderRecord
+                        ? csvReader.GetRecords<dynamic>().ToList()
+                        : GetDynamicRows().ToList()
+                    : csvReader.GetRecords<T>().ToList();
 
-        private IEnumerable<string[]> GetRows(CsvReader csvReader)
-        {
-            while (csvReader.Read())
+            IEnumerable<string[]> GetStringRows()
             {
-                yield return csvReader.Context.Record;
+                if (config.HasHeaderRecord)
+                {
+                    csvReader.Read();
+                }
+
+                while (csvReader.Read())
+                {
+                    yield return csvReader.Context.Record;
+                }
+            }
+
+            IEnumerable<dynamic> GetDynamicRows()
+            {
+                while (csvReader.Read())
+                {
+                    IDictionary<string, object?> obj = new ExpandoObject();
+                    for (int i = 0; i < csvReader.Context.Record.Length; i++)
+                    {
+                        obj[ExcelIdentifierUtils.GetExcelColumnName(i + 1)] = csvReader.Context.Record[i];
+                    }
+                    yield return obj;
+                }
             }
         }
 
@@ -83,7 +133,7 @@ namespace TAO3.Converters.Csv
                 : new object[] { value! };
 
             using StringWriter textWriter = new StringWriter();
-            using CsvWriter csvWriter = new CsvWriter(textWriter, settings ?? _defaultSettings);
+            using CsvWriter csvWriter = new CsvWriter(textWriter, settings ?? GetDefaultConfig());
             csvWriter.WriteRecords(values);
 
             return textWriter.ToString();
@@ -119,21 +169,27 @@ namespace TAO3.Converters.Csv
         public void Configure(Command command)
         {
             command.Add(new Option<string>(new[] { "-s", "--separator" }, "Value separator"));
-            command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+            command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
         public async Task HandleCommandAsync(IConverterContext<CsvConfiguration> context, CsvConverterParameters args)
         {
-            context.Settings ??= _defaultSettings;
+            context.Settings ??= GetDefaultConfig();
 
             if (!string.IsNullOrEmpty(args.Separator))
             {
                 context.Settings.Delimiter = Regex.Unescape(args.Separator);
             }
 
-            if (args.Type == "dynamic")
+            if (args.Type == "dynamic" || args.Type == "string[]")
             {
-                await context.DefaultHandleCommandAsync();
+                string text = await context.GetTextAsync();
+                object? result = args.Type == "dynamic"
+                    ? Deserialize<ExpandoObject>(text, context.Settings)
+                    : Deserialize<string[]>(text, context.Settings);
+
+                await context.SubmitCodeAsync($"List<{args.Type}> {context.VariableName} = null;");
+                context.CSharpKernel.ScriptState.GetVariable(context.VariableName).Value = result;
                 return;
             }
 

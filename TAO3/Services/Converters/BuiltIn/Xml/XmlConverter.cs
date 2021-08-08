@@ -94,7 +94,7 @@ namespace TAO3.Converters.Xml
 
         public void Configure(Command command)
         {
-            command.Add(new Option(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+            command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
         public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlConverterParameters args)
