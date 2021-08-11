@@ -58,12 +58,12 @@ namespace TAO3.Internal.Commands.Input
 
             ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, source);
 
-            if (converter is IConfigurableConverter configurableConverter)
+            if (converter is IInputConfigurableConverterCommand configurableConverter)
             {
                 configurableConverter.Configure(command);
             }
 
-            if (converter is IHandleCommand commandHandler)
+            if (converter is IHandleInputCommand commandHandler)
             {
                 command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
 

@@ -16,7 +16,6 @@ namespace TAO3.Converters
 
     public interface IConverterContext<TSettings>
     {
-        IConverter Converter { get; }
         string VariableName { get; }
         CSharpKernel CSharpKernel { get; }
         TSettings? Settings { get; set; }
@@ -34,8 +33,8 @@ namespace TAO3.Converters
         private readonly Func<Task<string>> _getTextAsync;
         private string? _text;
         private bool _textInitialized = false;
+        private readonly IConverter _converter;
 
-        public IConverter Converter { get; }
         public string VariableName { get; }
         public TSettings? Settings { get; set; }
 
@@ -49,7 +48,7 @@ namespace TAO3.Converters
             KernelInvocationContext context,
             Func<Task<string>> getTextAsync)
         {
-            Converter = converter;
+            _converter = converter;
             VariableName = name;
             _verbose = verbose;
             _settingsName = settings;
@@ -87,9 +86,9 @@ namespace TAO3.Converters
         public async Task DefaultHandleCommandAsync()
         {
             string text = await GetTextAsync();
-            object? result = Converter.Deserialize<ExpandoObject>(text, Settings);
+            object? result = _converter.Deserialize<ExpandoObject>(text, Settings);
 
-            await SubmitCodeAsync($"{Converter.DefaultType} {VariableName} = null;");
+            await SubmitCodeAsync($"{_converter.DefaultType} {VariableName} = null;");
             CSharpKernel.ScriptState.GetVariable(VariableName).Value = result;
         }
 

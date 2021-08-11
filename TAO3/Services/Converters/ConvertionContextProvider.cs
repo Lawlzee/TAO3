@@ -16,12 +16,12 @@ namespace TAO3.Converters
             _source = source;
         }
 
-        public IConverterContext<TSettings> Invoke<TSettings>(string name, string settings, bool verbose, KernelInvocationContext context)
+        internal IConverterContext<TSettings> Invoke<TSettings>(string name, string settings, bool verbose, KernelInvocationContext context)
         {
             return new ConverterContext<TSettings>(_converter, name, settings, verbose, context, () => _source.GetTextAsync());
         }
 
-        public IConverterContext<object> Invoke(string name, string settings, bool verbose, KernelInvocationContext context)
+        internal IConverterContext<object> Invoke(string name, string settings, bool verbose, KernelInvocationContext context)
         {
             return new ConverterContext<object>(_converter, name, settings, verbose, context, () => _source.GetTextAsync());
         }

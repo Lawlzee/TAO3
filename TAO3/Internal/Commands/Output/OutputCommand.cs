@@ -21,7 +21,7 @@ namespace TAO3.Internal.Commands.Output
     internal class OutputCommand : Command
     {
         public OutputCommand(
-            IDestinationService destinationService, 
+            IDestinationService destinationService,
             IFormatConverterService formatConverter)
             : base("#!output", "Convert and copy returned value to destination")
         {
@@ -48,67 +48,84 @@ namespace TAO3.Internal.Commands.Output
         {
             Command command = new Command(converter.Format)
             {
-                new Option<string>(new[] {"-s", "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
+                new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
             };
 
             command.AddAliases(converter.Aliases);
 
-            command.Handler = CommandHandler.Create((string settings, KernelInvocationContext context) =>
+            if (converter is IOutputConfigurableConverterCommand configurableConverter)
             {
-                object? settingsInstance = null;
-
-                CSharpKernel cSharpKernel = context.GetCSharpKernel();
-                if (settings != string.Empty && !cSharpKernel.TryGetVariable(settings, out settingsInstance))
+                configurableConverter.Configure(command);
+                command.Handler = configurableConverter.CreateHandler((context, settings) => Handle(destination, converter, context, settings));
+            }
+            else
+            {
+                command.Handler = CommandHandler.Create((string settings, KernelInvocationContext context) =>
                 {
-                    context.Fail(new ArgumentException(), $"The variable '{settings}' was not found");
-                    return;
-                }
+                    object? settingsInstance = null;
 
-                Kernel rootKernel = context.HandlingKernel.ParentKernel;
-                KernelCommand submitCodeCommand = context.Command.GetRootCommand();
-
-                IDisposable disposable = null!;
-                disposable = rootKernel.KernelEvents
-                    .SelectMany(async e =>
+                    CSharpKernel cSharpKernel = context.GetCSharpKernel();
+                    if (!string.IsNullOrEmpty(settings) && !cSharpKernel.TryGetVariable(settings, out settingsInstance))
                     {
-                        KernelCommand rootCommand = e.Command.GetRootCommand();
+                        context.Fail(new ArgumentException(), $"The variable '{settings}' was not found");
+                        return;
+                    }
 
-                        if (rootCommand == submitCodeCommand)
+                    Handle(destination, converter, context, settingsInstance);
+                });
+            }
+            
+            return command;
+        }
+
+        private void Handle(
+            IDestination destination,
+            IConverter converter,
+            KernelInvocationContext context,
+            object? settings)
+        {
+            Kernel rootKernel = context.HandlingKernel.ParentKernel;
+            KernelCommand submitCodeCommand = context.Command.GetRootCommand();
+
+            IDisposable disposable = null!;
+            disposable = rootKernel.KernelEvents
+                .SelectMany(async e =>
+                {
+                    KernelCommand rootCommand = e.Command.GetRootCommand();
+
+                    if (rootCommand == submitCodeCommand)
+                    {
+                        if (e is ReturnValueProduced valueProduced)
                         {
-                            if (e is ReturnValueProduced valueProduced)
+                            try
                             {
-                                try
-                                {
-                                    string resultText = converter.Serialize(valueProduced.Value, settingsInstance);
-                                    await destination.SetTextAsync(resultText);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ex.Display();
-                                }
-                                finally
-                                {
-                                    disposable.Dispose();
-                                }
+                                string resultText = converter.Serialize(valueProduced.Value, settings);
+                                await destination.SetTextAsync(resultText);
                             }
-
-                            if (e is CommandSucceeded commandSucceeded && commandSucceeded.Command == submitCodeCommand)
+                            catch (Exception ex)
                             {
-                                disposable.Dispose();
+                                ex.Display();
                             }
-
-                            if (e is CommandFailed commandFailed)
+                            finally
                             {
                                 disposable.Dispose();
                             }
                         }
 
-                        return Unit.Default;
-                    })
-                    .Subscribe();
-            });
+                        if (e is CommandSucceeded commandSucceeded && commandSucceeded.Command == submitCodeCommand)
+                        {
+                            disposable.Dispose();
+                        }
 
-            return command;
+                        if (e is CommandFailed commandFailed)
+                        {
+                            disposable.Dispose();
+                        }
+                    }
+
+                    return Unit.Default;
+                })
+                .Subscribe();
         }
     }
 }

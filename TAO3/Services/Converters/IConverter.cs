@@ -29,7 +29,7 @@ namespace TAO3.Converters
         }
     }
 
-    public interface IConverter<TSettings> : IConverter, IConfigurableConverter
+    public interface IConverter<TSettings> : IConverter
     {
         string Serialize(object? value, TSettings? settings);
         object? Deserialize<T>(string text, TSettings? settings);

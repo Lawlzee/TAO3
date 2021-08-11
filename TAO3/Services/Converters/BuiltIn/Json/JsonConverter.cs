@@ -13,20 +13,16 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Json
 {
-    public class JsonConverterParameters : ConverterCommandParameters
+    public class JsonConverterInputParameters : InputConverterCommandParameters
     {
         public string? Type { get; set; }
     }
 
-    public class JsonConverter : 
-        IConverter<JsonSerializerSettings>, 
-        IHandleCommand<JsonSerializerSettings, JsonConverterParameters>
+    public class JsonConverter :
+        IConverter<JsonSerializerSettings>,
+        IHandleInputCommand<JsonSerializerSettings, JsonConverterInputParameters>,
+        IOutputConfigurableConverterCommand<JsonSerializerSettings>
     {
-        private static readonly JsonSerializerSettings _defaultSettings = new JsonSerializerSettings
-        {
-            Formatting = Newtonsoft.Json.Formatting.Indented
-        };
-
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
         public string Format => "json";
@@ -41,12 +37,12 @@ namespace TAO3.Converters.Json
 
         public object? Deserialize<T>(string text, JsonSerializerSettings? settings)
         {
-            return JsonConvert.DeserializeObject<T>(text, settings ?? _defaultSettings); 
+            return JsonConvert.DeserializeObject<T>(text, settings ?? GetDefaultSettings());
         }
 
         public string Serialize(object? value, JsonSerializerSettings? settings)
         {
-            return JsonConvert.SerializeObject(value, settings ?? _defaultSettings);
+            return JsonConvert.SerializeObject(value, settings ?? GetDefaultSettings());
         }
 
         public void Configure(Command command)
@@ -54,10 +50,16 @@ namespace TAO3.Converters.Json
             command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
-        public async Task HandleCommandAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterParameters args)
+        public JsonSerializerSettings GetDefaultSettings()
         {
-            context.Settings ??= _defaultSettings;
+            return new JsonSerializerSettings
+            {
+                Formatting = Newtonsoft.Json.Formatting.Indented
+            };
+        }
 
+        public async Task HandleCommandAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
+        {
             if (args.Type == "dynamic")
             {
                 await context.DefaultHandleCommandAsync();

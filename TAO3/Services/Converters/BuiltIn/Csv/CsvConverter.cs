@@ -20,7 +20,13 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Csv
 {
-    public class CsvConverterParameters : ConverterCommandParameters
+    public class CsvConverterInputParameters : InputConverterCommandParameters
+    {
+        public string? Separator { get; set; }
+        public string? Type { get; set; }
+    }
+
+    public class CsvConverterOutputParameters : OutputConverterCommandParameters
     {
         public string? Separator { get; set; }
         public string? Type { get; set; }
@@ -28,7 +34,9 @@ namespace TAO3.Converters.Csv
 
     public class CsvConverter : 
         IConverter<CsvConfiguration>,  
-        IHandleCommand<CsvConfiguration, CsvConverterParameters>
+        IHandleInputCommand<CsvConfiguration, CsvConverterInputParameters>,
+        IOutputConfigurableConverterCommand<CsvConfiguration, CsvConverterOutputParameters>
+
     {
         private readonly ITypeProvider<CsvSource> _typeProvider;
         private readonly bool _hasHeader;
@@ -48,7 +56,7 @@ namespace TAO3.Converters.Csv
             _hasHeader = hasHeader;
         }
 
-        private CsvConfiguration GetDefaultConfig()
+        public CsvConfiguration GetDefaultSettings()
         {
             return new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -62,7 +70,7 @@ namespace TAO3.Converters.Csv
             bool isDynamic = typeof(T) == typeof(ExpandoObject);
             bool isStringArray = typeof(T) == typeof(string[]);
 
-            CsvConfiguration config = settings ?? GetDefaultConfig();
+            CsvConfiguration config = settings ?? GetDefaultSettings();
             
             //Ugly fix for https://github.com/JoshClose/CsvHelper/issues/1262
             if (!isDynamic && !isStringArray && !config.HasHeaderRecord)
@@ -133,7 +141,7 @@ namespace TAO3.Converters.Csv
                 : new object[] { value! };
 
             using StringWriter textWriter = new StringWriter();
-            using CsvWriter csvWriter = new CsvWriter(textWriter, settings ?? GetDefaultConfig());
+            using CsvWriter csvWriter = new CsvWriter(textWriter, settings ?? GetDefaultSettings());
             csvWriter.WriteRecords(values);
 
             return textWriter.ToString();
@@ -172,15 +180,26 @@ namespace TAO3.Converters.Csv
             command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
-        public async Task HandleCommandAsync(IConverterContext<CsvConfiguration> context, CsvConverterParameters args)
+        public CsvConfiguration BindParameters(CsvConfiguration settings, CsvConverterInputParameters args)
         {
-            context.Settings ??= GetDefaultConfig();
-
             if (!string.IsNullOrEmpty(args.Separator))
             {
-                context.Settings.Delimiter = Regex.Unescape(args.Separator);
+                settings.Delimiter = Regex.Unescape(args.Separator);
             }
+            return settings;
+        }
 
+        public CsvConfiguration BindParameters(CsvConfiguration settings, CsvConverterOutputParameters args)
+        {
+            if (!string.IsNullOrEmpty(args.Separator))
+            {
+                settings.Delimiter = Regex.Unescape(args.Separator);
+            }
+            return settings;
+        }
+
+        public async Task HandleCommandAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
+        {
             if (args.Type == "dynamic" || args.Type == "string[]")
             {
                 string text = await context.GetTextAsync();
@@ -194,13 +213,13 @@ namespace TAO3.Converters.Csv
             }
 
             string sourceVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
-            string converterVariableName = await context.CreatePrivateVariableAsync(context.Converter, typeof(CsvConverter));
+            string converterVariableName = await context.CreatePrivateVariableAsync(this, typeof(CsvConverter));
             string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
 
             if (string.IsNullOrEmpty(args.Type))
             {
                 string csv = await context.GetTextAsync();
-                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(args.Name!, csv, context.Settings));
+                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(args.Name!, csv, context.Settings!));
 
                 string code = $@"{schema.Code}
 

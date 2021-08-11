@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.DotNet.Interactive;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
@@ -10,14 +11,14 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Sql
 {
-    public class SqlConverterParameters : ConverterCommandParameters
+    public class SqlConverterParameters : InputConverterCommandParameters
     {
         public string? Type { get; set; }
     }
 
     public class SqlConverter : 
         IConverter,
-        IHandleCommand<Unit, SqlConverterParameters>
+        IHandleInputCommand<Unit, SqlConverterParameters>
     {
         private readonly ITypeProvider<string> _typeProvider;
         private readonly SqlDeserializer _deserializer;
@@ -52,6 +53,8 @@ namespace TAO3.Converters.Sql
         {
             command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
+
+        public Unit GetDefaultSettings() => Unit.Default;
 
         public async Task HandleCommandAsync(IConverterContext<Unit> context, SqlConverterParameters args)
         {

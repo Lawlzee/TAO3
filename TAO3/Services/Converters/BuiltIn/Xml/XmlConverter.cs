@@ -17,7 +17,12 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Xml
 {
-    public class XmlConverterParameters : ConverterCommandParameters
+    public class XmlInputConverterParameters : InputConverterCommandParameters
+    {
+        public string? Type { get; set; }
+    }
+
+    public class XmlOutputConverterParameters : OutputConverterCommandParameters
     {
         public string? Type { get; set; }
     }
@@ -27,16 +32,9 @@ namespace TAO3.Converters.Xml
     //We can probably do a lot better then this, but it works for now
     public class XmlConverter : 
         IConverter<XmlWriterSettings>, 
-        IHandleCommand<XmlWriterSettings, XmlConverterParameters>
+        IHandleInputCommand<XmlWriterSettings, XmlInputConverterParameters>,
+        IOutputConfigurableConverterCommand<XmlWriterSettings, XmlOutputConverterParameters>
     {
-        private static readonly XmlWriterSettings _defaultSettings = new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "    ",
-            NewLineChars = Environment.NewLine,
-            NewLineHandling = NewLineHandling.Replace
-        };
-
         private readonly TAO3.Converters.Json.JsonConverter _jsonConverter;
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
@@ -85,7 +83,7 @@ namespace TAO3.Converters.Xml
                 throw new ArgumentException(nameof(value));
             }
 
-            settings ??= _defaultSettings;
+            settings ??= GetDefaultSettings();
             using StringWriter stringWriter = new StringWriterWithEncoding(GetEncoding(doc) ?? Encoding.Unicode);
             using XmlWriter writer = XmlWriter.Create(stringWriter, settings);
             doc.Save(writer);
@@ -107,10 +105,19 @@ namespace TAO3.Converters.Xml
             command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
-        public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlConverterParameters args)
+        public XmlWriterSettings GetDefaultSettings()
         {
-            context.Settings ??= _defaultSettings;
+            return new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "    ",
+                NewLineChars = Environment.NewLine,
+                NewLineHandling = NewLineHandling.Replace
+            };
+        }
 
+        public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
+        {
             if (args.Type == "dynamic")
             {
                 await context.DefaultHandleCommandAsync();
