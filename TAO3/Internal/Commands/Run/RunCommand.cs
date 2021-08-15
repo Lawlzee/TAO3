@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TAO3.Cell;
 using TAO3.Internal.Extensions;
+using TAO3.Internal.Utils;
 using NotebookCell = Microsoft.DotNet.Interactive.Notebook.NotebookCell;
 using TAO3NotebookCell = TAO3.Cell.NotebookCell;
 

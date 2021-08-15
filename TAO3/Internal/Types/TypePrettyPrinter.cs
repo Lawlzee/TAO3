@@ -25,50 +25,104 @@ namespace TAO3.Internal.Types
             { typeof(ushort), "ushort" },
         };
 
-        internal static string PrettyPrint(this Type type)
+        internal static string PrettyPrint(this Type type, bool anymousClassAsDynamic = false)
         {
             if (_primitifTypeName.ContainsKey(type))
             {
                 return _primitifTypeName[type];
             }
 
-            string prettyName;
+            Type[] genericArguments = type.GetGenericArguments();
+
+            if (type.IsArray)
+            {
+                return PrettyPrint(type.GetElementType()!, anymousClassAsDynamic) + $"[{new string(',', type.GetArrayRank() - 1)}]";
+            }
+            else if (type.IsPointer)
+            {
+                return PrettyPrint(type.GetElementType()!, anymousClassAsDynamic) + "*";
+            }
+            else if (genericArguments.Length == 0)
+            {
+                return GetTypeName();
+            }
+            else if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return PrettyPrint(genericArguments[0], anymousClassAsDynamic) + "?";
+            }
+            else if (type.IsValueTuple())
+            {
+                return "(" + string.Join(", ", genericArguments.Select(x => PrettyPrint(x, anymousClassAsDynamic))) + ")";
+            }
+            else if (anymousClassAsDynamic && type.IsAnonymous())
+            {
+                return "dynamic";
+            }
+            else
+            {
+                string fullTypeName = GetTypeName();
+                string typeNameWithhoutGenerics = fullTypeName.Substring(0, fullTypeName.IndexOf("`"));
+                return typeNameWithhoutGenerics + "<" + string.Join(", ", genericArguments.Select(x => PrettyPrint(x, anymousClassAsDynamic))) + ">";
+            }
+
+            string GetTypeName()
+            {
+                return type.DeclaringType != null && !type.DeclaringType.Name.StartsWith("Submission#")
+                    ? PrettyPrint(type.DeclaringType, anymousClassAsDynamic) + "." + type.Name
+                    : type.Name;
+            }
+        }
+
+        internal static string PrettyPrintFullName(this Type type, bool anymousClassAsDynamic = false)
+        {
+            if (_primitifTypeName.ContainsKey(type))
+            {
+                return _primitifTypeName[type];
+            }
 
             Type[] genericArguments = type.GetGenericArguments();
 
             if (type.IsArray)
             {
-                prettyName = PrettyPrint(type.GetElementType()!) + $"[{new string(',', type.GetArrayRank() - 1)}]";
+                return PrettyPrintFullName(type.GetElementType()!, anymousClassAsDynamic) + $"[{new string(',', type.GetArrayRank() - 1)}]";
             }
             else if (type.IsPointer)
             {
-                prettyName = PrettyPrint(type.GetElementType()!) + "*";
+                return PrettyPrintFullName(type.GetElementType()!, anymousClassAsDynamic) + "*";
             }
             else if (genericArguments.Length == 0)
             {
-                prettyName = type.Name;
+                return GetTypeNameWithNamespace();
             }
             else if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                prettyName = PrettyPrint(genericArguments[0]) + "?";
+                return PrettyPrintFullName(genericArguments[0], anymousClassAsDynamic) + "?";
             }
             else if (type.IsValueTuple())
             {
-                prettyName = "(" + string.Join(", ", genericArguments.Select(PrettyPrint)) + ")";
+                return "(" + string.Join(", ", genericArguments.Select(x => PrettyPrintFullName(x, anymousClassAsDynamic))) + ")";
+            }
+            else if (anymousClassAsDynamic && type.IsAnonymous())
+            {
+                return "dynamic";
             }
             else
             {
-                string fullTypeName = type.Name;
-                string typeNameWithGenerics = fullTypeName.Substring(0, fullTypeName.IndexOf("`"));
-                prettyName = typeNameWithGenerics + "<" + string.Join(", ", genericArguments.Select(PrettyPrint)) + ">";
+                string fullTypeName = GetTypeNameWithNamespace();
+                string typeNameWithoutGenerics = fullTypeName.Substring(0, fullTypeName.IndexOf("`"));
+                return typeNameWithoutGenerics + "<" + string.Join(", ", genericArguments.Select(x => PrettyPrintFullName(x, anymousClassAsDynamic))) + ">";
             }
 
-            if (type.DeclaringType != null && !type.DeclaringType.Name.StartsWith("Submission#"))
+            string GetTypeNameWithNamespace()
             {
-                return PrettyPrint(type.DeclaringType) + "." + prettyName;
-            }
+                string typeName = type.DeclaringType != null && !type.DeclaringType.Name.StartsWith("Submission#")
+                    ? PrettyPrintFullName(type.DeclaringType, anymousClassAsDynamic) + "." + type.Name
+                    : type.Name;
 
-            return prettyName;
+                return type.Namespace != null
+                    ? type.Namespace + "." + typeName
+                    : typeName;
+            }
         }
     }
 }

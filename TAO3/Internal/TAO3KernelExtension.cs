@@ -36,8 +36,10 @@ using TAO3.Converters.Line;
 using TAO3.Converters.Text;
 using TAO3.Converters.Xml;
 using TAO3.Excel.Generation;
-using TAO3.Internal.Kernels;
+using TAO3.Internal.Kernels.Translate;
 using TAO3.Formatting;
+using TAO3.Internal.Kernels.Razor;
+using RazorLight;
 
 namespace TAO3.Internal
 {
@@ -172,6 +174,14 @@ namespace TAO3.Internal
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
 
             compositeKernel.Add(new TranslateKernel(translationService));
+
+            RazorLightEngine razorEngine = new RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof(Prelude))
+                .SetOperatingAssembly(typeof(Prelude).Assembly)
+                .UseMemoryCachingProvider()
+                .Build();
+
+            compositeKernel.Add(new RazorKernel(razorEngine));
 
             formatConverter.Register(converters.Csv);
             formatConverter.Register(converters.Csvh);

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TAO3.Internal.Commands.Run
+namespace TAO3.Internal.Utils
 {
     internal static class NamespaceRemover
     {

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
 using TAO3.Translation;
 
-namespace TAO3.Internal.Kernels
+namespace TAO3.Internal.Kernels.Translate
 {
     internal class TranslateKernel : Kernel, IKernelCommandHandler<SubmitCode>
     {

@@ -77,7 +77,7 @@ namespace TAO3.Converters
         {
             if (_verbose)
             {
-                _context.Display(code, null);
+                _context.Display(code);
             }
 
             await CSharpKernel.SubmitCodeAsync(code);
