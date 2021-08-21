@@ -126,8 +126,10 @@ namespace TAO3.Internal
                 new XmlConverter(jsonConverter, xmlTypeProvider),
                 new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
+            CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
+
             IExcelService excel = new ExcelService(
-                (CSharpKernel)compositeKernel.FindKernel("csharp"),
+                cSharpKernel,
                 excelTypeProvider);
 
             try
@@ -167,8 +169,8 @@ namespace TAO3.Internal
             compositeKernel.RegisterForDisposal(Prelude.Services);
 
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
-            compositeKernel.AddDirective(new InputCommand(sourceService, formatConverter));
-            compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter));
+            compositeKernel.AddDirective(new InputCommand(sourceService, formatConverter, cSharpKernel));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter, cSharpKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
@@ -195,13 +197,16 @@ namespace TAO3.Internal
 
             ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             NotepadIO notepadIO = new NotepadIO(notepad);
+            FileIO fileIO = new FileIO();
 
             sourceService.Register(clipboardIO);
             sourceService.Register(notepadIO);
+            sourceService.Register(fileIO);
             sourceService.Register(new CellSource());
 
             destinationService.Register(clipboardIO);
             destinationService.Register(notepadIO);
+            destinationService.Register(fileIO);
         }
     }
 }

@@ -17,12 +17,12 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Xml
 {
-    public class XmlInputConverterParameters : InputConverterCommandParameters
+    public class XmlInputConverterParameters
     {
         public string? Type { get; set; }
     }
 
-    public class XmlOutputConverterParameters : OutputConverterCommandParameters
+    public class XmlOutputConverterParameters
     {
         public string? Type { get; set; }
     }
@@ -116,6 +116,11 @@ namespace TAO3.Converters.Xml
             };
         }
 
+        public XmlWriterSettings BindParameters(XmlWriterSettings settings, XmlInputConverterParameters args)
+        {
+            return settings;
+        }
+
         public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
         {
             if (args.Type == "dynamic")
@@ -134,16 +139,16 @@ namespace TAO3.Converters.Xml
 
             if (string.IsNullOrEmpty(args.Type))
             {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(args.Name!, jsonInput));
+                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(context.VariableName, jsonInput));
                 await context.SubmitCodeAsync($@"{schema.Code}
 
-{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({textVariableName});");
+{schema.RootType} {context.VariableName} = JsonConvert.DeserializeObject<{schema.RootType}>({textVariableName});");
             }
             else
             {
                 await context.SubmitCodeAsync($@"using Newtonsoft.Json;
 
-{args.Type} {args.Name} = JsonConvert.DeserializeObject<{args.Type}>({textVariableName});");
+{args.Type} {context.VariableName} = JsonConvert.DeserializeObject<{args.Type}>({textVariableName});");
             }
         }
     }

@@ -18,7 +18,9 @@ namespace TAO3.TypeProvider
         static ISchemaTransformer Default { get; } = new SchemaTransformer(new List<ISchemaTransformation>
         {
             new RemoveDuplicatedClassTransformer(),
+            new RenameEmptyClassNameTransformer(),
             new RenameDuplicatedClassNamesTransformer(),
+            new RenameEmptyPropertyNameTransformer(),
             new RenameDuplicatedPropertyNamesTransformer()
         });
         ISchema Transform(ISchema schema);

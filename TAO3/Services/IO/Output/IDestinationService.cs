@@ -11,9 +11,10 @@ namespace TAO3.IO
     public interface IDestinationService : IDisposable
     {
         IObservable<IDestinationEvent> Events { get; }
-        void Register(IDestination destination);
+        IEnumerable<IDestination> Destinations {  get; }
+
+        void Register<T>(IDestination<T> destination);
         bool Remove(string name);
-        Task SetTextAsync(string name, string text);
     }
 
     public class DestinationService : IDestinationService
@@ -22,13 +23,15 @@ namespace TAO3.IO
         private readonly ReplaySubject<IDestinationEvent> _events;
         public IObservable<IDestinationEvent> Events => _events;
 
+        public IEnumerable<IDestination> Destinations => _destinationByName.Values;
+
         public DestinationService()
         {
             _destinationByName = new(StringComparer.OrdinalIgnoreCase);
             _events = new();
         }
 
-        public void Register(IDestination destination)
+        public void Register<T>(IDestination<T> destination)
         {
             if (_destinationByName.TryGetValue(destination.Name, out IDestination? old))
             {
@@ -49,18 +52,6 @@ namespace TAO3.IO
             }
 
             return false;
-        }
-
-        public Task SetTextAsync(string name, string text)
-        {
-            IDestination? destination = _destinationByName.GetValueOrDefault(name);
-
-            if (destination == null)
-            {
-                throw new ArgumentException($"No output destination found for '{name}'");
-            }
-
-            return destination.SetTextAsync(text);
         }
 
         public void Dispose()

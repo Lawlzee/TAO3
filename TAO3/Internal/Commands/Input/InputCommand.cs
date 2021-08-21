@@ -17,6 +17,8 @@ using System.Xml.Linq;
 using TAO3.Converters;
 using TAO3.IO;
 using TAO3.Internal.Extensions;
+using TAO3.Internal.Types;
+using System.Reactive;
 
 namespace TAO3.Internal.Commands.Input
 {
@@ -24,7 +26,8 @@ namespace TAO3.Internal.Commands.Input
     {
         public InputCommand(
             ISourceService sourceService,
-            IFormatConverterService formatConverter) 
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
             : base("#!input", "Get a value from a source and convert it to a C# object")
         {
             AddAlias("#!in");
@@ -34,58 +37,125 @@ namespace TAO3.Internal.Commands.Input
                 x => x.Source.Name,
                 evnt =>
                 {
-                    Command command = new Command(evnt.Source.Name);
-                    command.AddAliases(evnt.Source.Aliases);
-
-                    IDisposable formatSubscription = formatConverter.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
-                        command,
-                        x => x.Converter.Format,
-                        formatAdded => CreateConverterCommand(evnt.Source, formatAdded.Converter));
-
-                    return (command, formatSubscription);
+                    return TypeInferer.Invoke(
+                        evnt.Source,
+                        typeof(ISource<>),
+                        () => CreateSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
                 });
         }
 
-        private Command CreateConverterCommand(ISource source, IConverter converter)
+        private (Command, IDisposable) CreateSourceCommand<TSourceOptions>(
+            ISource source,
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
+        {
+            Command command = new Command(source.Name);
+            command.AddAliases(source.Aliases);
+
+            IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
+                command,
+                x => x.Converter.Format,
+                evnt =>
+                {
+                    return TypeInferer.Invoke(
+                        evnt.Converter,
+                        typeof(IConverter<>),
+                        () => CreateConverterCommand<Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
+                });
+
+            return (command, formatSubscription);
+        }
+
+        private Command CreateConverterCommand<TSettings, TSourceOptions>(
+            ISource source,
+            IConverter converter,
+            CSharpKernel cSharpKernel)
+        {
+            return CreateConverterCommand(
+                (ISource<TSourceOptions>)source,
+                (IConverter<TSettings>)converter,
+                cSharpKernel);
+        }
+
+        private Command CreateConverterCommand<TSettings, TSourceOptions>(
+            ISource<TSourceOptions> source,
+            IConverter<TSettings> converter,
+            CSharpKernel cSharpKernel)
         {
             Command command = new Command(converter.Format)
             {
                 new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
-                new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
+                new Option(new[] { "-v", "--verbose" }, "Print debugging information"),
+                CommandFactory.CreateSettingsOption(cSharpKernel, typeof(TSettings))
             };
 
             command.AddAliases(converter.Aliases);
 
-            ConvertionContextProvider convertionContextProvider = new ConvertionContextProvider(converter, source);
-
-            if (converter is IInputConfigurableConverterCommand configurableConverter)
+            if (source is IConfigurableSource configurableSource)
             {
-                configurableConverter.Configure(command);
+                configurableSource.Configure(command);
             }
 
-            if (converter is IHandleInputCommand commandHandler)
+            if (converter.GetType().IsAssignableToGenericType(typeof(IHandleInputCommand<,>)))
             {
-                command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
-
-                command.Handler = commandHandler.CreateHandler(convertionContextProvider);
+                TypeInferer.Invoke(
+                    converter,
+                    typeof(IHandleInputCommand<,>),
+                    () => CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel));
+            }
+            else if (converter.GetType().IsAssignableToGenericType(typeof(IInputConfigurableConverterCommand<,>)))
+            {
+                TypeInferer.Invoke(
+                    converter,
+                    typeof(IInputConfigurableConverterCommand<,>),
+                    () => CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel));
             }
             else
             {
-                command.Handler = CommandHandler.Create(async (string name, string settings, KernelInvocationContext context) =>
-                {
-                    try
-                    {
-                        IConverterContext<object> convertionContext = convertionContextProvider.Invoke(name, settings, verbose: false, context);
-                        await convertionContext.DefaultHandleCommandAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        ex.Display();
-                    }
-                });
+                CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel);
             }
 
             return command;
+        }
+
+        private void CreateCommandHandler<TSettings, TCommandParameters, TSourceOptions>(
+            ISource<TSourceOptions> source,
+            IConverter<TSettings> converter,
+            Command command,
+            CSharpKernel cSharpKernel)
+        {
+            IHandleInputCommand<TSettings, TCommandParameters> handler = converter as IHandleInputCommand<TSettings, TCommandParameters> ?? new DefaultInputCommandHandler<TSettings, TCommandParameters>();
+            handler.Configure(command);
+
+            command.Handler = CommandHandler.Create(async (string name, bool verbose, TSourceOptions sourceOptions, TCommandParameters converterParameters, TSettings settings) =>
+            {
+                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(converter, name, settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
+                converterContext.Settings = handler.BindParameters(settings ?? handler.GetDefaultSettings(), converterParameters);
+                await handler.HandleCommandAsync(converterContext, converterParameters);
+            });
+        }
+
+        private class DefaultInputCommandHandler<TSettings, TCommandParameters> : IHandleInputCommand<TSettings, TCommandParameters>
+        {
+            public Task HandleCommandAsync(IConverterContext<TSettings> context, TCommandParameters args)
+            {
+                return context.DefaultHandleCommandAsync();
+            }
+
+            public TSettings BindParameters(TSettings settings, TCommandParameters args)
+            {
+                return settings;
+            }
+
+            public void Configure(Command command)
+            {
+                
+            }
+
+            public TSettings GetDefaultSettings()
+            {
+                return default!;
+            }
         }
     }
 }

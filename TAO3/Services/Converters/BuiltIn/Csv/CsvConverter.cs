@@ -20,16 +20,15 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Csv
 {
-    public class CsvConverterInputParameters : InputConverterCommandParameters
+    public class CsvConverterInputParameters
     {
         public string? Separator { get; set; }
         public string? Type { get; set; }
     }
 
-    public class CsvConverterOutputParameters : OutputConverterCommandParameters
+    public class CsvConverterOutputParameters
     {
         public string? Separator { get; set; }
-        public string? Type { get; set; }
     }
 
     public class CsvConverter : 
@@ -219,7 +218,7 @@ namespace TAO3.Converters.Csv
             if (string.IsNullOrEmpty(args.Type))
             {
                 string csv = await context.GetTextAsync();
-                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(args.Name!, csv, context.Settings!));
+                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(context.VariableName, csv, context.Settings!));
 
                 string code = $@"{schema.Code}
 
@@ -229,7 +228,7 @@ namespace TAO3.Converters.Csv
             }
             else
             {
-                string code = $"List<{args.Type}> {args.Name} = (List<{args.Type}>){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
+                string code = $"List<{args.Type}> {context.VariableName} = (List<{args.Type}>){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
                 await context.SubmitCodeAsync(code);
             }
         }

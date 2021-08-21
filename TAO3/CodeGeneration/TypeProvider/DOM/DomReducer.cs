@@ -73,6 +73,12 @@ namespace TAO3.TypeProvider
 
         public override void Visit(DomCollection node)
         {
+            if (node.Values.Count == 0)
+            {
+                _currentSchema = new TypeReferenceSchema(new CollectionTypeSchema(new TypeReferenceSchema(new NullTypeSchema(), isNullable: false)), false);
+                return;
+            }
+
             TypeReferenceSchema innerType = node
                 .Values
                 .Select(element =>

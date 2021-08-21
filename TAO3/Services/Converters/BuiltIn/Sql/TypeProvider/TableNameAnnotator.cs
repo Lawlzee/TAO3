@@ -13,7 +13,7 @@ namespace TAO3.Converters.Sql
         {
             context.Using(typeof(TableNameAttribute).Namespace!);
             context.StringBuilder.Append(@$"[TableName(""{clazz.FullName.Replace("\"", "\"\"")}"")]
-    ");
+");
         }
     }
 }

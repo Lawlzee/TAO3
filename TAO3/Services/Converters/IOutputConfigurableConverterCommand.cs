@@ -1,20 +1,21 @@
-﻿using System;
+﻿using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive.CSharp;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Linq;
+using System.Reactive;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Internal.Extensions;
 
 namespace TAO3.Converters
 {
-    public interface IConfigurableConverterCommand
+    public interface IOutputConfigurableConverterCommand<TSettings, TCommandParameters>
     {
         void Configure(Command command);
-    }
-
-    public interface IConfigurableConverterCommand<TSettings, TCommandParameters> : IConfigurableConverterCommand
-        where TCommandParameters : new()
-    {
         TSettings GetDefaultSettings();
         TSettings BindParameters(TSettings settings, TCommandParameters args) => settings;
     }

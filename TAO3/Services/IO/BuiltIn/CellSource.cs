@@ -3,17 +3,19 @@ using Microsoft.DotNet.Interactive.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TAO3.IO
 {
-    internal class CellSource : ISource
+    internal class CellSource : ISource<Unit>
     {
         public string Name => "cell";
 
         public IReadOnlyList<string> Aliases => new[] { "Cell" };
 
+        Task<string> ISource<Unit>.GetTextAsync(Unit options) => GetTextAsync();
         public Task<string> GetTextAsync()
         {
             string code = ((SubmitCode)KernelInvocationContext.Current.Command).Code;

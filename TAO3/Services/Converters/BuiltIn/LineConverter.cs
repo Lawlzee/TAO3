@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace TAO3.Converters.Line
 {
-    public class LineConverter : IConverter
+    public class LineConverter : IConverter<Unit>
     {
         public string Format => "line";
 
@@ -16,10 +17,14 @@ namespace TAO3.Converters.Line
 
         public IReadOnlyList<string> Aliases => new[] { "Line" };
 
+        object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
+
         public object? Deserialize<T>(string text)
         {
             return Regex.Split(text, @"\r\n|\r|\n").ToList();
         }
+
+        string IConverter<Unit>.Serialize(object? value, Unit unit) => Serialize(value);
 
         public string Serialize(object? value)
         {

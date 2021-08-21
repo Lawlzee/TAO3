@@ -3,23 +3,26 @@ using Microsoft.DotNet.Interactive.Formatting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TAO3.Converters.Html
 {
-    public class HtmlConverter : IConverter
+    public class HtmlConverter : IConverter<Unit>
     {
         public string Format => "html";
         public string DefaultType => "Microsoft.AspNetCore.Html.HtmlString";
 
         public IReadOnlyList<string> Aliases => new[] { "HTML" };
 
+        object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
         public object? Deserialize<T>(string text)
         {
             return new HtmlString(text);
         }
 
+        string IConverter<Unit>.Serialize(object? value, Unit unit) => Serialize(value);
         public string Serialize(object? value)
         {
             return Formatter.ToDisplayString(value, "text/html");

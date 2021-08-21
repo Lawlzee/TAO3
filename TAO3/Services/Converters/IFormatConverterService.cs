@@ -9,7 +9,7 @@ namespace TAO3.Converters
     {
         IObservable<IConverterEvent> Events { get; }
         IConverter? TryGetConverter(string format);
-        void Register(IConverter converter);
+        void Register<T>(IConverter<T> converter);
         bool Remove(string format);
     }
 
@@ -25,7 +25,7 @@ namespace TAO3.Converters
             _events = new();
         }
 
-        public void Register(IConverter converter)
+        public void Register<T>(IConverter<T> converter)
         {
             _converters[converter.Format] = converter;
             _events.OnNext(new ConverterRegisteredEvent(converter));

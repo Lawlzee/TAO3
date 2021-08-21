@@ -27,13 +27,11 @@ namespace TAO3.Converters
 
     internal class ConverterContext<TSettings> : IConverterContext<TSettings>
     {
-        private readonly string _settingsName;
         private readonly bool _verbose;
-        private readonly KernelInvocationContext _context;
         private readonly Func<Task<string>> _getTextAsync;
         private string? _text;
         private bool _textInitialized = false;
-        private readonly IConverter _converter;
+        private readonly IConverter<TSettings> _converter;
 
         public string VariableName { get; }
         public TSettings? Settings { get; set; }
@@ -41,26 +39,20 @@ namespace TAO3.Converters
         public CSharpKernel CSharpKernel { get; }
 
         public ConverterContext(
-            IConverter converter,
+            IConverter<TSettings> converter,
             string name,
-            string settings,
+            TSettings settings,
             bool verbose,
-            KernelInvocationContext context,
+            CSharpKernel cSharpKernel,
             Func<Task<string>> getTextAsync)
         {
             _converter = converter;
             VariableName = name;
             _verbose = verbose;
-            _settingsName = settings;
-            _context = context;
+            Settings = settings;
+            CSharpKernel = cSharpKernel;
             _getTextAsync = getTextAsync;
 
-            CSharpKernel = context.GetCSharpKernel();
-
-            if (!string.IsNullOrEmpty(_settingsName) && CSharpKernel.TryGetVariable(_settingsName, out TSettings s))
-            {
-                Settings = s;
-            }
         }
 
         public async Task<string> GetTextAsync()
@@ -77,7 +69,7 @@ namespace TAO3.Converters
         {
             if (_verbose)
             {
-                _context.Display(code);
+                code.Display();
             }
 
             await CSharpKernel.SubmitCodeAsync(code);

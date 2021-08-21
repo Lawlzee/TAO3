@@ -11,7 +11,6 @@ namespace TAO3.Internal.Types
             yield return type;
             foreach (Type interfaceTypes in type.GetInterfaces())
             {
-                yield return interfaceTypes;
                 foreach (Type parentType in GetParentTypes(interfaceTypes))
                 {
                     yield return parentType;
@@ -25,6 +24,33 @@ namespace TAO3.Internal.Types
                     yield return parentType;
                 }
             }
+        }
+
+        //https://stackoverflow.com/questions/5461295/using-isassignablefrom-with-open-generic-types
+        internal static bool IsAssignableToGenericType(this Type givenType, Type genericType)
+        {
+            Type[] interfaceTypes = givenType.GetInterfaces();
+
+            foreach (Type it in interfaceTypes)
+            {
+                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                {
+                    return true;
+                }
+            }
+
+            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
+            {
+                return true;
+            }
+
+            Type? baseType = givenType.BaseType;
+            if (baseType == null)
+            {
+                return false;
+            }
+
+            return IsAssignableToGenericType(baseType, genericType);
         }
     }
 }

@@ -15,6 +15,8 @@ using TAO3.IO;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
 using System.Reactive;
+using System.Linq.Expressions;
+using TAO3.Internal.Types;
 
 namespace TAO3.Internal.Commands.Output
 {
@@ -22,7 +24,8 @@ namespace TAO3.Internal.Commands.Output
     {
         public OutputCommand(
             IDestinationService destinationService,
-            IFormatConverterService formatConverter)
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
             : base("#!output", "Convert and copy returned value to destination")
         {
             AddAlias("#!out");
@@ -32,57 +35,101 @@ namespace TAO3.Internal.Commands.Output
                 x => x.Destination.Name,
                 evnt =>
                 {
-                    Command command = new Command(evnt.Destination.Name);
-                    command.AddAliases(evnt.Destination.Aliases);
-
-                    IDisposable formatSubscription = formatConverter.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
-                        command,
-                        x => x.Converter.Format,
-                        formatAddedEvent => CreateConverterCommand(evnt.Destination, formatAddedEvent.Converter));
-
-                    return (command, formatSubscription);
+                    return TypeInferer.Invoke(
+                        evnt.Destination,
+                        typeof(IDestination<>),
+                        () => CreateDestinationCommand<Unit>(evnt.Destination, formatConverterService, cSharpKernel));
                 });
         }
 
-        private Command CreateConverterCommand(IDestination destination, IConverter converter)
+        private (Command, IDisposable) CreateDestinationCommand<TDestinationOptions>(
+            IDestination destination, 
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
+        {
+            Command command = new Command(destination.Name);
+            command.AddAliases(destination.Aliases);
+
+            IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
+                command,
+                x => x.Converter.Format,
+                evnt => 
+                {
+                    return TypeInferer.Invoke(
+                        evnt.Converter,
+                        typeof(IConverter<>),
+                        () => CreateConverterCommand<Unit, TDestinationOptions>(destination, evnt.Converter, cSharpKernel));
+                });
+
+            return (command, formatSubscription);
+        }
+
+        private Command CreateConverterCommand<TSettings, TDestinationOptions>(
+            IDestination destination,
+            IConverter converter,
+            CSharpKernel cSharpKernel)
+        {
+            return CreateConverterCommand(
+                (IDestination<TDestinationOptions>)destination,
+                (IConverter<TSettings>)converter,
+                cSharpKernel);
+        }
+
+        private Command CreateConverterCommand<TSettings, TDestinationOptions>(
+            IDestination<TDestinationOptions> destination, 
+            IConverter<TSettings> converter,
+            CSharpKernel cSharpKernel)
         {
             Command command = new Command(converter.Format)
             {
-                new Option<string>(new[] { "--settings" }, $"Converter settings of type '{converter.SettingsType.FullName}'")
+                CommandFactory.CreateSettingsOption(cSharpKernel, typeof(TSettings))
             };
 
             command.AddAliases(converter.Aliases);
 
-            if (converter is IOutputConfigurableConverterCommand configurableConverter)
+            if (destination is IConfigurableDestination configurableDestination)
             {
-                configurableConverter.Configure(command);
-                command.Handler = configurableConverter.CreateHandler((context, settings) => Handle(destination, converter, context, settings));
+                configurableDestination.Configure(command);
             }
-            else
+
+            if (converter.GetType().IsAssignableToGenericType(typeof(IOutputConfigurableConverterCommand<,>)))
             {
-                command.Handler = CommandHandler.Create((string settings, KernelInvocationContext context) =>
-                {
-                    object? settingsInstance = null;
-
-                    CSharpKernel cSharpKernel = context.GetCSharpKernel();
-                    if (!string.IsNullOrEmpty(settings) && !cSharpKernel.TryGetVariable(settings, out settingsInstance))
-                    {
-                        context.Fail(new ArgumentException(), $"The variable '{settings}' was not found");
-                        return;
-                    }
-
-                    Handle(destination, converter, context, settingsInstance);
-                });
+                TypeInferer.Invoke(
+                    converter,
+                    typeof(IOutputConfigurableConverterCommand<,>),
+                    () => CreateConfigurableConverterHandler<TSettings, Unit, TDestinationOptions>(destination, converter, command));
+                return command;
             }
-            
+
+            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, KernelInvocationContext context) =>
+            {
+                Handle(destination, converter, context, destinationOptions, settings);
+            });
+
             return command;
         }
 
-        private void Handle(
-            IDestination destination,
-            IConverter converter,
+        private void CreateConfigurableConverterHandler<TSettings, TConverterCommandParameters, TDestinationOptions>(
+            IDestination<TDestinationOptions> destination,
+            IConverter<TSettings> converter,
+            Command command)
+        {
+            IOutputConfigurableConverterCommand<TSettings, TConverterCommandParameters> configurableConverter = (IOutputConfigurableConverterCommand<TSettings, TConverterCommandParameters>)converter;
+            configurableConverter.Configure(command);
+
+            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, TConverterCommandParameters converterCommandParameters, KernelInvocationContext context) =>
+            {
+                TSettings bindedSettings = configurableConverter.BindParameters(settings ?? configurableConverter.GetDefaultSettings(), converterCommandParameters);
+                Handle(destination, converter, context, destinationOptions, bindedSettings);
+            });
+        }
+
+        private void Handle<TConverterOptions, TDestinationOptions>(
+            IDestination<TDestinationOptions> destination,
+            IConverter<TConverterOptions> converter,
             KernelInvocationContext context,
-            object? settings)
+            TDestinationOptions destinationOptions,
+            TConverterOptions settings)
         {
             Kernel rootKernel = context.HandlingKernel.ParentKernel;
             KernelCommand submitCodeCommand = context.Command.GetRootCommand();
@@ -100,7 +147,7 @@ namespace TAO3.Internal.Commands.Output
                             try
                             {
                                 string resultText = converter.Serialize(valueProduced.Value, settings);
-                                await destination.SetTextAsync(resultText);
+                                await destination.SetTextAsync(resultText, destinationOptions);
                             }
                             catch (Exception ex)
                             {

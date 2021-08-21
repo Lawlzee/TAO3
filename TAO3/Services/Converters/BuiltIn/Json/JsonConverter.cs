@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.CodeGeneration;
@@ -13,7 +14,7 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Json
 {
-    public class JsonConverterInputParameters : InputConverterCommandParameters
+    public class JsonConverterInputParameters
     {
         public string? Type { get; set; }
     }
@@ -21,7 +22,7 @@ namespace TAO3.Converters.Json
     public class JsonConverter :
         IConverter<JsonSerializerSettings>,
         IHandleInputCommand<JsonSerializerSettings, JsonConverterInputParameters>,
-        IOutputConfigurableConverterCommand<JsonSerializerSettings>
+        IOutputConfigurableConverterCommand<JsonSerializerSettings, Unit>
     {
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
@@ -58,6 +59,11 @@ namespace TAO3.Converters.Json
             };
         }
 
+        public JsonSerializerSettings BindParameters(JsonSerializerSettings settings, JsonConverterInputParameters args)
+        {
+            return settings;
+        }
+
         public async Task HandleCommandAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
         {
             if (args.Type == "dynamic")
@@ -72,16 +78,16 @@ namespace TAO3.Converters.Json
             string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(JsonSerializerSettings));
             if (string.IsNullOrEmpty(args.Type))
             {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(args.Name!, json));
+                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(context.VariableName, json));
                 await context.SubmitCodeAsync($@"{schema.Code}
 
-{schema.RootType} {args.Name} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName}, {settingsVariableName});");
+{schema.RootType} {context.VariableName} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName}, {settingsVariableName});");
             }
             else
             {
                 await context.SubmitCodeAsync($@"using Newtonsoft.Json;
 
-{args.Type} {args.Name} = JsonConvert.DeserializeObject<{args.Type}>({clipboardVariableName}, {settingsVariableName});");
+{args.Type} {context.VariableName} = JsonConvert.DeserializeObject<{args.Type}>({clipboardVariableName}, {settingsVariableName});");
             }
         }
     }
