@@ -198,15 +198,18 @@ namespace TAO3.Internal
             ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             NotepadIO notepadIO = new NotepadIO(notepad);
             FileIO fileIO = new FileIO();
+            HttpIO httpIO = new HttpIO(httpClient);
 
             sourceService.Register(clipboardIO);
             sourceService.Register(notepadIO);
             sourceService.Register(fileIO);
+            sourceService.Register(httpIO);
             sourceService.Register(new CellSource());
 
             destinationService.Register(clipboardIO);
             destinationService.Register(notepadIO);
             destinationService.Register(fileIO);
+            destinationService.Register(httpIO);
         }
     }
 }
