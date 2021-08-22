@@ -129,12 +129,12 @@ namespace TAO3.Internal.Commands.Output
             Action<TDestinationOptions> converterBinder = ParameterBinder.Create<TDestinationOptions, IConverter>(converter);
             Action<TCommandParameters> destinationBinder = ParameterBinder.Create<TCommandParameters, IDestination>(destination);
 
-            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, TCommandParameters converterCommandParameters, string? variable, KernelInvocationContext context) =>
+            command.Handler = CommandHandler.Create((SettingsWrapper<TSettings> settingsWrapper, TDestinationOptions destinationOptions, TCommandParameters converterCommandParameters, string? variable, KernelInvocationContext context) =>
             {
                 converterBinder.Invoke(destinationOptions);
                 destinationBinder.Invoke(converterCommandParameters);
 
-                TSettings bindedSettings = configurableConverter.BindParameters(settings ?? configurableConverter.GetDefaultSettings(), converterCommandParameters);
+                TSettings bindedSettings = configurableConverter.BindParameters(settingsWrapper.Settings ?? configurableConverter.GetDefaultSettings(), converterCommandParameters);
                 Handle(destination, converter, context, destinationOptions, bindedSettings, variable);
             });
         }

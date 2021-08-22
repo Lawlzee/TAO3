@@ -130,13 +130,13 @@ namespace TAO3.Internal.Commands.Input
             Action<TSourceOptions> converterBinder = ParameterBinder.Create<TSourceOptions, IConverter>(converter);
             Action<TCommandParameters> sourceBinder = ParameterBinder.Create<TCommandParameters, ISource>(source);
 
-            command.Handler = CommandHandler.Create(async (string name, bool verbose, TSourceOptions sourceOptions, TCommandParameters converterParameters, TSettings settings) =>
+            command.Handler = CommandHandler.Create(async (string name, bool verbose, TSourceOptions sourceOptions, TCommandParameters converterParameters, SettingsWrapper<TSettings> settingsWrapper) =>
             {
                 converterBinder.Invoke(sourceOptions);
                 sourceBinder.Invoke(converterParameters);
 
-                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(converter, name, settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
-                converterContext.Settings = handler.BindParameters(settings ?? handler.GetDefaultSettings(), converterParameters);
+                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(converter, name, settingsWrapper.Settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
+                converterContext.Settings = handler.BindParameters(settingsWrapper.Settings ?? handler.GetDefaultSettings(), converterParameters);
                 await handler.HandleCommandAsync(converterContext, converterParameters);
             });
         }

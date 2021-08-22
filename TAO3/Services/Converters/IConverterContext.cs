@@ -41,7 +41,7 @@ namespace TAO3.Converters
         public ConverterContext(
             IConverter<TSettings> converter,
             string name,
-            TSettings settings,
+            TSettings? settings,
             bool verbose,
             CSharpKernel cSharpKernel,
             Func<Task<string>> getTextAsync)
