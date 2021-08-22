@@ -1,15 +1,26 @@
 ﻿using Microsoft.DotNet.Interactive;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.Linq;
 using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Converters;
 using TAO3.Notepad;
 
 namespace TAO3.IO
 {
-    internal class NotepadIO : ISource<Unit>, IDestination<Unit>
+    internal record NotepadDestinationOptions
+    {
+        public NppLanguage? Language { get; init; }
+        public IConverter Converter { get; init; } = null!;
+    }
+
+    internal class NotepadIO : 
+        ISource<Unit>, 
+        IDestination<NotepadDestinationOptions>,
+        IConfigurableDestination
     {
         private readonly INotepadService _notepad;
         public string Name => "notepad";
@@ -27,11 +38,38 @@ namespace TAO3.IO
             return Task.Run(_notepad.GetText);
         }
 
-        Task IDestination<Unit>.SetTextAsync(string text, Unit options) => SetTextAsync(text);
-        public Task SetTextAsync(string text)
+        public void Configure(Command command)
+        {
+            command.Add(new Option<NppLanguage?>("--language", "-l"));
+        }
+
+        public Task SetTextAsync(string text, NotepadDestinationOptions options)
         {
             _notepad.SetText(text);
+            _notepad.SetLanguage(GetLanguage(options));
+
             return Task.CompletedTask;
+        }
+
+        private NppLanguage GetLanguage(NotepadDestinationOptions options)
+        {
+            if (options.Language != null)
+            {
+                return options.Language.Value;
+            }
+            
+            if (options.Converter.Properties.TryGetValue(nameof(NppLanguage), out object? language)
+                && language is NppLanguage nppLanguage)
+            {
+                return nppLanguage;
+            }
+            
+            if (Enum.TryParse(options.Converter.Format, ignoreCase: true, out NppLanguage inferedLanguage))
+            {
+                return inferedLanguage;
+            }
+
+            return NppLanguage.TEXT;
         }
     }
 }

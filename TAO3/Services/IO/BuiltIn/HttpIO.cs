@@ -21,20 +21,20 @@ namespace TAO3.IO
         Trace
     }
 
-    public record HttpSourceOptions
+    internal record HttpSourceOptions
     {
         public string Uri { get; init; } = null!;
         public HttpVerb? Verb { get; init; }
     }
 
-    public record HttpDestinationOptions
+    internal record HttpDestinationOptions
     {
         public string Uri { get; init; } = null!;
         public HttpVerb? Verb { get; init; }
         public IConverter Converter { get; init; } = null!;
     }
 
-    public class HttpIO : 
+    internal class HttpIO : 
         ISource<HttpSourceOptions>,
         IDestination<HttpDestinationOptions>,
         IConfigurableSource,

@@ -18,6 +18,8 @@ namespace TAO3.Notepad
         void FileNew();
         string GetText();
         void SetText(string text);
+        void SetLanguage(NppLanguage nppLanguage);
+        NppLanguage GetLanguage();
     }
 
     internal class NotepadService : INotepadService
@@ -130,6 +132,32 @@ namespace TAO3.Notepad
             }
         }
 
+        public void SetLanguage(NppLanguage nppLanguage)
+        {
+            NppProcess npp = GetNppOrThrow();
+            User32.SendMessage(npp.NppHandle, (int)NppMsg.NPPM_SETCURRENTLANGTYPE, 0, (int)nppLanguage);
+        }
+
+        public NppLanguage GetLanguage()
+        {
+            NppProcess npp = GetNppOrThrow();
+
+            int length = Marshal.SizeOf<int>();
+            IntPtr memPtr = npp.VirtualAllocEx(length);
+
+            try
+            {
+                User32.SendMessage(npp.NppHandle, (uint)NppMsg.NPPM_GETCURRENTLANGTYPE, 0, memPtr);
+
+                byte[] buffer = npp.ReadProcessMemory(memPtr, length);
+                return (NppLanguage)BitConverter.ToInt32(buffer);
+            }
+            finally
+            {
+                npp.VirtualFreeEx(memPtr, length);
+            }
+        }
+
         private NppProcess GetNppOrThrow()
         {
             if (_nppProcess != null)
@@ -157,7 +185,5 @@ namespace TAO3.Notepad
         {
 
         }
-
-        
     }
 }
