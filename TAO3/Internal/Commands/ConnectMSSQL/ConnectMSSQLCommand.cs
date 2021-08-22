@@ -18,66 +18,68 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
         public ConnectMSSQLCommand()
             : base("#!connectMSSQL", "Connects to a Microsoft SQL Server database")
         {
-            AddOption(new Option<string>(new[] { "--connectionString" }, "Connection String"));
-            AddOption(new Option<string>(new[] { "--kernelName" }, "Kernel Name"));
-            AddOption(new Option<int>(new[] { "--minPoolSize" }, "Min Pool Size"));
-            AddOption(new Option<bool>(new[] { "--multipleActiveResultSets" }, "Multiple Active Result Sets"));
-            AddOption(new Option<bool>(new[] { "--multiSubnetFailover" }, "Multi Subnet Failover"));
-            AddOption(new Option<int>(new[] { "--packetSize" }, "Packet Size"));
-            AddOption(new Option<string>(new[] { "--password" }, "Password"));
-            AddOption(new Option<string>(new[] { "--pwd" }, "PWD"));
-            AddOption(new Option<bool>(new[] { "--persistSecurityInfo" }, "Persist Security Info"));
-            AddOption(new Option<bool>(new[] { "--pooling" }, "Pooling"));
-            AddOption(new Option<bool>(new[] { "--replication" }, "Replication"));
-            AddOption(new Option<string>(new[] { "--transactionBinding" }, "Transaction Binding"));
-            AddOption(new Option<bool>(new[] { "--trustServerCertificate" }, "Trust Server Certificate"));
-            AddOption(new Option<string>(new[] { "--typeSystemVersion" }, "Type System Version"));
-            AddOption(new Option<string>(new[] { "--userID" }, "User ID"));
-            AddOption(new Option<string>(new[] { "--user" }, "User"));
-            AddOption(new Option<string>(new[] { "--uid" }, "UID"));
-            AddOption(new Option<bool>(new[] { "--userInstance" }, "User Instance"));
-            AddOption(new Option<string>(new[] { "--workstationID" }, "Workstation ID"));
-            AddOption(new Option<string>(new[] { "--wsid" }, "WSID"));
-            AddOption(new Option<PoolBlockingPeriod>(new[] { "--poolBlockingPeriod" }, "Pool Blocking Period"));
-            AddOption(new Option<SqlConnectionColumnEncryptionSetting>(new[] { "--columnEncryptionSetting" }, "Column Encryption Setting"));
-            AddOption(new Option<int>(new[] { "--maxPoolSize" }, "Max Pool Size"));
-            AddOption(new Option<int>(new[] { "--connectionLifetime" }, "Connection Lifetime"));
-            AddOption(new Option<int>(new[] { "--loadBalanceTimeout" }, "Load Balance Timeout"));
-            AddOption(new Option<SqlConnectionAttestationProtocol>(new[] { "--attestationProtocol" }, "Attestation Protocol"));
-            AddOption(new Option<string>(new[] { "--enclaveAttestationUrl" }, "Enclave Attestation Url"));
-            AddOption(new Option<ApplicationIntent>(new[] { "--applicationIntent" }, "Application Intent"));
-            AddOption(new Option<string>(new[] { "--applicationName" }, "Application Name"));
-            AddOption(new Option<string>(new[] { "--app" }, "App"));
-            AddOption(new Option<string>(new[] { "--attachDBFilename" }, "AttachDbFilename"));
-            AddOption(new Option<string>(new[] { "--extendedProperties" }, "Extended Properties"));
-            AddOption(new Option<string>(new[] { "--initialFileName" }, "Initial File Name"));
-            AddOption(new Option<SqlAuthenticationMethod>(new[] { "--authentication" }, "Authentication"));
-            AddOption(new Option<int>(new[] { "--connectRetryCount" }, "Connect Retry Count"));
-            AddOption(new Option<int>(new[] { "--connectTimeout" }, "Connect Timeout"));
-            AddOption(new Option<int>(new[] { "--connectionTimeout" }, "Connection Timeout"));
-            AddOption(new Option<int>(new[] { "--timeout" }, "Timeout"));
-            AddOption(new Option<string>(new[] { "--currentLanguage" }, "Current Language"));
-            AddOption(new Option<string>(new[] { "--language" }, "Language"));
-            AddOption(new Option<int>(new[] { "--connectRetryInterval" }, "Connect Retry Interval"));
-            AddOption(new Option<bool>(new[] { "--encrypt" }, "Encrypt"));
-            AddOption(new Option<bool>(new[] { "--enlist" }, "Enlist"));
-            AddOption(new Option<string>(new[] { "--failoverPartner" }, "Failover Partner"));
-            AddOption(new Option<string>(new[] { "--initialCatalog" }, "Initial Catalog"));
-            AddOption(new Option<string>(new[] { "--database" }, "Database"));
-            AddOption(new Option<bool>(new[] { "--integratedSecurity" }, "Integrated Security"));
-            AddOption(new Option<bool>(new[] { "--trustedConnection" }, "Trusted Connection"));
-            AddOption(new Option<string>(new[] { "--dataSource" }, "Data Source"));
-            AddOption(new Option<string>(new[] { "--server" }, "Server"));
-            AddOption(new Option<string>(new[] { "--address" }, "Address"));
-            AddOption(new Option<string>(new[] { "--addr" }, "Addr"));
-            AddOption(new Option<string>(new[] { "--networkAddress" }, "Network Address"));
+            Add(new Argument<string?>("connectionString", () => null, "Connection String"));
+            Add(new Option<string>(new[] { "--kernelName" }, "Kernel Name"));
+            Add(new Option<int>(new[] { "--minPoolSize" }, "Min Pool Size"));
+            Add(new Option<bool>(new[] { "--multipleActiveResultSets" }, "Multiple Active Result Sets"));
+            Add(new Option<bool>(new[] { "--multiSubnetFailover" }, "Multi Subnet Failover"));
+            Add(new Option<int>(new[] { "--packetSize" }, "Packet Size"));
+            Add(new Option<string>(new[] { "--password" }, "Password"));
+            Add(new Option<string>(new[] { "--pwd" }, "PWD"));
+            Add(new Option<bool>(new[] { "--persistSecurityInfo" }, "Persist Security Info"));
+            Add(new Option<bool>(new[] { "--pooling" }, "Pooling"));
+            Add(new Option<bool>(new[] { "--replication" }, "Replication"));
+            Add(new Option<string>(new[] { "--transactionBinding" }, "Transaction Binding"));
+            Add(new Option<bool>(new[] { "--trustServerCertificate" }, "Trust Server Certificate"));
+            Add(new Option<string>(new[] { "--typeSystemVersion" }, "Type System Version"));
+            Add(new Option<string>(new[] { "--userID" }, "User ID"));
+            Add(new Option<string>(new[] { "--user" }, "User"));
+            Add(new Option<string>(new[] { "--uid" }, "UID"));
+            Add(new Option<bool>(new[] { "--userInstance" }, "User Instance"));
+            Add(new Option<string>(new[] { "--workstationID" }, "Workstation ID"));
+            Add(new Option<string>(new[] { "--wsid" }, "WSID"));
+            Add(new Option<PoolBlockingPeriod>(new[] { "--poolBlockingPeriod" }, "Pool Blocking Period"));
+            Add(new Option<SqlConnectionColumnEncryptionSetting>(new[] { "--columnEncryptionSetting" }, "Column Encryption Setting"));
+            Add(new Option<int>(new[] { "--maxPoolSize" }, "Max Pool Size"));
+            Add(new Option<int>(new[] { "--connectionLifetime" }, "Connection Lifetime"));
+            Add(new Option<int>(new[] { "--loadBalanceTimeout" }, "Load Balance Timeout"));
+            Add(new Option<SqlConnectionAttestationProtocol>(new[] { "--attestationProtocol" }, "Attestation Protocol"));
+            Add(new Option<string>(new[] { "--enclaveAttestationUrl" }, "Enclave Attestation Url"));
+            Add(new Option<ApplicationIntent>(new[] { "--applicationIntent" }, "Application Intent"));
+            Add(new Option<string>(new[] { "--applicationName" }, "Application Name"));
+            Add(new Option<string>(new[] { "--app" }, "App"));
+            Add(new Option<string>(new[] { "--attachDBFilename" }, "AttachDbFilename"));
+            Add(new Option<string>(new[] { "--extendedProperties" }, "Extended Properties"));
+            Add(new Option<string>(new[] { "--initialFileName" }, "Initial File Name"));
+            Add(new Option<SqlAuthenticationMethod>(new[] { "--authentication" }, "Authentication"));
+            Add(new Option<int>(new[] { "--connectRetryCount" }, "Connect Retry Count"));
+            Add(new Option<int>(new[] { "--connectTimeout" }, "Connect Timeout"));
+            Add(new Option<int>(new[] { "--connectionTimeout" }, "Connection Timeout"));
+            Add(new Option<int>(new[] { "--timeout" }, "Timeout"));
+            Add(new Option<string>(new[] { "--currentLanguage" }, "Current Language"));
+            Add(new Option<string>(new[] { "--language" }, "Language"));
+            Add(new Option<int>(new[] { "--connectRetryInterval" }, "Connect Retry Interval"));
+            Add(new Option<bool>(new[] { "--encrypt" }, "Encrypt"));
+            Add(new Option<bool>(new[] { "--enlist" }, "Enlist"));
+            Add(new Option<string>(new[] { "--failoverPartner" }, "Failover Partner"));
+            Add(new Option<string>(new[] { "--initialCatalog" }, "Initial Catalog"));
+            Add(new Option<string>(new[] { "--database" }, "Database"));
+            Add(new Option<bool>(new[] { "--integratedSecurity" }, "Integrated Security"));
+            Add(new Option<bool>(new[] { "--trustedConnection" }, "Trusted Connection"));
+            Add(new Option<string>(new[] { "--dataSource" }, "Data Source"));
+            Add(new Option<string>(new[] { "--server" }, "Server"));
+            Add(new Option<string>(new[] { "--address" }, "Address"));
+            Add(new Option<string>(new[] { "--addr" }, "Addr"));
+            Add(new Option<string>(new[] { "--networkAddress" }, "Network Address"));
+            Add(new Option<bool>(new[] { "--verbose", "-v" }));
 
-            Handler = CommandHandler.Create(async (ConnectMSSQLOptions options) =>
+            Handler = CommandHandler.Create(async (ConnectMSSQLOptions options, bool verbose) =>
             {
                 Kernel kernel = await CreateKernelAsync(
                     options.GetConnectionString(), 
                     options.GetkernelName(), 
-                    options.Context);
+                    options.Context,
+                    verbose);
 
                 options.Context.HandlingKernel.ParentKernel.Add(kernel);
             });
@@ -86,7 +88,8 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
         private async Task<Kernel> CreateKernelAsync(
             string connectionString,
             string kernelName,
-            KernelInvocationContext context)
+            KernelInvocationContext context, 
+            bool verbose)
         {
             Kernel kernel = await new MsSqlKernelConnection().CreateKernelAsync(new MsSqlConnectionOptions
             {
@@ -96,7 +99,7 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
             }, context);
 
 
-            await InitializeDbContextAsync(connectionString, kernelName, context);
+            await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
 
             return kernel;
         }
@@ -104,7 +107,8 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
         private async Task InitializeDbContextAsync(
             string connectionString,
             string kernelName,
-            KernelInvocationContext context)
+            KernelInvocationContext context,
+            bool verbose)
         {
             CSharpKernel csharpKernel = context.GetCSharpKernel();
 
@@ -224,16 +228,26 @@ string CleanFile(string file)
         .Trim( new[] {{ '{{', '}}' }} );
 }}
 ";
-            await csharpKernel.SubmitCodeAsync(submission1);
+            await SubmitCodeAsync(submission1);
 
             csharpKernel.TryGetVariable("code", out string submission2);
 
-            await csharpKernel.SubmitCodeAsync(submission2);
+            await SubmitCodeAsync(submission2);
 
             var submission3 = $@"
 var {kernelName} = new {kernelName}Context();";
 
-            await csharpKernel.SubmitCodeAsync(submission3);
+            await SubmitCodeAsync(submission3);
+
+            async Task SubmitCodeAsync(string code)
+            {
+                if (verbose)
+                {
+                    code.Display();
+                }
+
+                await csharpKernel.SubmitCodeAsync(code);
+            }
         }
     }
 }

@@ -15,8 +15,8 @@
 - [x] Support alias for converters
 - [ ] Optimise Excel integration performance for large Excel files
 - [ ] Support multiple tabs in notepad++ text source
-- [ ] Automaticaly set the language of the notepad++ tab depending on the converter used
-- [ ] Add a way to add user defined properties to converters
+- [x] Automaticaly set the language of the notepad++ tab depending on the converter used
+- [x] Add a way to add user defined properties to converters
   - Ex. Notepad++ language of the converter
 - [ ] Add a type generator for the C# converter
 - [ ] Reimplement the toast notifier to not use PowerShell
@@ -51,8 +51,11 @@
 - [ ] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
 - [ ] Add a spelling checker API
 - [x] Add a translation API
-- [ ] Path magic command with intellisense
+- [x] Path magic command with intellisense
 - [ ] Delta/View update helpers
+  - [ ] Experiment with patch support
+    - [ ] Automaticaly compute Diff/Delta/Patch
+    - [ ] https://docs.microsoft.com/en-us/aspnet/core/web-api/jsonpatch?view=aspnetcore-5.0
 - [x] Format json/xml etc
 - [x] DisplayAsJson() ...
 - [x] DisplayToJson() ...
@@ -62,3 +65,4 @@
   - [ ]  https://www.addictivetips.com/windows-tips/automatically-save-images-from-the-clipboard-on-windows-10/
 - [ ] Provide getting started documentation when user reference TAO3 like extension lab does
 - [x] Add a template language (razor)
+- [ ] Fix inconsistant case (camelCase, PascalCase, etc) for command arguments/options
