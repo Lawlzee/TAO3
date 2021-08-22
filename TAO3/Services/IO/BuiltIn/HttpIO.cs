@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Converters;
 
 namespace TAO3.IO
 {
@@ -20,17 +21,17 @@ namespace TAO3.IO
         Trace
     }
 
-    public class HttpSourceOptions
+    public record HttpSourceOptions
     {
-        public string Uri { get; set; } = null!;
-        public HttpVerb? Verb { get; set; }
+        public string Uri { get; init; } = null!;
+        public HttpVerb? Verb { get; init; }
     }
 
-    public class HttpDestinationOptions
+    public record HttpDestinationOptions
     {
-        public string Uri { get; set; } = null!;
-        public HttpVerb? Verb { get; set; }
-        public string? MediaType { get; set; }
+        public string Uri { get; init; } = null!;
+        public HttpVerb? Verb { get; init; }
+        public IConverter Converter { get; init; } = null!;
     }
 
     public class HttpIO : 
@@ -78,7 +79,7 @@ namespace TAO3.IO
 
             HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri)
             {
-                Content = new StringContent(text, Encoding.UTF8, options.MediaType)
+                Content = new StringContent(text, Encoding.UTF8, options.Converter.MimeType)
             });
             response.EnsureSuccessStatusCode();
         }

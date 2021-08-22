@@ -11,9 +11,9 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Sql
 {
-    public class SqlConverterParameters
+    public record SqlConverterParameters
     {
-        public string? Type { get; set; }
+        public string? Type { get; init; }
     }
 
     public class SqlConverter : 
@@ -25,9 +25,10 @@ namespace TAO3.Converters.Sql
         private readonly ISqlObjectSerializer _serializer;
 
         public string Format => "sql";
-        public string DefaultType => "dynamic";
-
         public IReadOnlyList<string> Aliases => new[] { "SQL" };
+        public string MimeType => "text/x-sql";
+        public string DefaultType => "dynamic";
+        public Dictionary<string, object> Properties { get; }
 
         public SqlConverter(
             ITypeProvider<string> typeProvider, 
@@ -37,6 +38,7 @@ namespace TAO3.Converters.Sql
             _typeProvider = typeProvider;
             _deserializer = deserializer;
             _serializer = serializer;
+            Properties = new Dictionary<string, object>();
         }
 
         string IConverter<Unit>.Serialize(object? value, Unit unit) => Serialize(value);

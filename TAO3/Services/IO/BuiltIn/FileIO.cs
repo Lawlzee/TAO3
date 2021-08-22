@@ -9,10 +9,10 @@ using TAO3.Internal.Commands;
 
 namespace TAO3.IO
 {
-    internal class FileOptions
+    internal record FileOptions
     {
-        public string Path { get; set; } = null!;
-        public Encoding? Encoding { get; set; }
+        public string Path { get; init; } = null!;
+        public Encoding? Encoding { get; init; }
     }
 
     internal class FileIO 

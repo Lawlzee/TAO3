@@ -20,15 +20,15 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Csv
 {
-    public class CsvConverterInputParameters
+    public record CsvConverterInputParameters
     {
-        public string? Separator { get; set; }
-        public string? Type { get; set; }
+        public string? Separator { get; init; }
+        public string? Type { get; init; }
     }
 
-    public class CsvConverterOutputParameters
+    public record CsvConverterOutputParameters
     {
-        public string? Separator { get; set; }
+        public string? Separator { get; init; }
     }
 
     public class CsvConverter : 
@@ -41,18 +41,21 @@ namespace TAO3.Converters.Csv
         private readonly bool _hasHeader;
 
         public string Format => _hasHeader ? "csvh" : "csv";
-
-        public string DefaultType => "var";
-
+        public string MimeType => "text/csv";
         public IReadOnlyList<string> Aliases => new[]
         {
             _hasHeader ? "CSVH" : "CSV"
         };
 
+        public string DefaultType => "var";
+
+        public Dictionary<string, object> Properties { get; }
+
         public CsvConverter(ITypeProvider<CsvSource> typeProvider, bool hasHeader)
         {
             _typeProvider = typeProvider;
             _hasHeader = hasHeader;
+            Properties = new Dictionary<string, object>();
         }
 
         public CsvConfiguration GetDefaultSettings()

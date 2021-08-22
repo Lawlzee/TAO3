@@ -18,11 +18,14 @@ namespace TAO3.Converters.CSharp
 
         public string Format => "csharp";
         public IReadOnlyList<string> Aliases => new[] { "CSharp", "c#", "C#" };
+        public string MimeType => "text/x-csharp";
         public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
+        public Dictionary<string, object> Properties { get; }
 
         public CSharpConverter(ICSharpObjectSerializer serializer)
         {
             Serializer = serializer;
+            Properties = new Dictionary<string, object>();
         }
 
         object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);

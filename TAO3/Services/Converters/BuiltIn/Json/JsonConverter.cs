@@ -14,9 +14,9 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Json
 {
-    public class JsonConverterInputParameters
+    public record JsonConverterInputParameters
     {
-        public string? Type { get; set; }
+        public string? Type { get; init; }
     }
 
     public class JsonConverter :
@@ -28,12 +28,14 @@ namespace TAO3.Converters.Json
 
         public string Format => "json";
         public string DefaultType => "dynamic";
-
+        public string MimeType => "application/json";
         public IReadOnlyList<string> Aliases => new[] { "JSON" };
+        public Dictionary<string, object> Properties { get; }
 
         public JsonConverter(ITypeProvider<JsonSource> typeProvider)
         {
             _typeProvider = typeProvider;
+            Properties = new Dictionary<string, object>();
         }
 
         public object? Deserialize<T>(string text, JsonSerializerSettings? settings)

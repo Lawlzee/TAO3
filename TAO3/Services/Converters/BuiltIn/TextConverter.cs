@@ -10,9 +10,15 @@ namespace TAO3.Converters.Text
     public class TextConverter : IConverter<Unit>
     {
         public string Format => "text";
-        public string DefaultType => "string";
-
         public IReadOnlyList<string> Aliases => new[] { "Text", "string", "String" };
+        public string MimeType => "text/plain";
+        public string DefaultType => "string";
+        public Dictionary<string, object> Properties { get; }
+
+        public TextConverter()
+        {
+            Properties = new Dictionary<string, object>();
+        }
 
         object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
         public object? Deserialize<T>(string text)

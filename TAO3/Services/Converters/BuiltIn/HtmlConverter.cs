@@ -12,9 +12,16 @@ namespace TAO3.Converters.Html
     public class HtmlConverter : IConverter<Unit>
     {
         public string Format => "html";
+        public string MimeType => "text/html";
+        public IReadOnlyList<string> Aliases => new[] { "HTML" };
         public string DefaultType => "Microsoft.AspNetCore.Html.HtmlString";
 
-        public IReadOnlyList<string> Aliases => new[] { "HTML" };
+        public Dictionary<string, object> Properties { get; }
+
+        public HtmlConverter()
+        {
+            Properties = new Dictionary<string, object>();
+        }
 
         object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
         public object? Deserialize<T>(string text)

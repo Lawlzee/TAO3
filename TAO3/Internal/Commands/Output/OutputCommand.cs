@@ -107,31 +107,49 @@ namespace TAO3.Internal.Commands.Output
                     () => CreateConfigurableConverterHandler<TSettings, Unit, TDestinationOptions>(destination, converter, command, variableArgument));
                 return command;
             }
-
-            command.Add(variableArgument);
-            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, string? variable, KernelInvocationContext context) =>
+            else
             {
-                Handle(destination, converter, context, destinationOptions, settings, variable);
-            });
+                CreateConfigurableConverterHandler<TSettings, Unit, TDestinationOptions>(destination, converter, command, variableArgument);
+            }
 
             return command;
         }
 
-        private void CreateConfigurableConverterHandler<TSettings, TConverterCommandParameters, TDestinationOptions>(
+        private void CreateConfigurableConverterHandler<TSettings, TCommandParameters, TDestinationOptions>(
             IDestination<TDestinationOptions> destination,
             IConverter<TSettings> converter,
             Command command,
             Argument<string?> variableArgument)
         {
-            IOutputConfigurableConverterCommand<TSettings, TConverterCommandParameters> configurableConverter = (IOutputConfigurableConverterCommand<TSettings, TConverterCommandParameters>)converter;
+            var configurableConverter = converter as IOutputConfigurableConverterCommand<TSettings, TCommandParameters> ?? new DefaultOutputConfigurableConverterCommand<TSettings, TCommandParameters>();
+            
             configurableConverter.Configure(command);
             command.Add(variableArgument);
 
-            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, TConverterCommandParameters converterCommandParameters, string? variable, KernelInvocationContext context) =>
+            Action<TDestinationOptions> converterBinder = ParameterBinder.Create<TDestinationOptions, IConverter>(converter);
+            Action<TCommandParameters> destinationBinder = ParameterBinder.Create<TCommandParameters, IDestination>(destination);
+
+            command.Handler = CommandHandler.Create((TSettings settings, TDestinationOptions destinationOptions, TCommandParameters converterCommandParameters, string? variable, KernelInvocationContext context) =>
             {
+                converterBinder.Invoke(destinationOptions);
+                destinationBinder.Invoke(converterCommandParameters);
+
                 TSettings bindedSettings = configurableConverter.BindParameters(settings ?? configurableConverter.GetDefaultSettings(), converterCommandParameters);
                 Handle(destination, converter, context, destinationOptions, bindedSettings, variable);
             });
+        }
+
+        private class DefaultOutputConfigurableConverterCommand<TSettings, TCommandParameters> : IOutputConfigurableConverterCommand<TSettings, TCommandParameters>
+        {
+            public void Configure(Command command)
+            {
+
+            }
+
+            public TSettings GetDefaultSettings()
+            {
+                return default!;
+            }
         }
 
         private void Handle<TConverterOptions, TDestinationOptions>(

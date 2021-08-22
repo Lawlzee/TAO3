@@ -11,8 +11,9 @@ namespace TAO3.Converters
     {
         string Format { get; }
         IReadOnlyList<string> Aliases { get; }
-
+        string MimeType { get; }
         string DefaultType { get; }
+        Dictionary<string, object> Properties { get; }
     }
 
     public interface IConverter<TSettings> : IConverter

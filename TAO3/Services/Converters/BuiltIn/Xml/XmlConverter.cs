@@ -17,14 +17,14 @@ using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Xml
 {
-    public class XmlInputConverterParameters
+    public record XmlInputConverterParameters
     {
-        public string? Type { get; set; }
+        public string? Type { get; init; }
     }
 
-    public class XmlOutputConverterParameters
+    public record XmlOutputConverterParameters
     {
-        public string? Type { get; set; }
+        public string? Type { get; init; }
     }
 
     //We can't use XmlSerializer because when we declare a class in a dot net interactive notebook,
@@ -39,14 +39,16 @@ namespace TAO3.Converters.Xml
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
         public string Format => "xml";
-        public string DefaultType => "dynamic";
-
         public IReadOnlyList<string> Aliases => new[] { "XML" };
+        public string MimeType => "application/xml";
+        public string DefaultType => "dynamic";
+        public Dictionary<string, object> Properties { get; }
 
         public XmlConverter(TAO3.Converters.Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
         {
             _jsonConverter = jsonConverter;
             _typeProvider = typeProvider;
+            Properties = new Dictionary<string, object>();
         }
 
         public object? Deserialize<T>(string text, XmlWriterSettings? settings)
