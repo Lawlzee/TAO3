@@ -86,7 +86,7 @@ namespace TAO3.Internal.Commands.Input
             {
                 new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
                 new Option(new[] { "-v", "--verbose" }, "Print debugging information"),
-                CommandFactory.CreateSettingsOption(cSharpKernel, typeof(TSettings))
+                CommandFactory.CreateSettingsOption<TSettings>(cSharpKernel)
             };
 
             command.AddAliases(converter.Aliases);

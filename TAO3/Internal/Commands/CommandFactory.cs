@@ -12,33 +12,70 @@ namespace TAO3.Internal.Commands
 {
     internal static class CommandFactory
     {
-        public static Option<object?> CreateSettingsOption(CSharpKernel cSharpKernel, Type settingType)
+        public static Option<T?> CreateVariableOption<T>(string[] aliases, string description, CSharpKernel cSharpKernel)
         {
-            Option<object?> settingsOption = new Option<object?>(new[] { "--settings" }, description: $"Converter settings of type '{settingType.FullName}'", parseArgument: result =>
+            Option<T?> option = new Option<T?>(aliases, description: description, parseArgument: result =>
             {
                 if (result.Tokens.Count == 0)
                 {
-                    return null;
+                    return default;
                 }
 
                 string variableName = result.Tokens[0].Value;
-                if (cSharpKernel.TryGetVariable(variableName, out object settingsInstance))
+                if (cSharpKernel.TryGetVariable(variableName, out object variableInstance))
                 {
-                    return settingsInstance;
+                    return (T)variableInstance;
                 }
 
                 result.ErrorMessage = $"The variable '{variableName}' was not found in the C# Kernel";
-                return null;
+                return default;
             });
 
-            settingsOption.AddSuggestions((_, text) =>
+            option.AddSuggestions((_, text) =>
             {
                 return cSharpKernel
                     .GetVariableNames()
                     .Where(x => text?.Contains(x) ?? true);
             });
 
-            return settingsOption;
+            return option;
+        }
+
+        public static Argument<T?> CreateVariableArgument<T>(string name, CSharpKernel cSharpKernel, bool isDefault = false, string? description = null, bool errorIfNotFound = true)
+        {
+            Argument<T?> argument = new Argument<T?>(name, description: description, isDefault: isDefault, parse: result =>
+            {
+                if (result.Tokens.Count == 0)
+                {
+                    return default;
+                }
+
+                string variableName = result.Tokens[0].Value;
+                if (cSharpKernel.TryGetVariable(variableName, out object variableInstance))
+                {
+                    return (T)variableInstance;
+                }
+
+                if (errorIfNotFound)
+                {
+                    result.ErrorMessage = $"The variable '{variableName}' was not found in the C# Kernel";
+                }
+                return default;
+            });
+
+            argument.AddSuggestions((_, text) =>
+            {
+                return cSharpKernel
+                    .GetVariableNames()
+                    .Where(x => text?.Contains(x) ?? true);
+            });
+
+            return argument;
+        }
+
+        public static Option<TSettings?> CreateSettingsOption<TSettings>(CSharpKernel cSharpKernel)
+        {
+            return CreateVariableOption<TSettings>(new[] { "--settings" }, description: $"Converter settings of type '{typeof(TSettings).FullName}'", cSharpKernel);
         }
 
         public static Argument<string> CreatePathArgument(string name, string? description = null)
