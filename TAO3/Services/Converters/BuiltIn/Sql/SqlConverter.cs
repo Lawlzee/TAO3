@@ -25,7 +25,7 @@ namespace TAO3.Converters.Sql
         private readonly ISqlObjectSerializer _serializer;
 
         public string Format => "sql";
-        public IReadOnlyList<string> Aliases => new[] { "SQL" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "text/x-sql";
         public string DefaultType => "dynamic";
         public Dictionary<string, object> Properties { get; }

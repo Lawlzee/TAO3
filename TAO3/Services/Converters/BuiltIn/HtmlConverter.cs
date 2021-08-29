@@ -13,7 +13,7 @@ namespace TAO3.Converters.Html
     {
         public string Format => "html";
         public string MimeType => "text/html";
-        public IReadOnlyList<string> Aliases => new[] { "HTML" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string DefaultType => "Microsoft.AspNetCore.Html.HtmlString";
 
         public Dictionary<string, object> Properties { get; }

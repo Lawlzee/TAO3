@@ -10,7 +10,7 @@ namespace TAO3.Converters.Text
     public class TextConverter : IConverter<Unit>
     {
         public string Format => "text";
-        public IReadOnlyList<string> Aliases => new[] { "Text", "string", "String" };
+        public IReadOnlyList<string> Aliases => new[] { "string" };
         public string MimeType => "text/plain";
         public string DefaultType => "string";
         public Dictionary<string, object> Properties { get; }

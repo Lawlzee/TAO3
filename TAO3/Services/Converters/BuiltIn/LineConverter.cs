@@ -12,7 +12,7 @@ namespace TAO3.Converters.Line
     public class LineConverter : IConverter<Unit>
     {
         public string Format => "line";
-        public IReadOnlyList<string> Aliases => new[] { "Line" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string DefaultType => "List<string>";
         public string MimeType => "text/plain";
         public Dictionary<string, object> Properties { get; }

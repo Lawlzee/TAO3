@@ -22,7 +22,7 @@ namespace TAO3.IO
         IConfigurableDestination
     {
         public string Name => "file";
-        public IReadOnlyList<string> Aliases => new[] { "File" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
 
         public void Configure(Command command)
         {

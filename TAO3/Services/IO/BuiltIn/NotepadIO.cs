@@ -23,9 +23,9 @@ namespace TAO3.IO
         IConfigurableDestination
     {
         private readonly INotepadService _notepad;
-        public string Name => "notepad";
+        public string Name => "notepad++";
 
-        public IReadOnlyList<string> Aliases => new[] { "Notepad", "notepad++", "Notepad++", "npp", "n++" };
+        public IReadOnlyList<string> Aliases => new[] { "notepad", "npp", "n++" };
 
         public NotepadIO(INotepadService notepad)
         {

@@ -43,7 +43,7 @@ namespace TAO3.IO
         private readonly HttpClient _httpClient;
 
         public string Name => "http";
-        public IReadOnlyList<string> Aliases => new[] { "HTTP" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
 
         public HttpIO(HttpClient httpClient)
         {
@@ -70,7 +70,7 @@ namespace TAO3.IO
         {
             command.Add(new Argument<string>("uri"));
             command.Add(new Option<HttpVerb>("--verb"));
-            command.Add(new Option<HttpVerb>("--media-type"));
+            command.Add(new Option<HttpVerb>("--mediaType"));
         }
 
         public async Task SetTextAsync(string text, HttpDestinationOptions options)

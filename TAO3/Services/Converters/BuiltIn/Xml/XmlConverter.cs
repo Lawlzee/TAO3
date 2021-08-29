@@ -39,7 +39,7 @@ namespace TAO3.Converters.Xml
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
         public string Format => "xml";
-        public IReadOnlyList<string> Aliases => new[] { "XML" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "application/xml";
         public string DefaultType => "dynamic";
         public Dictionary<string, object> Properties { get; }

@@ -42,10 +42,7 @@ namespace TAO3.Converters.Csv
 
         public string Format => _hasHeader ? "csvh" : "csv";
         public string MimeType => "text/csv";
-        public IReadOnlyList<string> Aliases => new[]
-        {
-            _hasHeader ? "CSVH" : "CSV"
-        };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
 
         public string DefaultType => "var";
 

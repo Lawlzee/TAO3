@@ -13,7 +13,7 @@ namespace TAO3.IO
     {
         public string Name => "cell";
 
-        public IReadOnlyList<string> Aliases => new[] { "Cell" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
 
         Task<string> ISource<Unit>.GetTextAsync(Unit options) => GetTextAsync();
         public Task<string> GetTextAsync()

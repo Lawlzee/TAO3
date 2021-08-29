@@ -29,7 +29,7 @@ namespace TAO3.Converters.Json
         public string Format => "json";
         public string DefaultType => "dynamic";
         public string MimeType => "application/json";
-        public IReadOnlyList<string> Aliases => new[] { "JSON" };
+        public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public Dictionary<string, object> Properties { get; }
 
         public JsonConverter(ITypeProvider<JsonSource> typeProvider)

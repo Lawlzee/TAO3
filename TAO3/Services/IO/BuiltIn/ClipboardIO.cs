@@ -14,7 +14,7 @@ namespace TAO3.IO
         private readonly IClipboardService _clipboard;
         public string Name => "clipboard";
 
-        public IReadOnlyList<string> Aliases => new[] { "Clipboard", "cb" };
+        public IReadOnlyList<string> Aliases => new[] { "cb" };
 
         public ClipboardIO(IClipboardService clipboard)
         {
