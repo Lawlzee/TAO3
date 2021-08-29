@@ -205,6 +205,7 @@ namespace TAO3.Internal
             sourceService.Register(fileIO);
             sourceService.Register(httpIO);
             sourceService.Register(new CellSource());
+            sourceService.Register(new ClipboardFileSource(clipboard));
 
             destinationService.Register(clipboardIO);
             destinationService.Register(notepadIO);

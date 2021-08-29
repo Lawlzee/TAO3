@@ -41,41 +41,39 @@ namespace TAO3.Internal.Commands
             return option;
         }
 
-        public static Argument<T?> CreateVariableArgument<T>(string name, CSharpKernel cSharpKernel, bool isDefault = false, string? description = null, bool errorIfNotFound = true)
-        {
-            Argument<T?> argument = new Argument<T?>(name, description: description, isDefault: isDefault, parse: result =>
-            {
-                if (result.Tokens.Count == 0)
-                {
-                    return default;
-                }
-
-                string variableName = result.Tokens[0].Value;
-                if (cSharpKernel.TryGetVariable(variableName, out object variableInstance))
-                {
-                    return (T)variableInstance;
-                }
-
-                if (errorIfNotFound)
-                {
-                    result.ErrorMessage = $"The variable '{variableName}' was not found in the C# Kernel";
-                }
-                return default;
-            });
-
-            argument.AddSuggestions((_, text) =>
-            {
-                return cSharpKernel
-                    .GetVariableNames()
-                    .Where(x => text?.Contains(x) ?? true);
-            });
-
-            return argument;
-        }
-
         public static Option<TSettings?> CreateSettingsOption<TSettings>(CSharpKernel cSharpKernel)
         {
             return CreateVariableOption<TSettings>(new[] { "--settings" }, description: $"Converter settings of type '{typeof(TSettings).FullName}'", cSharpKernel);
+        }
+
+        public static Option<Encoding?> CreateEncodingOptions()
+        {
+            Option<Encoding?> encodingOptions = new Option<Encoding?>("--encoding", result =>
+            {
+                if (result.Tokens.Count == 0)
+                {
+                    return null;
+                }
+
+                string encodingName = result.Tokens[0].Value;
+                EncodingInfo? encodingInfo = Encoding.GetEncodings()
+                    .FirstOrDefault(x => x.Name == encodingName);
+
+                if (encodingInfo == null)
+                {
+                    result.ErrorMessage = $"The encoding '{encodingName}' is invalid";
+                    return null;
+                }
+
+                return encodingInfo.GetEncoding();
+            });
+
+            encodingOptions.AddSuggestions(Encoding
+                .GetEncodings()
+                .Select(x => x.Name)
+                .ToArray());
+
+            return encodingOptions;
         }
 
         public static Argument<string> CreatePathArgument(string name, string? description = null)

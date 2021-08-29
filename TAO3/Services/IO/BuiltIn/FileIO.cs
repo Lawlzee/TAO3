@@ -27,33 +27,7 @@ namespace TAO3.IO
         public void Configure(Command command)
         {
             command.Add(CommandFactory.CreatePathArgument("path"));
-
-            Option<Encoding?> encodingOptions = new Option<Encoding?>("--encoding", result =>
-            {
-                if (result.Tokens.Count == 0)
-                {
-                    return null;
-                }
-
-                string encodingName = result.Tokens[0].Value;
-                EncodingInfo? encodingInfo = Encoding.GetEncodings()
-                    .FirstOrDefault(x => x.Name == encodingName);
-
-                if (encodingInfo == null)
-                {
-                    result.ErrorMessage = $"The encoding '{encodingName}' is invalid";
-                    return null;
-                }
-
-                return encodingInfo.GetEncoding();
-            });
-
-            encodingOptions.AddSuggestions(Encoding
-                .GetEncodings()
-                .Select(x => x.Name)
-                .ToArray());
-
-            command.Add(encodingOptions);
+            command.Add(CommandFactory.CreateEncodingOptions());
         }
 
         public Task<string> GetTextAsync(FileOptions options)
