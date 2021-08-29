@@ -6,17 +6,18 @@ using System.Threading.Tasks;
 
 namespace TAO3.TypeProvider
 {
-    public interface ITypeProvider<TInput>
+    public interface ITypeProvider<TInput> : IDomCompiler
     {
+        IDomParser<TInput> DomParser { get; }
         SchemaSerialization ProvideTypes(TInput input);
     }
 
     public class TypeProvider<TInput> : ITypeProvider<TInput>
     {
-        private readonly string _format;
-        private readonly IDomParser<TInput> _domParser;
-        private readonly IDomSchematizer _schematizer;
-        private readonly IDomSchemaSerializer _serializer;
+        public string Format { get; }
+        public IDomParser<TInput> DomParser { get; }
+        public IDomSchematizer Schematizer { get; }
+        public IDomSchemaSerializer Serializer { get; }
 
         public TypeProvider(
             string format, 
@@ -24,17 +25,24 @@ namespace TAO3.TypeProvider
             IDomSchematizer schematizer, 
             IDomSchemaSerializer serializer)
         {
-            _format = format;
-            _domParser = domParser;
-            _schematizer = schematizer;
-            _serializer = serializer;
+            Format = format;
+            DomParser = domParser;
+            Schematizer = schematizer;
+            Serializer = serializer;
         }
 
         public SchemaSerialization ProvideTypes(TInput input)
         {
-            IDomType dom = _domParser.Parse(input);
-            DomSchema schema = _schematizer.Schematize(dom, _format);
-            SchemaSerialization serialization = _serializer.Serialize(schema);
+            IDomType dom = DomParser.Parse(input);
+            DomSchema schema = Schematizer.Schematize(dom, Format);
+            SchemaSerialization serialization = Serializer.Serialize(schema);
+            return serialization;
+        }
+
+        public SchemaSerialization Compile(IDomType input)
+        {
+            DomSchema schema = Schematizer.Schematize(input, Format);
+            SchemaSerialization serialization = Serializer.Serialize(schema);
             return serialization;
         }
     }

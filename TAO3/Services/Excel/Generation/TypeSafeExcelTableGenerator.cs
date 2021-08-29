@@ -34,7 +34,7 @@ namespace TAO3.Excel.Generation
         {
             SchemaSerialization schema = _typeProvider.ProvideTypes(table);
             cSharpKernel.ScheduleSubmitCode(schema.Code);
-            return schema.ElementType;
+            return _typeProvider.Serializer.PrettyPrint(schema.RootElementType!);
         }
 
         private string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)

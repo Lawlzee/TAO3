@@ -33,7 +33,7 @@ namespace TAO3.Converters.Csv
 
     public class CsvConverter : 
         IConverter<CsvConfiguration>,  
-        IHandleInputCommand<CsvConfiguration, CsvConverterInputParameters>,
+        IInputTypeProvider<CsvConfiguration, CsvConverterInputParameters>,
         IOutputConfigurableConverterCommand<CsvConfiguration, CsvConverterOutputParameters>
 
     {
@@ -47,6 +47,7 @@ namespace TAO3.Converters.Csv
         public string DefaultType => "var";
 
         public Dictionary<string, object> Properties { get; }
+        public IDomCompiler DomCompiler => _typeProvider;
 
         public CsvConverter(ITypeProvider<CsvSource> typeProvider, bool hasHeader)
         {
@@ -197,40 +198,34 @@ namespace TAO3.Converters.Csv
             return settings;
         }
 
-        public async Task HandleCommandAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
+        public async Task<InferedType> ProvideTypeAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
         {
-            if (args.Type == "dynamic" || args.Type == "string[]")
+            if (args.Type == "dynamic")
             {
-                string text = await context.GetTextAsync();
-                object? result = args.Type == "dynamic"
-                    ? Deserialize<ExpandoObject>(text, context.Settings)
-                    : Deserialize<string[]>(text, context.Settings);
-
-                await context.SubmitCodeAsync($"List<{args.Type}> {context.VariableName} = null;");
-                context.CSharpKernel.ScriptState.GetVariable(context.VariableName).Value = result;
-                return;
+                return new InferedType(
+                    new DomCollection(new List<IDomType>
+                    {
+                        new DomClassReference(typeof(ExpandoObject).FullName!)
+                    }),
+                    ReturnTypeIsList: true);
             }
 
-            string sourceVariableName = await context.CreatePrivateVariableAsync(await context.GetTextAsync(), typeof(string));
-            string converterVariableName = await context.CreatePrivateVariableAsync(this, typeof(CsvConverter));
-            string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(CsvConfiguration));
-
-            if (string.IsNullOrEmpty(args.Type))
+            if (args.Type != null)
             {
-                string csv = await context.GetTextAsync();
-                SchemaSerialization? schema = _typeProvider.ProvideTypes(new CsvSource(context.VariableName, csv, context.Settings!));
-
-                string code = $@"{schema.Code}
-
-{schema.RootType} {context.VariableName} = ({schema.RootType}){converterVariableName}.Deserialize<{schema.ElementType}>({sourceVariableName}, {settingsVariableName});";
-
-                await context.SubmitCodeAsync(code);
+                return new InferedType(
+                    new DomCollection(new List<IDomType>
+                    {
+                        new DomClassReference(args.Type)
+                    }),
+                    ReturnTypeIsList: true);
             }
-            else
-            {
-                string code = $"List<{args.Type}> {context.VariableName} = (List<{args.Type}>){converterVariableName}.Deserialize<{args.Type}>({sourceVariableName}, {settingsVariableName});";
-                await context.SubmitCodeAsync(code);
-            }
+
+            string csv = await context.GetTextAsync();
+            IDomType domType = _typeProvider.DomParser.Parse(new CsvSource(context.VariableName, csv, context.Settings!));
+
+            return new InferedType(
+                domType,
+                ReturnTypeIsList: true);
         }
     }
 }

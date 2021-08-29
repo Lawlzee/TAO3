@@ -18,7 +18,7 @@ namespace TAO3.Converters.Sql
 
     public class SqlConverter : 
         IConverter<Unit>,
-        IHandleInputCommand<Unit, SqlConverterParameters>
+        IInputTypeProvider<Unit, SqlConverterParameters>
     {
         private readonly ITypeProvider<string> _typeProvider;
         private readonly SqlDeserializer _deserializer;
@@ -29,6 +29,7 @@ namespace TAO3.Converters.Sql
         public string MimeType => "text/x-sql";
         public string DefaultType => "dynamic";
         public Dictionary<string, object> Properties { get; }
+        public IDomCompiler DomCompiler => _typeProvider;
 
         public SqlConverter(
             ITypeProvider<string> typeProvider, 
@@ -66,24 +67,21 @@ namespace TAO3.Converters.Sql
             return Unit.Default;
         }
 
-        public async Task HandleCommandAsync(IConverterContext<Unit> context, SqlConverterParameters args)
+        public async Task<InferedType> ProvideTypeAsync(IConverterContext<Unit> context, SqlConverterParameters args)
         {
+            if (args.Type != null)
+            {
+                return new InferedType(
+                    new DomClassReference(args.Type),
+                    ReturnTypeIsList: true);
+            }
+
             string sql = await context.GetTextAsync();
-            string textVariableName = await context.CreatePrivateVariableAsync(sql, typeof(string));
+            IDomType domType = _typeProvider.DomParser.Parse(sql);
 
-            if (args.Type == null)
-            {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(sql);
-
-                await context.SubmitCodeAsync($@"{schema.Code}
-
-{schema.RootType} {context.VariableName} = TAO3.Prelude.FromSql<{schema.ElementType}>({textVariableName});");
-            }
-            else
-            {
-                await context.SubmitCodeAsync($@"{args.Type} {context.VariableName} = TAO3.Prelude.FromSql<{args.Type}>({textVariableName});");
-            }
-
+            return new InferedType(
+                domType,
+                ReturnTypeIsList: true);
         }
     }
 }

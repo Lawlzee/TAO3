@@ -26,6 +26,11 @@ namespace TAO3.TypeProvider
 
         }
 
+        public virtual void Visit(DomClassReference node)
+        {
+
+        }
+
         public virtual void Visit(DomLiteral node)
         {
 

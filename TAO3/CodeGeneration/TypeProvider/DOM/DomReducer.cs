@@ -64,6 +64,13 @@ namespace TAO3.TypeProvider
                     _currentSchema!));
         }
 
+        public override void Visit(DomClassReference node)
+        {
+            _currentSchema = new TypeReferenceSchema(
+                new ClassReferenceSchema(node.Type),
+                false);
+        }
+
         public override void Visit(DomLiteral node)
         {
             _currentSchema = new TypeReferenceSchema(

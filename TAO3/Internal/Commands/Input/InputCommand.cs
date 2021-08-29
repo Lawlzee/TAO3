@@ -19,6 +19,7 @@ using TAO3.IO;
 using TAO3.Internal.Extensions;
 using TAO3.Internal.Types;
 using System.Reactive;
+using TAO3.TypeProvider;
 
 namespace TAO3.Internal.Commands.Input
 {
@@ -90,11 +91,11 @@ namespace TAO3.Internal.Commands.Input
             Command command = new Command(converter.Format);
             command.AddAliases(converter.Aliases);
 
-            if (converter.GetType().IsAssignableToGenericType(typeof(IHandleInputCommand<,>)))
+            if (converter.GetType().IsAssignableToGenericType(typeof(IInputTypeProvider<,>)))
             {
                 TypeInferer.Invoke(
                     converter,
-                    typeof(IHandleInputCommand<,>),
+                    typeof(IInputTypeProvider<,>),
                     () => CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel));
             }
             else if (converter.GetType().IsAssignableToGenericType(typeof(IInputConfigurableConverterCommand<,>)))
@@ -118,8 +119,8 @@ namespace TAO3.Internal.Commands.Input
             Command command,
             CSharpKernel cSharpKernel)
         {
-            IHandleInputCommand<TSettings, TCommandParameters> handler = converter as IHandleInputCommand<TSettings, TCommandParameters> ?? new DefaultInputCommandHandler<TSettings, TCommandParameters>();
-            handler.Configure(command);
+            IInputTypeProvider<TSettings, TCommandParameters> typeProvider = converter as IInputTypeProvider<TSettings, TCommandParameters> ?? new DefaultTypeProvider<TSettings, TCommandParameters>(converter);
+            typeProvider.Configure(command);
 
             command.Add(new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"));
             command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
@@ -133,17 +134,62 @@ namespace TAO3.Internal.Commands.Input
                 converterBinder.Invoke(sourceOptions);
                 sourceBinder.Invoke(converterParameters);
 
-                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(converter, name, settingsWrapper.Settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
-                converterContext.Settings = handler.BindParameters(settingsWrapper.Settings ?? handler.GetDefaultSettings(), converterParameters);
-                await handler.HandleCommandAsync(converterContext, converterParameters);
+                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(name, settingsWrapper.Settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
+                converterContext.Settings = typeProvider.BindParameters(settingsWrapper.Settings ?? typeProvider.GetDefaultSettings(), converterParameters);
+
+                await DeserializeAsync(converterContext, converter, converterParameters, typeProvider);
             });
         }
 
-        private class DefaultInputCommandHandler<TSettings, TCommandParameters> : IHandleInputCommand<TSettings, TCommandParameters>
+        private async Task DeserializeAsync<TSettings, TCommandParameters>(
+            ConverterContext<TSettings> context, 
+            IConverter<TSettings> converter,
+            TCommandParameters converterParameters,
+            IInputTypeProvider<TSettings, TCommandParameters> typeProvider)
         {
-            public Task HandleCommandAsync(IConverterContext<TSettings> context, TCommandParameters args)
+            InferedType inferedType = await typeProvider.ProvideTypeAsync(context, converterParameters);
+            SchemaSerialization schema = typeProvider.DomCompiler.Compile(inferedType.Type);
+
+            string rootType = typeProvider.DomCompiler.Serializer.PrettyPrint(schema.Root);
+            
+            if (inferedType.ReturnTypeIsList && schema.RootElementType == null)
             {
-                return context.DefaultHandleCommandAsync();
+                throw new Exception("Expected a collection as an infered return type");
+            }
+            
+            string? elementType = schema.RootElementType != null
+                ? typeProvider.DomCompiler.Serializer.PrettyPrint(schema.RootElementType)
+                : null;
+
+            string text = await context.GetTextAsync();
+
+            string converterVariable = await context.CreatePrivateVariableAsync(converter, typeof(IConverter<TSettings>));
+            string textVariable = await context.CreatePrivateVariableAsync(text, typeof(string));
+            string settingsVariable = await context.CreatePrivateVariableAsync(context.Settings, typeof(TSettings));
+
+            await context.SubmitCodeAsync($@"{schema.Code}
+
+{rootType} {context.VariableName} = ({rootType}){converterVariable}.Deserialize<{(inferedType.ReturnTypeIsList ? elementType : rootType)}>({textVariable}, {settingsVariable});");
+        }
+
+        private class DefaultTypeProvider<TSettings, TCommandParameters> : IInputTypeProvider<TSettings, TCommandParameters>
+        {
+            private readonly IConverter _converter;
+
+            public IDomCompiler DomCompiler { get; }
+
+            public DefaultTypeProvider(IConverter converter)
+            {
+                _converter = converter;
+                DomCompiler = new DomCompiler(
+                    converter.Format,
+                    IDomSchematizer.Default,
+                    IDomSchemaSerializer.Default);
+            }
+
+            public Task<InferedType> ProvideTypeAsync(IConverterContext<TSettings> context, TCommandParameters args)
+            {
+                return Task.FromResult(new InferedType(new DomClassReference(_converter.DefaultType)));
             }
 
             public TSettings BindParameters(TSettings settings, TCommandParameters args)
@@ -153,7 +199,7 @@ namespace TAO3.Internal.Commands.Input
 
             public void Configure(Command command)
             {
-                
+
             }
 
             public TSettings GetDefaultSettings()

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Dynamic;
 using System.Linq;
 using System.Reactive;
 using System.Text;
@@ -21,7 +22,7 @@ namespace TAO3.Converters.Json
 
     public class JsonConverter :
         IConverter<JsonSerializerSettings>,
-        IHandleInputCommand<JsonSerializerSettings, JsonConverterInputParameters>,
+        IInputTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>,
         IOutputConfigurableConverterCommand<JsonSerializerSettings, Unit>
     {
         private readonly ITypeProvider<JsonSource> _typeProvider;
@@ -31,6 +32,7 @@ namespace TAO3.Converters.Json
         public string MimeType => "application/json";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public Dictionary<string, object> Properties { get; }
+        public IDomCompiler DomCompiler => _typeProvider;
 
         public JsonConverter(ITypeProvider<JsonSource> typeProvider)
         {
@@ -66,31 +68,22 @@ namespace TAO3.Converters.Json
             return settings;
         }
 
-        public async Task HandleCommandAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
+        public async Task<InferedType> ProvideTypeAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
         {
             if (args.Type == "dynamic")
             {
-                await context.DefaultHandleCommandAsync();
-                return;
+                return new InferedType(new DomClassReference(typeof(ExpandoObject).FullName!));
+            }
+
+            if (args.Type != null)
+            {
+                return new InferedType(new DomClassReference(args.Type));
             }
 
             string json = await context.GetTextAsync();
+            IDomType domType = _typeProvider.DomParser.Parse(new JsonSource(context.VariableName, json));
 
-            string clipboardVariableName = await context.CreatePrivateVariableAsync(json, typeof(string));
-            string settingsVariableName = await context.CreatePrivateVariableAsync(context.Settings, typeof(JsonSerializerSettings));
-            if (string.IsNullOrEmpty(args.Type))
-            {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(context.VariableName, json));
-                await context.SubmitCodeAsync($@"{schema.Code}
-
-{schema.RootType} {context.VariableName} = JsonConvert.DeserializeObject<{schema.RootType}>({clipboardVariableName}, {settingsVariableName});");
-            }
-            else
-            {
-                await context.SubmitCodeAsync($@"using Newtonsoft.Json;
-
-{args.Type} {context.VariableName} = JsonConvert.DeserializeObject<{args.Type}>({clipboardVariableName}, {settingsVariableName});");
-            }
+            return new InferedType(domType);
         }
     }
 }

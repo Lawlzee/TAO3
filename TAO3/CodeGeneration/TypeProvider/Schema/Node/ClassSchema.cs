@@ -29,8 +29,6 @@ namespace TAO3.TypeProvider
             visitor.Visit(this);
         }
 
-
-
         public override string? ToString()
         {
             return $"Class {Identifier} ({FullName})";

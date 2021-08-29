@@ -37,6 +37,11 @@ namespace TAO3.TypeProvider
             node.InnerType.Accept(this);
         }
 
+        public virtual void Visit(ClassReferenceSchema node)
+        {
+
+        }
+
         public virtual void Visit(LiteralTypeSchema node)
         {
 

@@ -9,14 +9,17 @@ namespace TAO3.TypeProvider
     public class SchemaSerialization
     {
         public string Code { get; }
-        public string RootType { get; }
-        public string ElementType { get; }
+        public ISchema Root { get; }
+        public ISchema? RootElementType { get; }
 
-        public SchemaSerialization(string code, string rootType, string elementType)
+        public SchemaSerialization(string code, ISchema root)
         {
             Code = code;
-            RootType = rootType;
-            ElementType = elementType;
+            Root = root;
+            if (Root is CollectionTypeSchema collection)
+            {
+                RootElementType = collection.InnerType;
+            }
         }
     }
 }

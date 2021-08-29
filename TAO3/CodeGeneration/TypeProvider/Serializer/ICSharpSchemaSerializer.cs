@@ -91,17 +91,6 @@ namespace TAO3.TypeProvider
                     isFirst = false;
                 }
 
-                //todo: cleanup
-                StringBuilder codeStringBuilder = serializer._sb;
-                serializer._sb = new StringBuilder();
-                domSchema.Schema.Accept(serializer);
-                string rootType = serializer._sb.ToString();
-
-                //todo: cleanup
-                serializer._sb = new StringBuilder();
-                (domSchema.Schema is CollectionTypeSchema col ? col.InnerType : domSchema.Schema).Accept(serializer);
-                string elementType = serializer._sb.ToString();
-
                 StringBuilder sb = new StringBuilder();
                 foreach (string @namespace in serializer._namespaces.OrderBy(x => x))
                 {
@@ -115,13 +104,12 @@ namespace TAO3.TypeProvider
                     sb.AppendLine();
                 }
 
-                sb.Append(codeStringBuilder);
+                sb.Append(serializer._sb);
                 string code = sb.ToString();
 
                 return new SchemaSerialization(
                     code,
-                    rootType,
-                    elementType);
+                    domSchema.Schema);
             }
 
             public static string PrettyPrint(ISchema type)
@@ -215,6 +203,11 @@ namespace TAO3.TypeProvider
             {
                 Using(node.Type.Namespace!);
                 Append(node.Type.PrettyPrint());
+            }
+
+            public override void Visit(ClassReferenceSchema node)
+            {
+                Append(node.Type);
             }
 
             public override void Visit(NullTypeSchema node)

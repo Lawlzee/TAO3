@@ -64,6 +64,11 @@ namespace TAO3.TypeProvider
             return new CollectionTypeSchema(innerType);
         }
 
+        public virtual ClassReferenceSchema Visit(ClassReferenceSchema node)
+        {
+            return node;
+        }
+
         public virtual LiteralTypeSchema Visit(LiteralTypeSchema node)
         {
             return node;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,8 +32,8 @@ namespace TAO3.Converters.Xml
     //the name of class the class if prefixed with "Submission#0+" and the XmlSerializer doesn't like that.
     //We can probably do a lot better then this, but it works for now
     public class XmlConverter : 
-        IConverter<XmlWriterSettings>, 
-        IHandleInputCommand<XmlWriterSettings, XmlInputConverterParameters>,
+        IConverter<XmlWriterSettings>,
+        IInputTypeProvider<XmlWriterSettings, XmlInputConverterParameters>,
         IOutputConfigurableConverterCommand<XmlWriterSettings, XmlOutputConverterParameters>
     {
         private readonly TAO3.Converters.Json.JsonConverter _jsonConverter;
@@ -43,6 +44,7 @@ namespace TAO3.Converters.Xml
         public string MimeType => "application/xml";
         public string DefaultType => "dynamic";
         public Dictionary<string, object> Properties { get; }
+        public IDomCompiler DomCompiler => _typeProvider;
 
         public XmlConverter(TAO3.Converters.Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
         {
@@ -123,35 +125,25 @@ namespace TAO3.Converters.Xml
             return settings;
         }
 
-        public async Task HandleCommandAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
+        public async Task<InferedType> ProvideTypeAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
         {
             if (args.Type == "dynamic")
             {
-                await context.DefaultHandleCommandAsync();
-                return;
+                return new InferedType(new DomClassReference(typeof(ExpandoObject).FullName!));
+            }
+
+            if (args.Type != null)
+            {
+                return new InferedType(new DomClassReference(args.Type));
             }
 
             string text = await context.GetTextAsync();
-
             XDocument document = XDocument.Parse(text);
-
             string jsonInput = JsonConvert.SerializeXNode(document, Newtonsoft.Json.Formatting.None);
 
-            string textVariableName = await context.CreatePrivateVariableAsync(jsonInput, typeof(string));
+            IDomType domType = _typeProvider.DomParser.Parse(new JsonSource(context.VariableName, jsonInput));
 
-            if (string.IsNullOrEmpty(args.Type))
-            {
-                SchemaSerialization schema = _typeProvider.ProvideTypes(new JsonSource(context.VariableName, jsonInput));
-                await context.SubmitCodeAsync($@"{schema.Code}
-
-{schema.RootType} {context.VariableName} = JsonConvert.DeserializeObject<{schema.RootType}>({textVariableName});");
-            }
-            else
-            {
-                await context.SubmitCodeAsync($@"using Newtonsoft.Json;
-
-{args.Type} {context.VariableName} = JsonConvert.DeserializeObject<{args.Type}>({textVariableName});");
-            }
+            return new InferedType(domType);
         }
     }
 }
