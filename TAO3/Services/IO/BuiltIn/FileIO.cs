@@ -28,7 +28,7 @@ namespace TAO3.IO
         {
             command.Add(CommandFactory.CreatePathArgument("path"));
 
-            Option<Encoding?> encodingOptions = new Option<Encoding?>("encoding", result =>
+            Option<Encoding?> encodingOptions = new Option<Encoding?>("--encoding", result =>
             {
                 if (result.Tokens.Count == 0)
                 {

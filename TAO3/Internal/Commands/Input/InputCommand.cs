@@ -52,6 +52,11 @@ namespace TAO3.Internal.Commands.Input
             Command command = new Command(source.Name);
             command.AddAliases(source.Aliases);
 
+            if (source is IConfigurableSource configurableSource)
+            {
+                configurableSource.Configure(command);
+            }
+
             IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                 command,
                 x => x.Converter.Format,
@@ -82,19 +87,8 @@ namespace TAO3.Internal.Commands.Input
             IConverter<TSettings> converter,
             CSharpKernel cSharpKernel)
         {
-            Command command = new Command(converter.Format)
-            {
-                new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"),
-                new Option(new[] { "-v", "--verbose" }, "Print debugging information"),
-                CommandFactory.CreateSettingsOption<TSettings>(cSharpKernel)
-            };
-
+            Command command = new Command(converter.Format);
             command.AddAliases(converter.Aliases);
-
-            if (source is IConfigurableSource configurableSource)
-            {
-                configurableSource.Configure(command);
-            }
 
             if (converter.GetType().IsAssignableToGenericType(typeof(IHandleInputCommand<,>)))
             {
@@ -126,6 +120,10 @@ namespace TAO3.Internal.Commands.Input
         {
             IHandleInputCommand<TSettings, TCommandParameters> handler = converter as IHandleInputCommand<TSettings, TCommandParameters> ?? new DefaultInputCommandHandler<TSettings, TCommandParameters>();
             handler.Configure(command);
+
+            command.Add(new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"));
+            command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
+            command.Add(CommandFactory.CreateSettingsOption<TSettings>(cSharpKernel));
 
             Action<TSourceOptions> converterBinder = ParameterBinder.Create<TSourceOptions, IConverter>(converter);
             Action<TCommandParameters> sourceBinder = ParameterBinder.Create<TCommandParameters, ISource>(source);

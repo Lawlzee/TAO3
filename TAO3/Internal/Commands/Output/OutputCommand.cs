@@ -52,6 +52,11 @@ namespace TAO3.Internal.Commands.Output
             Command command = new Command(destination.Name);
             command.AddAliases(destination.Aliases);
 
+            if (destination is IConfigurableDestination configurableDestination)
+            {
+                configurableDestination.Configure(command);
+            }
+
             IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                 command,
                 x => x.Converter.Format,
@@ -93,11 +98,6 @@ namespace TAO3.Internal.Commands.Output
             });
             
             command.AddAliases(converter.Aliases);
-
-            if (destination is IConfigurableDestination configurableDestination)
-            {
-                configurableDestination.Configure(command);
-            }
 
             if (converter.GetType().IsAssignableToGenericType(typeof(IOutputConfigurableConverterCommand<,>)))
             {
