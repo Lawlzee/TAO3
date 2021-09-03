@@ -44,5 +44,22 @@ namespace TAO3.Internal.Extensions
         {
             return (Task)_runAsyncMethodInfo.Invoke(kernel, new object[] { code, cancellationToken, catchException })!;
         }
+
+        public static async Task<string> CreatePrivateVariableAsync(this CSharpKernel csharpKernel, object? value, Type type)
+        {
+            string name = $"__internal_{Guid.NewGuid().ToString("N")}";
+            await csharpKernel.SetVariableAsync(name, value, type);
+            return name;
+        }
+
+        public static Task<KernelCommandResult> SubmitCodeAsync(this Kernel kernel, string code, bool verbose)
+        {
+            if (verbose)
+            {
+                code.Display();
+            }
+
+            return kernel.SubmitCodeAsync(code);
+        }
     }
 }

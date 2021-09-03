@@ -12,10 +12,12 @@ using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.Internal.CodeGeneration;
+using TAO3.Internal.Types;
 using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Csv
@@ -31,9 +33,8 @@ namespace TAO3.Converters.Csv
         public string? Separator { get; init; }
     }
 
-    public class CsvConverter : 
-        IConverter<CsvConfiguration>,  
-        IInputTypeProvider<CsvConfiguration, CsvConverterInputParameters>,
+    public class CsvConverter :
+        IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>,  
         IOutputConfigurableConverterCommand<CsvConfiguration, CsvConverterOutputParameters>
 
     {
@@ -43,8 +44,6 @@ namespace TAO3.Converters.Csv
         public string Format => _hasHeader ? "csvh" : "csv";
         public string MimeType => "text/csv";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
-
-        public string DefaultType => "var";
 
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler => _typeProvider;
@@ -65,13 +64,21 @@ namespace TAO3.Converters.Csv
             };
         }
 
-        public object? Deserialize<T>(string text, CsvConfiguration? settings)
+        T IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>.Deserialize<T>(string text, CsvConfiguration? settings)
         {
-            bool isDynamic = typeof(T) == typeof(ExpandoObject);
+            return (T)(object)TypeInferer.Invoke(
+                typeof(T),
+                typeof(List<>),
+                () => Deserialize<Unit>(text, settings));
+        }
+
+        public List<T> Deserialize<T>(string text, CsvConfiguration? settings)
+        {
+            bool isDynamic = typeof(T) == typeof(object);
             bool isStringArray = typeof(T) == typeof(string[]);
 
             CsvConfiguration config = settings ?? GetDefaultSettings();
-            
+
             //Ugly fix for https://github.com/JoshClose/CsvHelper/issues/1262
             if (!isDynamic && !isStringArray && !config.HasHeaderRecord)
             {
@@ -86,20 +93,30 @@ namespace TAO3.Converters.Csv
                     config.Delimiter,
                     propertyNames
                         .Select(x => "\"" + x.Replace("\"", "\"\"") + "\""));
-                
+
                 config.HasHeaderRecord = true;
                 text = header + config.NewLineString + text;
             }
 
             using StringReader reader = new StringReader(text);
             using CsvReader csvReader = new CsvReader(reader, config);
-            return isStringArray
-                ? GetStringRows().ToList()
-                : isDynamic
-                    ? config.HasHeaderRecord
-                        ? csvReader.GetRecords<dynamic>().ToList()
-                        : GetDynamicRows().ToList()
-                    : csvReader.GetRecords<T>().ToList();
+
+            if (isStringArray)
+            {
+                return (List<T>)(object)GetStringRows().ToList();
+            }
+
+            if (isDynamic)
+            {
+                if (config.HasHeaderRecord)
+                {
+                    return (List<T>)(object)csvReader.GetRecords<dynamic>().ToList();
+                }
+
+                return (List<T>)(object)GetDynamicRows().ToList();
+            }
+
+            return csvReader.GetRecords<T>().ToList();
 
             IEnumerable<string[]> GetStringRows()
             {
@@ -198,34 +215,18 @@ namespace TAO3.Converters.Csv
             return settings;
         }
 
-        public async Task<InferedType> ProvideTypeAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
+        public async Task<IDomType> ProvideTypeAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
         {
-            if (args.Type == "dynamic")
-            {
-                return new InferedType(
-                    new DomCollection(new List<IDomType>
-                    {
-                        new DomClassReference(typeof(ExpandoObject).FullName!)
-                    }),
-                    ReturnTypeIsList: true);
-            }
-
             if (args.Type != null)
             {
-                return new InferedType(
-                    new DomCollection(new List<IDomType>
-                    {
-                        new DomClassReference(args.Type)
-                    }),
-                    ReturnTypeIsList: true);
+                return new DomCollection(new List<IDomType>
+                {
+                    new DomClassReference(args.Type)
+                });
             }
 
             string csv = await context.GetTextAsync();
-            IDomType domType = _typeProvider.DomParser.Parse(new CsvSource(context.VariableName, csv, context.Settings!));
-
-            return new InferedType(
-                domType,
-                ReturnTypeIsList: true);
+            return _typeProvider.DomParser.Parse(new CsvSource(context.VariableName, csv, context.Settings!));
         }
     }
 }

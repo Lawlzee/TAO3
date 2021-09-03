@@ -27,9 +27,7 @@ namespace TAO3.Converters.CSharp
                 return false;
             }
 
-            bool isDictionary = type
-                .GetParentTypes()
-                .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+            bool isDictionary = type.IsAssignableToGenericType(typeof(IDictionary<,>));
 
             if (isDictionary)
             {

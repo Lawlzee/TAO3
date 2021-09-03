@@ -175,7 +175,7 @@ namespace TAO3.Internal.Commands.Output
                         {
                             try
                             {
-                                string resultText = converter.Serialize(valueProduced.Value, settings);
+                                string resultText = converter.Serialize(valueProduced.Value/*, settings*/);
                                 await destination.SetTextAsync(resultText, destinationOptions);
                             }
                             catch (Exception ex)
@@ -196,7 +196,7 @@ namespace TAO3.Internal.Commands.Output
                                 {
                                     if (_cSharpKernel.TryGetVariable(variableName, out object? variable))
                                     {
-                                        string resultText = converter.Serialize(variable, settings);
+                                        string resultText = converter.Serialize(variable/*, settings*/);
                                         await destination.SetTextAsync(resultText, destinationOptions);
                                     }
                                 }

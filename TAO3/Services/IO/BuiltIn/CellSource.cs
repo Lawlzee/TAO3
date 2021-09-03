@@ -9,13 +9,12 @@ using System.Threading.Tasks;
 
 namespace TAO3.IO
 {
-    internal class CellSource : ISource<Unit>
+    internal class CellSource : ITextSource
     {
         public string Name => "cell";
 
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
 
-        Task<string> ISource<Unit>.GetTextAsync(Unit options) => GetTextAsync();
         public Task<string> GetTextAsync()
         {
             string code = ((SubmitCode)KernelInvocationContext.Current.Command).Code;

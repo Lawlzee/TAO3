@@ -59,7 +59,7 @@ namespace TAO3.TypeProvider
             node.Type.Accept(this);
             _properties!.Add(
                 new ClassPropertySchema(
-                    IdentifierUtils.ToCSharpIdentifier(node.Name),
+                    IdentifierUtils.ToCSharpIdentifier(node.Identifier),
                     node.Name,
                     _currentSchema!));
         }

@@ -1,10 +1,4 @@
-﻿using Microsoft.DotNet.Interactive;
-using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace TAO3.IO
 {
@@ -12,10 +6,5 @@ namespace TAO3.IO
     {
         string Name { get; }
         IReadOnlyList<string> Aliases { get; }
-    }
-
-    public interface ISource<TOptions> : ISource
-    {
-        Task<string> GetTextAsync(TOptions options);
     }
 }

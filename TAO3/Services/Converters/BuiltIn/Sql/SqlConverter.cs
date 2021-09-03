@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Converters.Sql;
+using TAO3.Internal.Types;
 using TAO3.TypeProvider;
 
 namespace TAO3.Converters.Sql
@@ -16,9 +17,7 @@ namespace TAO3.Converters.Sql
         public string? Type { get; init; }
     }
 
-    public class SqlConverter : 
-        IConverter<Unit>,
-        IInputTypeProvider<Unit, SqlConverterParameters>
+    public class SqlConverter : IConverterTypeProvider<SqlConverterParameters>
     {
         private readonly ITypeProvider<string> _typeProvider;
         private readonly SqlDeserializer _deserializer;
@@ -27,7 +26,6 @@ namespace TAO3.Converters.Sql
         public string Format => "sql";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "text/x-sql";
-        public string DefaultType => "dynamic";
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler => _typeProvider;
 
@@ -42,17 +40,23 @@ namespace TAO3.Converters.Sql
             Properties = new Dictionary<string, object>();
         }
 
-        string IConverter<Unit>.Serialize(object? value, Unit unit) => Serialize(value);
         public string Serialize(object? value)
         {
             return _serializer.Serialize(value);
         }
 
-        object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
-
-        public object? Deserialize<T>(string text)
+        T IConverterTypeProvider<SqlConverterParameters>.Deserialize<T>(string text)
         {
-            return ((dynamic)_deserializer).Deserialize<T>(text);
+            return (T)(object)TypeInferer.Invoke(
+                typeof(T),
+                typeof(List<>),
+                () => Deserialize<Unit>(text));
+        }
+
+        public List<T> Deserialize<T>(string text)
+            where T : new()
+        {
+            return _deserializer.Deserialize<T>(text);
         }
 
         public void Configure(Command command)
@@ -60,28 +64,18 @@ namespace TAO3.Converters.Sql
             command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
         }
 
-        public Unit GetDefaultSettings() => Unit.Default;
-
-        public Unit BindParameters(Unit settings, SqlConverterParameters args)
-        {
-            return Unit.Default;
-        }
-
-        public async Task<InferedType> ProvideTypeAsync(IConverterContext<Unit> context, SqlConverterParameters args)
+        public async Task<IDomType> ProvideTypeAsync(IConverterContext context, SqlConverterParameters args)
         {
             if (args.Type != null)
             {
-                return new InferedType(
-                    new DomClassReference(args.Type),
-                    ReturnTypeIsList: true);
+                return new DomCollection(new List<IDomType>
+                {
+                    new DomClassReference(args.Type)
+                });
             }
 
             string sql = await context.GetTextAsync();
-            IDomType domType = _typeProvider.DomParser.Parse(sql);
-
-            return new InferedType(
-                domType,
-                ReturnTypeIsList: true);
+            return _typeProvider.DomParser.Parse(sql);
         }
     }
 }

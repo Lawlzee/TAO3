@@ -54,22 +54,26 @@ namespace TAO3
         public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value);
         public static string ToSql(object? value) => Converters.Sql.Serialize(value);
 
-        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => (T)Converters.Json.Deserialize<T>(text, settings)!;
-        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => (T)Converters.Xml.Deserialize<T>(text, settings)!;
-        public static List<T> FromCsv<T>(string text, CsvConfiguration? settings = null) => (List<T>)Converters.Csv.Deserialize<T>(text, settings)!;
-        public static List<T> FromCsvh<T>(string text, CsvConfiguration? settings = null) => (List<T>)Converters.Csvh.Deserialize<T>(text, settings)!;
-        public static List<T> FromSql<T>(string text) => (List<T>)Converters.Sql.Deserialize<T>(text)!;
+        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<T>(text, settings);
+        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<T>(text, settings);
+        public static List<T> FromCsv<T>(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<T>(text, settings);
+        public static List<T> FromCsvh<T>(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<T>(text, settings);
+        public static List<T> FromSql<T>(string text)
+            where T : new()
+        {
+            return Converters.Sql.Deserialize<T>(text);
+        }
 
-        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings)!;
-        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings)!;
-        public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csv.Deserialize<ExpandoObject>(text, settings)!;
-        public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => (List<dynamic>)Converters.Csvh.Deserialize<ExpandoObject>(text, settings)!;
-        public static List<string> FromLine(string text) => (List<string>)Converters.Line.Deserialize<string>(text)!;
-        public static HtmlString FromHtml(string text) => (HtmlString)Converters.Html.Deserialize<object>(text)!;
-        public static CSharpCompilationUnit FromCSharp(string text) => (CSharpCompilationUnit)Converters.CSharp.Deserialize<CSharpCompilationUnit>(text)!;
+        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings);
+        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings);
+        public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<dynamic>(text, settings);
+        public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<dynamic>(text, settings);
+        public static List<string> FromLine(string text) => Converters.Line.Deserialize(text);
+        public static HtmlString FromHtml(string text) => Converters.Html.Deserialize(text);
+        public static CSharpCompilationUnit FromCSharp(string text) => Converters.CSharp.Deserialize(text);
 
-        public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csv.Deserialize<string[]>(text, settings)!;
-        public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => (List<string[]>)Converters.Csvh.Deserialize<string[]>(text, settings)!;
+        public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<string[]>(text, settings);
+        public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<string[]>(text, settings);
 
         public static DisplayedValue DisplayAsJson(string json, bool format = true) => (format ? FormatJson(json) : json).DisplayAs("application/json");
         public static DisplayedValue DisplayAsHtml(string html) => html.DisplayAs("text/html");

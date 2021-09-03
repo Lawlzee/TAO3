@@ -12,14 +12,13 @@ using TAO3.Converters.CSharp;
 
 namespace TAO3.Converters.CSharp
 {
-    public class CSharpConverter : IConverter<Unit>
+    public class CSharpConverter : IConverter<CSharpCompilationUnit>
     {
         public ICSharpObjectSerializer Serializer { get; }
 
         public string Format => "csharp";
         public IReadOnlyList<string> Aliases => new[] { "c#" };
         public string MimeType => "text/x-csharp";
-        public string DefaultType => typeof(CSharpCompilationUnit).FullName!;
         public Dictionary<string, object> Properties { get; }
 
         public CSharpConverter(ICSharpObjectSerializer serializer)
@@ -28,15 +27,13 @@ namespace TAO3.Converters.CSharp
             Properties = new Dictionary<string, object>();
         }
 
-        object? IConverter<Unit>.Deserialize<T>(string text, Unit unit) => Deserialize<T>(text);
-        public object? Deserialize<T>(string text)
+        public CSharpCompilationUnit Deserialize(string text)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(text);
             CompilationUnitSyntax compilation = tree.GetCompilationUnitRoot();
             return new CSharpCompilationUnit(compilation);
         }
 
-        string IConverter<Unit>.Serialize(object? value, Unit unit) => Serialize(value);
         public string Serialize(object? value)
         {
             return Serializer.Serialize(value);

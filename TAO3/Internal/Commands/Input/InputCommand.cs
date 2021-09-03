@@ -38,89 +38,164 @@ namespace TAO3.Internal.Commands.Input
                 x => x.Source.Name,
                 evnt =>
                 {
+                    if (evnt.Source.GetType().IsAssignableToGenericType(typeof(ITextSource<>)))
+                    {
+                        return TypeInferer.Invoke(
+                            evnt.Source,
+                            typeof(ITextSource<>),
+                            () => CreateTextSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
+                    }
+
                     return TypeInferer.Invoke(
                         evnt.Source,
-                        typeof(ISource<>),
-                        () => CreateSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
+                        typeof(IIntermediateSource<>),
+                        () => CreateIntermediateSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
                 });
         }
 
-        private (Command, IDisposable) CreateSourceCommand<TSourceOptions>(
+        private (Command, IDisposable) CreateTextSourceCommand<TSourceOptions>(
             ISource source,
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
+        {
+            ITextSource<TSourceOptions> typedSource = (ITextSource<TSourceOptions>)source;
+            TextSourceAdapter<TSourceOptions> sourceAdapter = new(typedSource);
+
+            return CreateSourceCommand(
+                sourceAdapter,
+                formatConverterService,
+                cSharpKernel);
+        }
+
+        private (Command, IDisposable) CreateIntermediateSourceCommand<TSourceOptions>(
+            ISource source,
+            IFormatConverterService formatConverterService,
+            CSharpKernel cSharpKernel)
+        {
+            IIntermediateSource<TSourceOptions> typedSource = (IIntermediateSource<TSourceOptions>)source;
+            IntermediateSourceAdapter<TSourceOptions> sourceAdapter = new(typedSource);
+
+            return CreateSourceCommand(
+                sourceAdapter,
+                formatConverterService,
+                cSharpKernel);
+        }
+
+        private (Command, IDisposable) CreateSourceCommand<TSourceOptions>(
+            ISourceAdapter<TSourceOptions> source,
             IFormatConverterService formatConverterService,
             CSharpKernel cSharpKernel)
         {
             Command command = new Command(source.Name);
             command.AddAliases(source.Aliases);
 
-            if (source is IConfigurableSource configurableSource)
-            {
-                configurableSource.Configure(command);
-            }
+            source.Configure(command);
 
             IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                 command,
                 x => x.Converter.Format,
                 evnt =>
                 {
+                    if (evnt.Converter.GetType().IsAssignableToGenericType(typeof(IConverter<,>)))
+                    {
+                        return TypeInferer.Invoke(
+                            evnt.Converter,
+                            typeof(IConverter<,>),
+                            () => CreateConverterCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
+                    }
+
                     return TypeInferer.Invoke(
                         evnt.Converter,
-                        typeof(IConverter<>),
-                        () => CreateConverterCommand<Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
+                        typeof(IConverterTypeProvider<,>),
+                        () => CreateConverterTypeProviderCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
                 });
 
             return (command, formatSubscription);
         }
 
-        private Command CreateConverterCommand<TSettings, TSourceOptions>(
-            ISource source,
+        private Command CreateConverterCommand<T, TSettings, TSourceOptions>(
+            ISourceAdapter<TSourceOptions> source,
             IConverter converter,
             CSharpKernel cSharpKernel)
         {
-            return CreateConverterCommand(
-                (ISource<TSourceOptions>)source,
-                (IConverter<TSettings>)converter,
+            IConverter<T, TSettings> typedConverter = (IConverter<T, TSettings>)converter;
+
+            bool isConfigurable = converter.GetType()
+                .GetInterfaces()
+                .Where(x => x.IsGenericType)
+                .Where(x => x.GetGenericTypeDefinition() == typeof(IInputConfigurableConverter<,>))
+                .Where(x => x.GetGenericArguments()[0] == typeof(TSettings))
+                .Any();
+
+            if (isConfigurable)
+            {
+                return TypeInferer.Invoke(
+                    converter,
+                    typeof(IInputConfigurableConverter<,>),
+                    () => CreateConfigurableConverterCommand<TSettings, Unit, T, TSourceOptions>(source, typedConverter, cSharpKernel));
+            }
+
+            DefaultConverterTypeProviderAdapter<T, TSettings, Unit> typeProvider = new(typedConverter);
+            DefaultInputConfigurableConverter<TSettings> configurable = new();
+
+            ConverterAdapter<TSettings, Unit> converterAdapter = new(
+                typeProvider,
+                configurable,
+                converter);
+
+            return DoCreateConverterCommand(
+                source,
+                converterAdapter,
                 cSharpKernel);
         }
 
-        private Command CreateConverterCommand<TSettings, TSourceOptions>(
-            ISource<TSourceOptions> source,
-            IConverter<TSettings> converter,
+        public Command CreateConfigurableConverterCommand<TSettings, TCommandParameters, T, TSourceOptions>(
+            ISourceAdapter<TSourceOptions> source,
+            IConverter<T, TSettings> converter,
+            CSharpKernel cSharpKernel)
+        {
+            DefaultConverterTypeProviderAdapter<T, TSettings, TCommandParameters> typeProvider = new(converter);
+            IInputConfigurableConverter<TSettings, TCommandParameters> configurableConverter = (IInputConfigurableConverter<TSettings, TCommandParameters>)converter;
+
+            ConverterAdapter<TSettings, TCommandParameters> converterAdapter = new(
+                typeProvider,
+                configurableConverter,
+                converter);
+
+            return DoCreateConverterCommand(
+                source,
+                converterAdapter,
+                cSharpKernel);
+        }
+
+        private Command CreateConverterTypeProviderCommand<TSettings, TCommandParameters, TSourceOptions>(
+            ISourceAdapter<TSourceOptions> source,
+            IConverter converter,
+            CSharpKernel cSharpKernel)
+        {
+            IConverterTypeProvider<TSettings, TCommandParameters> typedConverter = (IConverterTypeProvider<TSettings, TCommandParameters>)converter;
+            ConverterTypeProviderAdapter<TSettings, TCommandParameters> typeProviderAdapter = new(typedConverter);
+
+            ConverterAdapter<TSettings, TCommandParameters> converterAdapter = new ConverterAdapter<TSettings, TCommandParameters>(
+                typeProviderAdapter,
+                typedConverter,
+                typedConverter);
+
+            return DoCreateConverterCommand(
+                source,
+                converterAdapter,
+                cSharpKernel);
+        }
+
+        private Command DoCreateConverterCommand<TSettings, TCommandParameters, TSourceOptions>(
+            ISourceAdapter<TSourceOptions> source,
+            ConverterAdapter<TSettings, TCommandParameters> converter,
             CSharpKernel cSharpKernel)
         {
             Command command = new Command(converter.Format);
             command.AddAliases(converter.Aliases);
 
-            if (converter.GetType().IsAssignableToGenericType(typeof(IInputTypeProvider<,>)))
-            {
-                TypeInferer.Invoke(
-                    converter,
-                    typeof(IInputTypeProvider<,>),
-                    () => CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel));
-            }
-            else if (converter.GetType().IsAssignableToGenericType(typeof(IInputConfigurableConverterCommand<,>)))
-            {
-                TypeInferer.Invoke(
-                    converter,
-                    typeof(IInputConfigurableConverterCommand<,>),
-                    () => CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel));
-            }
-            else
-            {
-                CreateCommandHandler<TSettings, Unit, TSourceOptions>(source, converter, command, cSharpKernel);
-            }
-
-            return command;
-        }
-
-        private void CreateCommandHandler<TSettings, TCommandParameters, TSourceOptions>(
-            ISource<TSourceOptions> source,
-            IConverter<TSettings> converter,
-            Command command,
-            CSharpKernel cSharpKernel)
-        {
-            IInputTypeProvider<TSettings, TCommandParameters> typeProvider = converter as IInputTypeProvider<TSettings, TCommandParameters> ?? new DefaultTypeProvider<TSettings, TCommandParameters>(converter);
-            typeProvider.Configure(command);
+            converter.Configure(command);
 
             command.Add(new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"));
             command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
@@ -134,78 +209,19 @@ namespace TAO3.Internal.Commands.Input
                 converterBinder.Invoke(sourceOptions);
                 sourceBinder.Invoke(converterParameters);
 
-                ConverterContext<TSettings> converterContext = new ConverterContext<TSettings>(name, settingsWrapper.Settings, verbose, cSharpKernel, () => source.GetTextAsync(sourceOptions));
-                converterContext.Settings = typeProvider.BindParameters(settingsWrapper.Settings ?? typeProvider.GetDefaultSettings(), converterParameters);
+                TSettings realSettings = converter.BindParameters(settingsWrapper.Settings ?? converter.GetDefaultSettings(), converterParameters);
 
-                await DeserializeAsync(converterContext, converter, converterParameters, typeProvider);
+                await source.DeserializeAsync(
+                    sourceOptions,
+                    converter,
+                    converterParameters,
+                    variableName: name,
+                    verbose,
+                    realSettings,
+                    cSharpKernel);
             });
-        }
 
-        private async Task DeserializeAsync<TSettings, TCommandParameters>(
-            ConverterContext<TSettings> context, 
-            IConverter<TSettings> converter,
-            TCommandParameters converterParameters,
-            IInputTypeProvider<TSettings, TCommandParameters> typeProvider)
-        {
-            InferedType inferedType = await typeProvider.ProvideTypeAsync(context, converterParameters);
-            SchemaSerialization schema = typeProvider.DomCompiler.Compile(inferedType.Type);
-
-            string rootType = typeProvider.DomCompiler.Serializer.PrettyPrint(schema.Root);
-            
-            if (inferedType.ReturnTypeIsList && schema.RootElementType == null)
-            {
-                throw new Exception("Expected a collection as an infered return type");
-            }
-            
-            string? elementType = schema.RootElementType != null
-                ? typeProvider.DomCompiler.Serializer.PrettyPrint(schema.RootElementType)
-                : null;
-
-            string text = await context.GetTextAsync();
-
-            string converterVariable = await context.CreatePrivateVariableAsync(converter, typeof(IConverter<TSettings>));
-            string textVariable = await context.CreatePrivateVariableAsync(text, typeof(string));
-            string settingsVariable = await context.CreatePrivateVariableAsync(context.Settings, typeof(TSettings));
-
-            await context.SubmitCodeAsync($@"{schema.Code}
-
-{rootType} {context.VariableName} = ({rootType}){converterVariable}.Deserialize<{(inferedType.ReturnTypeIsList ? elementType : rootType)}>({textVariable}, {settingsVariable});");
-        }
-
-        private class DefaultTypeProvider<TSettings, TCommandParameters> : IInputTypeProvider<TSettings, TCommandParameters>
-        {
-            private readonly IConverter _converter;
-
-            public IDomCompiler DomCompiler { get; }
-
-            public DefaultTypeProvider(IConverter converter)
-            {
-                _converter = converter;
-                DomCompiler = new DomCompiler(
-                    converter.Format,
-                    IDomSchematizer.Default,
-                    IDomSchemaSerializer.Default);
-            }
-
-            public Task<InferedType> ProvideTypeAsync(IConverterContext<TSettings> context, TCommandParameters args)
-            {
-                return Task.FromResult(new InferedType(new DomClassReference(_converter.DefaultType)));
-            }
-
-            public TSettings BindParameters(TSettings settings, TCommandParameters args)
-            {
-                return settings;
-            }
-
-            public void Configure(Command command)
-            {
-
-            }
-
-            public TSettings GetDefaultSettings()
-            {
-                return default!;
-            }
+            return command;
         }
     }
 }

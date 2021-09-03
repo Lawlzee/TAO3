@@ -21,14 +21,12 @@ namespace TAO3.Converters.Json
     }
 
     public class JsonConverter :
-        IConverter<JsonSerializerSettings>,
-        IInputTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>,
+        IConverterTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>,
         IOutputConfigurableConverterCommand<JsonSerializerSettings, Unit>
     {
         private readonly ITypeProvider<JsonSource> _typeProvider;
 
         public string Format => "json";
-        public string DefaultType => "dynamic";
         public string MimeType => "application/json";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public Dictionary<string, object> Properties { get; }
@@ -40,9 +38,9 @@ namespace TAO3.Converters.Json
             Properties = new Dictionary<string, object>();
         }
 
-        public object? Deserialize<T>(string text, JsonSerializerSettings? settings)
+        public T Deserialize<T>(string text, JsonSerializerSettings? settings)
         {
-            return JsonConvert.DeserializeObject<T>(text, settings ?? GetDefaultSettings());
+            return JsonConvert.DeserializeObject<T>(text, settings ?? GetDefaultSettings())!;
         }
 
         public string Serialize(object? value, JsonSerializerSettings? settings)
@@ -68,22 +66,15 @@ namespace TAO3.Converters.Json
             return settings;
         }
 
-        public async Task<InferedType> ProvideTypeAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
+        public async Task<IDomType> ProvideTypeAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
         {
-            if (args.Type == "dynamic")
-            {
-                return new InferedType(new DomClassReference(typeof(ExpandoObject).FullName!));
-            }
-
             if (args.Type != null)
             {
-                return new InferedType(new DomClassReference(args.Type));
+                return new DomClassReference(args.Type);
             }
 
             string json = await context.GetTextAsync();
-            IDomType domType = _typeProvider.DomParser.Parse(new JsonSource(context.VariableName, json));
-
-            return new InferedType(domType);
+            return _typeProvider.DomParser.Parse(new JsonSource(context.VariableName, json));
         }
     }
 }

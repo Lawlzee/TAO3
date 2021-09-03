@@ -65,4 +65,8 @@
   - [ ]  https://www.addictivetips.com/windows-tips/automatically-save-images-from-the-clipboard-on-windows-10/
 - [ ] Provide getting started documentation when user reference TAO3 like extension lab does
 - [x] Add a template language (razor)
-- [ ] Fix inconsistant case (camelCase, PascalCase, etc) for command arguments/options
+- [x] Fix inconsistant case (camelCase, PascalCase, etc) for command arguments/options
+- [ ] Generate SVC client
+  - [ ] see svcutil.exe
+- [ ] Add a bogus data generator
+  - [ ] BogusGenerator.Generate<MyType>();//result: new MyType { Prop1 = "Prop1", Prop2 = 0, ...};

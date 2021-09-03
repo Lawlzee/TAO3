@@ -16,9 +16,31 @@ namespace TAO3.Internal.Types
             Type genericTypeDefinition,
             Expression<Action> methodExpression)
         {
+            Invoke(
+                obj.GetType(),
+                genericTypeDefinition,
+                methodExpression);
+        }
+
+        public static R Invoke<R>(
+            object obj,
+            Type genericTypeDefinition,
+            Expression<Func<R>> methodExpression)
+        {
+            return Invoke(
+                obj.GetType(),
+                genericTypeDefinition,
+                methodExpression);
+        }
+
+        public static void Invoke(
+            Type type,
+            Type genericTypeDefinition,
+            Expression<Action> methodExpression)
+        {
             MethodCallExpression bindedMethod = BindMethod(
-                obj, 
-                genericTypeDefinition, 
+                type,
+                genericTypeDefinition,
                 methodExpression);
 
             Action lambdaExpression = Expression
@@ -29,12 +51,12 @@ namespace TAO3.Internal.Types
         }
 
         public static R Invoke<R>(
-            object obj, 
-            Type genericTypeDefinition, 
+            Type type,
+            Type genericTypeDefinition,
             Expression<Func<R>> methodExpression)
         {
             MethodCallExpression bindedMethod = BindMethod(
-                obj,
+                type,
                 genericTypeDefinition,
                 methodExpression);
 
@@ -46,11 +68,11 @@ namespace TAO3.Internal.Types
         }
 
         private static MethodCallExpression BindMethod(
-            object obj,
+            Type type,
             Type genericTypeDefinition,
             LambdaExpression methodExpression)
         {
-            _ = obj ?? throw new ArgumentNullException(nameof(obj));
+            _ = type ?? throw new ArgumentException(nameof(type));
             _ = genericTypeDefinition ?? throw new ArgumentNullException(nameof(genericTypeDefinition));
             _ = methodExpression ?? throw new ArgumentNullException(nameof(methodExpression));
 
@@ -59,7 +81,7 @@ namespace TAO3.Internal.Types
                 throw new ArgumentException($"{nameof(genericTypeDefinition)} must be a generic type definition");
             }
 
-            List<Type> genericTypeMatches = obj.GetType()
+            List<Type> genericTypeMatches = type
                 .GetParentTypes()
                 .Where(x => x.IsGenericType)
                 .Where(x => x.GetGenericTypeDefinition() == genericTypeDefinition)
@@ -67,12 +89,12 @@ namespace TAO3.Internal.Types
 
             if (genericTypeMatches.Count == 0)
             {
-                throw new ArgumentException($"{nameof(obj)} of type {obj.GetType().FullName} does not implement the generic type definition {genericTypeDefinition.FullName}");
+                throw new ArgumentException($"{type.FullName} does not implement the generic type definition {genericTypeDefinition.FullName}");
             }
 
             if (genericTypeMatches.Count > 1)
             {
-                throw new ArgumentException($"{nameof(obj)} of type {obj.GetType().FullName} implements the generic type definition {genericTypeDefinition.FullName} multiple time.");
+                throw new ArgumentException($"{type.FullName} implements the generic type definition {genericTypeDefinition.FullName} multiple time.");
             }
 
             Type genericType = genericTypeMatches[0];

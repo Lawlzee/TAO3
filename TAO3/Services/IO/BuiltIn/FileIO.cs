@@ -16,7 +16,7 @@ namespace TAO3.IO
     }
 
     internal class FileIO 
-        : ISource<FileOptions>, 
+        : ITextSource<FileOptions>, 
         IDestination<FileOptions>,
         IConfigurableSource,
         IConfigurableDestination

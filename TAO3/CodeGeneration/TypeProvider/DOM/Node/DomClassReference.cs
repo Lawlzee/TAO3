@@ -15,6 +15,11 @@ namespace TAO3.TypeProvider
             Type = type;
         }
 
+        public DomClassReference(Type type)
+        {
+            Type = type.FullName!;
+        }
+
         public void Accept(DomVisitor visitor)
         {
             visitor.Visit(this);

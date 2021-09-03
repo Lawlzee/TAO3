@@ -13,40 +13,33 @@ using TAO3.Internal.Extensions;
 
 namespace TAO3.Converters
 {
-
-    public interface IConverterContext<TSettings>
+    public interface IConverterContext
     {
         string VariableName { get; }
-        CSharpKernel CSharpKernel { get; }
-        TSettings? Settings { get; set; }
         Task<string> GetTextAsync();
-        Task SubmitCodeAsync(string code);
-        Task<string> CreatePrivateVariableAsync(object? value, Type type);
+    }
+
+    public interface IConverterContext<TSettings> : IConverterContext
+    {
+        TSettings? Settings { get; }
     }
 
     internal class ConverterContext<TSettings> : IConverterContext<TSettings>
     {
-        private readonly bool _verbose;
         private readonly Func<Task<string>> _getTextAsync;
         private string? _text;
         private bool _textInitialized = false;
 
         public string VariableName { get; }
-        public TSettings? Settings { get; set; }
-
-        public CSharpKernel CSharpKernel { get; }
+        public TSettings? Settings { get; }
 
         public ConverterContext(
             string name,
             TSettings? settings,
-            bool verbose,
-            CSharpKernel cSharpKernel,
             Func<Task<string>> getTextAsync)
         {
             VariableName = name;
-            _verbose = verbose;
             Settings = settings;
-            CSharpKernel = cSharpKernel;
             _getTextAsync = getTextAsync;
 
         }
@@ -60,22 +53,5 @@ namespace TAO3.Converters
             }
             return _text!;
         }
-
-        public async Task SubmitCodeAsync(string code)
-        {
-            if (_verbose)
-            {
-                code.Display();
-            }
-
-            await CSharpKernel.SubmitCodeAsync(code);
-        }
-
-        public async Task<string> CreatePrivateVariableAsync(object? value, Type type)
-        {
-            string name = $"__internal_{Guid.NewGuid().ToString("N")}";
-            await CSharpKernel.SetVariableAsync(name, value, type);
-            return name;
-}
     }
 }

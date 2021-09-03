@@ -9,7 +9,7 @@ using TAO3.Clipboard;
 
 namespace TAO3.IO
 {
-    internal class ClipboardIO : ISource<Unit>, IDestination<Unit>
+    internal class ClipboardIO : ITextSource, IDestination<Unit>
     {
         private readonly IClipboardService _clipboard;
         public string Name => "clipboard";
@@ -21,7 +21,6 @@ namespace TAO3.IO
             _clipboard = clipboard;
         }
 
-        Task<string> ISource<Unit>.GetTextAsync(Unit options) => GetTextAsync();
         public async Task<string> GetTextAsync()
         {
             return (await _clipboard.GetTextAsync()) ?? string.Empty;

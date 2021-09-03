@@ -18,7 +18,7 @@ namespace TAO3.IO
     }
 
     internal class NotepadIO : 
-        ISource<Unit>, 
+        ITextSource, 
         IDestination<NotepadDestinationOptions>,
         IConfigurableDestination
     {
@@ -32,7 +32,6 @@ namespace TAO3.IO
             _notepad = notepad;
         }
 
-        Task<string> ISource<Unit>.GetTextAsync(Unit options) => GetTextAsync();
         public Task<string> GetTextAsync()
         {
             return Task.Run(_notepad.GetText);

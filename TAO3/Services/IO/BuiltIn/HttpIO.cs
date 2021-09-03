@@ -35,7 +35,7 @@ namespace TAO3.IO
     }
 
     internal class HttpIO : 
-        ISource<HttpSourceOptions>,
+        ITextSource<HttpSourceOptions>,
         IDestination<HttpDestinationOptions>,
         IConfigurableSource,
         IConfigurableDestination

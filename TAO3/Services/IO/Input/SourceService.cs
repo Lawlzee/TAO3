@@ -17,7 +17,8 @@ namespace TAO3.IO
         IObservable<ISourceEvent> Events { get; }
         IEnumerable<ISource> Sources { get; }
 
-        void Register<T>(ISource<T> source);
+        void Register<T>(ITextSource<T> source);
+        void Register<T>(IIntermediateSource<T> source);
         bool Remove(string name);
     }
 
@@ -35,7 +36,17 @@ namespace TAO3.IO
             _events = new();
         }
 
-        public void Register<T>(ISource<T> source)
+        public void Register<T>(ITextSource<T> source)
+        {
+            DoRegister(source);
+        }
+
+        public void Register<T>(IIntermediateSource<T> source)
+        {
+            DoRegister(source);
+        }
+
+        private void DoRegister(ISource source)
         {
             if (_sourceByName.TryGetValue(source.Name, out ISource? oldInputSource))
             {

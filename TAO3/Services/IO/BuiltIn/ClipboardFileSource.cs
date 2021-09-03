@@ -4,19 +4,24 @@ using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Clipboard;
+using TAO3.Converters;
 using TAO3.Internal.Commands;
+using TAO3.TypeProvider;
 
 namespace TAO3.IO
 {
-    internal record ClipboardFileOptions
+    public record ClipboardFileOptions
     {
         public Encoding? Encoding { get; init; }
     }
 
-    internal class ClipboardFileSource : ISource<ClipboardFileOptions>, IConfigurableSource
+    internal class ClipboardFileSource :
+        IIntermediateSource<ClipboardFileOptions>,
+        IConfigurableSource
     {
         private readonly IClipboardService _clipboardService;
 
@@ -33,27 +38,51 @@ namespace TAO3.IO
             command.Add(CommandFactory.CreateEncodingOptions());
         }
 
-        public async Task<string> GetTextAsync(ClipboardFileOptions options)
+        public async Task<IDomType> ProvideTypeAsync(ClipboardFileOptions options, Func<ProvideSourceArguments, Task<IDomType>> inferChildTypeAsync)
         {
             List<string> files = await _clipboardService.GetFilesAsync();
-            if (files.Count == 0)
+
+            //if (files.Count == 0)
+            //{
+            //    throw new Exception("No file found in clipboard");
+            //}
+
+            //todo: change
+            string className = "Temp";
+
+            var fileContents = await Task.WhenAll(files
+                .Select(async path => new
+                {
+                    Path = path,
+                    Text = options.Encoding != null
+                        ? await File.ReadAllTextAsync(path, options.Encoding)
+                        : await File.ReadAllTextAsync(path)
+                }));
+
+            DomClassProperty[] properties = await Task.WhenAll(fileContents
+                .Select(async x => new DomClassProperty(
+                    identifier: Path.GetFileNameWithoutExtension(x.Path),
+                    name: Path.GetFileName(x.Path),
+                    await inferChildTypeAsync(new ProvideSourceArguments(x.Path, x.Text)))));
+
+            return new DomClass(
+                className,
+                properties.ToList());
+        }
+
+        public async Task<T> GetAsync<T>(ClipboardFileOptions options, Func<DeserializeArguments, object?> deserializeChild)
+        {
+            List<string> files = await _clipboardService.GetFilesAsync();
+
+            T result = Activator.CreateInstance<T>();
+            foreach ((PropertyInfo property, string path) in typeof(T).GetProperties().Zip(files))
             {
-                throw new Exception("No file found in clipboard");
+                object? value = deserializeChild(new DeserializeArguments(path, property.PropertyType));
+
+                property.SetValue(result, value);
             }
 
-            if (files.Count > 1)
-            {
-                throw new NotImplementedException("Support for multiple file in clipboard is not implemented yet.");
-            }
-
-            string path = files[0];
-
-            if (options.Encoding != null)
-            {
-                return await File.ReadAllTextAsync(path, options.Encoding);
-            }
-
-            return await File.ReadAllTextAsync(path);
+            return result;
         }
     }
 }
