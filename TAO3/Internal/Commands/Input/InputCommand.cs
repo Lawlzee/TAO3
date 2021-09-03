@@ -25,12 +25,16 @@ namespace TAO3.Internal.Commands.Input
 {
     internal class InputCommand : Command
     {
+        private readonly CSharpKernel _cSharpKernel;
+
         public InputCommand(
             ISourceService sourceService,
             IFormatConverterService formatConverterService,
             CSharpKernel cSharpKernel)
             : base("#!input", "Get a value from a source and convert it to a C# object")
         {
+            _cSharpKernel = cSharpKernel;
+
             AddAlias("#!in");
 
             sourceService.Events.RegisterChildCommand<ISourceEvent, SourceAddedEvent, SourceRemovedEvent>(
@@ -43,48 +47,43 @@ namespace TAO3.Internal.Commands.Input
                         return TypeInferer.Invoke(
                             evnt.Source,
                             typeof(ITextSource<>),
-                            () => CreateTextSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
+                            () => CreateTextSourceCommand<Unit>(evnt.Source, formatConverterService));
                     }
 
                     return TypeInferer.Invoke(
                         evnt.Source,
                         typeof(IIntermediateSource<>),
-                        () => CreateIntermediateSourceCommand<Unit>(evnt.Source, formatConverterService, cSharpKernel));
+                        () => CreateIntermediateSourceCommand<Unit>(evnt.Source, formatConverterService));
                 });
         }
 
         private (Command, IDisposable) CreateTextSourceCommand<TSourceOptions>(
             ISource source,
-            IFormatConverterService formatConverterService,
-            CSharpKernel cSharpKernel)
+            IFormatConverterService formatConverterService)
         {
             ITextSource<TSourceOptions> typedSource = (ITextSource<TSourceOptions>)source;
             TextSourceAdapter<TSourceOptions> sourceAdapter = new(typedSource);
 
             return CreateSourceCommand(
                 sourceAdapter,
-                formatConverterService,
-                cSharpKernel);
+                formatConverterService);
         }
 
         private (Command, IDisposable) CreateIntermediateSourceCommand<TSourceOptions>(
             ISource source,
-            IFormatConverterService formatConverterService,
-            CSharpKernel cSharpKernel)
+            IFormatConverterService formatConverterService)
         {
             IIntermediateSource<TSourceOptions> typedSource = (IIntermediateSource<TSourceOptions>)source;
             IntermediateSourceAdapter<TSourceOptions> sourceAdapter = new(typedSource);
 
             return CreateSourceCommand(
                 sourceAdapter,
-                formatConverterService,
-                cSharpKernel);
+                formatConverterService);
         }
 
         private (Command, IDisposable) CreateSourceCommand<TSourceOptions>(
             ISourceAdapter<TSourceOptions> source,
-            IFormatConverterService formatConverterService,
-            CSharpKernel cSharpKernel)
+            IFormatConverterService formatConverterService)
         {
             Command command = new Command(source.Name);
             command.AddAliases(source.Aliases);
@@ -101,13 +100,13 @@ namespace TAO3.Internal.Commands.Input
                         return TypeInferer.Invoke(
                             evnt.Converter,
                             typeof(IConverter<,>),
-                            () => CreateConverterCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
+                            () => CreateConverterCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter));
                     }
 
                     return TypeInferer.Invoke(
                         evnt.Converter,
                         typeof(IConverterTypeProvider<,>),
-                        () => CreateConverterTypeProviderCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter, cSharpKernel));
+                        () => CreateConverterTypeProviderCommand<Unit, Unit, TSourceOptions>(source, evnt.Converter));
                 });
 
             return (command, formatSubscription);
@@ -115,8 +114,7 @@ namespace TAO3.Internal.Commands.Input
 
         private Command CreateConverterCommand<T, TSettings, TSourceOptions>(
             ISourceAdapter<TSourceOptions> source,
-            IConverter converter,
-            CSharpKernel cSharpKernel)
+            IConverter converter)
         {
             IConverter<T, TSettings> typedConverter = (IConverter<T, TSettings>)converter;
 
@@ -132,7 +130,7 @@ namespace TAO3.Internal.Commands.Input
                 return TypeInferer.Invoke(
                     converter,
                     typeof(IInputConfigurableConverter<,>),
-                    () => CreateConfigurableConverterCommand<TSettings, Unit, T, TSourceOptions>(source, typedConverter, cSharpKernel));
+                    () => CreateConfigurableConverterCommand<TSettings, Unit, T, TSourceOptions>(source, typedConverter));
             }
 
             DefaultConverterTypeProviderAdapter<T, TSettings, Unit> typeProvider = new(typedConverter);
@@ -145,14 +143,12 @@ namespace TAO3.Internal.Commands.Input
 
             return DoCreateConverterCommand(
                 source,
-                converterAdapter,
-                cSharpKernel);
+                converterAdapter);
         }
 
         public Command CreateConfigurableConverterCommand<TSettings, TCommandParameters, T, TSourceOptions>(
             ISourceAdapter<TSourceOptions> source,
-            IConverter<T, TSettings> converter,
-            CSharpKernel cSharpKernel)
+            IConverter<T, TSettings> converter)
         {
             DefaultConverterTypeProviderAdapter<T, TSettings, TCommandParameters> typeProvider = new(converter);
             IInputConfigurableConverter<TSettings, TCommandParameters> configurableConverter = (IInputConfigurableConverter<TSettings, TCommandParameters>)converter;
@@ -164,14 +160,12 @@ namespace TAO3.Internal.Commands.Input
 
             return DoCreateConverterCommand(
                 source,
-                converterAdapter,
-                cSharpKernel);
+                converterAdapter);
         }
 
         private Command CreateConverterTypeProviderCommand<TSettings, TCommandParameters, TSourceOptions>(
             ISourceAdapter<TSourceOptions> source,
-            IConverter converter,
-            CSharpKernel cSharpKernel)
+            IConverter converter)
         {
             IConverterTypeProvider<TSettings, TCommandParameters> typedConverter = (IConverterTypeProvider<TSettings, TCommandParameters>)converter;
             ConverterTypeProviderAdapter<TSettings, TCommandParameters> typeProviderAdapter = new(typedConverter);
@@ -183,14 +177,12 @@ namespace TAO3.Internal.Commands.Input
 
             return DoCreateConverterCommand(
                 source,
-                converterAdapter,
-                cSharpKernel);
+                converterAdapter);
         }
 
         private Command DoCreateConverterCommand<TSettings, TCommandParameters, TSourceOptions>(
             ISourceAdapter<TSourceOptions> source,
-            ConverterAdapter<TSettings, TCommandParameters> converter,
-            CSharpKernel cSharpKernel)
+            ConverterAdapter<TSettings, TCommandParameters> converter)
         {
             Command command = new Command(converter.Format);
             command.AddAliases(converter.Aliases);
@@ -199,7 +191,11 @@ namespace TAO3.Internal.Commands.Input
 
             command.Add(new Argument<string>("name", "The name of the variable that will contain the deserialized clipboard content"));
             command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
-            command.Add(CommandFactory.CreateSettingsOption<TSettings>(cSharpKernel));
+            
+            if (typeof(TSettings) != typeof(Unit))
+            {
+                command.Add(CommandFactory.CreateSettingsOption<TSettings>(_cSharpKernel));
+            }
 
             Action<TSourceOptions> converterBinder = ParameterBinder.Create<TSourceOptions, IConverter>(converter);
             Action<TCommandParameters> sourceBinder = ParameterBinder.Create<TCommandParameters, ISource>(source);
@@ -218,7 +214,7 @@ namespace TAO3.Internal.Commands.Input
                     variableName: name,
                     verbose,
                     realSettings,
-                    cSharpKernel);
+                    _cSharpKernel);
             });
 
             return command;

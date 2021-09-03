@@ -22,7 +22,7 @@ namespace TAO3.Converters.Json
 
     public class JsonConverter :
         IConverterTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>,
-        IOutputConfigurableConverterCommand<JsonSerializerSettings, Unit>
+        IOutputConfigurableConverter<JsonSerializerSettings, Unit>
     {
         private readonly ITypeProvider<JsonSource> _typeProvider;
 

@@ -19,7 +19,7 @@ namespace TAO3.Converters
 
     public interface IConverter<T, TSettings> : IConverter
     {
-        string Serialize(T value, TSettings? settings);
+        string Serialize(object? value, TSettings? settings);
         T Deserialize(string text, TSettings? settings);
     }
 
@@ -28,7 +28,7 @@ namespace TAO3.Converters
         string Serialize(object? value);
         T Deserialize(string text);
 
-        string IConverter<T, Unit>.Serialize(T value, Unit _) => Serialize(value);
+        string IConverter<T, Unit>.Serialize(object? value, Unit _) => Serialize(value);
         T IConverter<T, Unit>.Deserialize(string text, Unit _) => Deserialize(text);
     }
 

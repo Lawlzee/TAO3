@@ -170,7 +170,7 @@ namespace TAO3.Internal
 
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
             compositeKernel.AddDirective(new InputCommand(sourceService, formatConverter, cSharpKernel));
-            //compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter, cSharpKernel));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter, cSharpKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());

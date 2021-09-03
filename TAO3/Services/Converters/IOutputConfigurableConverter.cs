@@ -13,7 +13,7 @@ using TAO3.Internal.Extensions;
 
 namespace TAO3.Converters
 {
-    public interface IOutputConfigurableConverterCommand<TSettings, TCommandParameters>
+    public interface IOutputConfigurableConverter<TSettings, TCommandParameters>
     {
         void Configure(Command command);
         TSettings GetDefaultSettings();

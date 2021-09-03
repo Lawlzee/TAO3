@@ -35,7 +35,7 @@ namespace TAO3.Converters.Csv
 
     public class CsvConverter :
         IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>,  
-        IOutputConfigurableConverterCommand<CsvConfiguration, CsvConverterOutputParameters>
+        IOutputConfigurableConverter<CsvConfiguration, CsvConverterOutputParameters>
 
     {
         private readonly ITypeProvider<CsvSource> _typeProvider;

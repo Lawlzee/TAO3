@@ -33,7 +33,7 @@ namespace TAO3.Converters.Xml
     //We can probably do a lot better then this, but it works for now
     public class XmlConverter :
         IConverterTypeProvider<XmlWriterSettings, XmlInputConverterParameters>,
-        IOutputConfigurableConverterCommand<XmlWriterSettings, XmlOutputConverterParameters>
+        IOutputConfigurableConverter<XmlWriterSettings, XmlOutputConverterParameters>
     {
         private readonly TAO3.Converters.Json.JsonConverter _jsonConverter;
         private readonly ITypeProvider<JsonSource> _typeProvider;
