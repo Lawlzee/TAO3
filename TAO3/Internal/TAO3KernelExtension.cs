@@ -41,6 +41,7 @@ using TAO3.Formatting;
 using TAO3.Internal.Kernels.Razor;
 using RazorLight;
 using TAO3.VsCode;
+using TAO3.Internal.Commands.GenerateHttpClient;
 
 namespace TAO3.Internal
 {
@@ -181,6 +182,7 @@ namespace TAO3.Internal
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
+            compositeKernel.AddDirective(new GenerateHttpClientCommand(cSharpKernel));
 
             compositeKernel.Add(new TranslateKernel(translationService));
 

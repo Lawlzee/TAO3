@@ -71,7 +71,7 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
             Add(new Option<string>(new[] { "--address" }, "Address"));
             Add(new Option<string>(new[] { "--addr" }, "Addr"));
             Add(new Option<string>(new[] { "--networkAddress" }, "Network Address"));
-            Add(new Option<bool>(new[] { "--verbose", "-v" }));
+            Add(new Option<bool>(new[] { "--verbose", "-v" }, "Print debugging information"));
 
             Handler = CommandHandler.Create(async (ConnectMSSQLOptions options, bool verbose) =>
             {

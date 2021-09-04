@@ -66,8 +66,8 @@
 - [ ] Provide getting started documentation when user reference TAO3 like extension lab does
 - [x] Add a template language (razor)
 - [x] Fix inconsistant case (camelCase, PascalCase, etc) for command arguments/options
-- [ ] Generate SVC client
-  - [ ] see svcutil.exe
+- [x] Generate SVC client
+  - [x] see svcutil.exe
 - [ ] Add a bogus data generator
   - [ ] BogusGenerator.Generate<MyType>();//result: new MyType { Prop1 = "Prop1", Prop2 = 0, ...};
 - [x] Add `Compare(string left, string right)`, `CompareFiles(string pathLeft, string pathRight)` and `Compare(object left, object right)`
