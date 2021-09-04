@@ -70,3 +70,7 @@
   - [ ] see svcutil.exe
 - [ ] Add a bogus data generator
   - [ ] BogusGenerator.Generate<MyType>();//result: new MyType { Prop1 = "Prop1", Prop2 = 0, ...};
+- [x] Add `Compare(string left, string right)`, `CompareFiles(string pathLeft, string pathRight)` and `Compare(object left, object right)`
+  - [x] Call `code -d <file1> <file2>`
+- [x] Add open file command
+  - [x] Call `code <file>`

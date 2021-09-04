@@ -23,6 +23,7 @@ using TAO3.Toast;
 using TAO3.Translation;
 using TAO3.TypeProvider;
 using TAO3.Formatting;
+using TAO3.VsCode;
 
 namespace TAO3
 {
@@ -35,45 +36,46 @@ namespace TAO3
         public static IKeyboardService Keyboard => Services.Keyboard;
         public static IClipboardService Clipboard => Services.Clipboard;
         public static IToastService Toast => Services.Toast;
-        public static IFormatConverterService FormatConverter => Services.FormatConverter;
+        public static IConverterService Converter => Services.Converter;
         public static ISourceService SourceService => Services.SourceService;
         public static IDestinationService OutputDestination => Services.DestinationService;
         public static ICellService Cells => Services.Cells;
         public static HttpClient HttpClient => Services.HttpClient;
         public static ITranslationService Translation => Services.Translation;
-        public static TAO3Converters Converters => Services.Converters;
+        public static TAO3Converters BuiltInConverters => Services.BuiltInConverters;
         public static ITypeProviders TypeProviders => Services.TypeProviders;
         public static TAO3Formatters Formatters => Services.Formatters;
+        public static IVsCodeService VsCode => Services.VsCode;
 
-        public static string ToJson(object? value, JsonSerializerSettings? settings = null) => Converters.Json.Serialize(value, settings);
-        public static string ToXml(object? value, XmlWriterSettings? settings = null) => Converters.Xml.Serialize(value, settings);
-        public static string ToCsv(object? value, CsvConfiguration? settings = null) => Converters.Csv.Serialize(value, settings);
-        public static string ToCsvh(object? value, CsvConfiguration? settings = null) => Converters.Csvh.Serialize(value, settings);
-        public static string ToLine(object? value) => Converters.Line.Serialize(value);
-        public static string ToHtml(object? value) => Converters.Html.Serialize(value);
-        public static string ToCSharp(object? value) => Converters.CSharp.Serialize(value);
-        public static string ToSql(object? value) => Converters.Sql.Serialize(value);
+        public static string ToJson(object? value, JsonSerializerSettings? settings = null) => BuiltInConverters.Json.Serialize(value, settings);
+        public static string ToXml(object? value, XmlWriterSettings? settings = null) => BuiltInConverters.Xml.Serialize(value, settings);
+        public static string ToCsv(object? value, CsvConfiguration? settings = null) => BuiltInConverters.Csv.Serialize(value, settings);
+        public static string ToCsvh(object? value, CsvConfiguration? settings = null) => BuiltInConverters.Csvh.Serialize(value, settings);
+        public static string ToLine(object? value) => BuiltInConverters.Line.Serialize(value);
+        public static string ToHtml(object? value) => BuiltInConverters.Html.Serialize(value);
+        public static string ToCSharp(object? value) => BuiltInConverters.CSharp.Serialize(value);
+        public static string ToSql(object? value) => BuiltInConverters.Sql.Serialize(value);
 
-        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<T>(text, settings);
-        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<T>(text, settings);
-        public static List<T> FromCsv<T>(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<T>(text, settings);
-        public static List<T> FromCsvh<T>(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<T>(text, settings);
+        public static T FromJson<T>(string text, JsonSerializerSettings? settings = null) => BuiltInConverters.Json.Deserialize<T>(text, settings);
+        public static T FromXml<T>(string text, XmlWriterSettings? settings = null) => BuiltInConverters.Xml.Deserialize<T>(text, settings);
+        public static List<T> FromCsv<T>(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csv.Deserialize<T>(text, settings);
+        public static List<T> FromCsvh<T>(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csvh.Deserialize<T>(text, settings);
         public static List<T> FromSql<T>(string text)
             where T : new()
         {
-            return Converters.Sql.Deserialize<T>(text);
+            return BuiltInConverters.Sql.Deserialize<T>(text);
         }
 
-        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => Converters.Json.Deserialize<ExpandoObject>(text, settings);
-        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => Converters.Xml.Deserialize<ExpandoObject>(text, settings);
-        public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<dynamic>(text, settings);
-        public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<dynamic>(text, settings);
-        public static List<string> FromLine(string text) => Converters.Line.Deserialize(text);
-        public static HtmlString FromHtml(string text) => Converters.Html.Deserialize(text);
-        public static CSharpCompilationUnit FromCSharp(string text) => Converters.CSharp.Deserialize(text);
+        public static dynamic FromJson(string text, JsonSerializerSettings? settings = null) => BuiltInConverters.Json.Deserialize<ExpandoObject>(text, settings);
+        public static dynamic FromXml(string text, XmlWriterSettings? settings = null) => BuiltInConverters.Xml.Deserialize<ExpandoObject>(text, settings);
+        public static List<dynamic> FromCsv(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csv.Deserialize<dynamic>(text, settings);
+        public static List<dynamic> FromCsvh(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csvh.Deserialize<dynamic>(text, settings);
+        public static List<string> FromLine(string text) => BuiltInConverters.Line.Deserialize(text);
+        public static HtmlString FromHtml(string text) => BuiltInConverters.Html.Deserialize(text);
+        public static CSharpCompilationUnit FromCSharp(string text) => BuiltInConverters.CSharp.Deserialize(text);
 
-        public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => Converters.Csv.Deserialize<string[]>(text, settings);
-        public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => Converters.Csvh.Deserialize<string[]>(text, settings);
+        public static List<string[]> FromCsvArray(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csv.Deserialize<string[]>(text, settings);
+        public static List<string[]> FromCsvhArray(string text, CsvConfiguration? settings = null) => BuiltInConverters.Csvh.Deserialize<string[]>(text, settings);
 
         public static DisplayedValue DisplayAsJson(string json, bool format = true) => (format ? FormatJson(json) : json).DisplayAs("application/json");
         public static DisplayedValue DisplayAsHtml(string html) => html.DisplayAs("text/html");

@@ -26,6 +26,7 @@ namespace TAO3.Converters.Sql
         public string Format => "sql";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "text/x-sql";
+        public IReadOnlyList<string> FileExtensions => new[] { ".sql" };
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler => _typeProvider;
 

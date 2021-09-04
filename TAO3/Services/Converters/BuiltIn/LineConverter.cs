@@ -14,6 +14,7 @@ namespace TAO3.Converters.Line
         public string Format => "line";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "text/plain";
+        public IReadOnlyList<string> FileExtensions => new[] { ".txt" };
         public Dictionary<string, object> Properties { get; }
 
         public LineConverter()

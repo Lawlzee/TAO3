@@ -15,6 +15,7 @@ using TAO3.Notepad;
 using TAO3.Toast;
 using TAO3.Translation;
 using TAO3.TypeProvider;
+using TAO3.VsCode;
 using TAO3.Windows;
 
 namespace TAO3.Services
@@ -25,16 +26,17 @@ namespace TAO3.Services
         IKeyboardService Keyboard,
         IClipboardService Clipboard,
         IToastService Toast,
-        IFormatConverterService FormatConverter,
+        IConverterService Converter,
         ISourceService SourceService,
         IDestinationService DestinationService,
         ICellService Cells,
         IWindowsService WindowsService,
         HttpClient HttpClient,
         ITranslationService Translation,
-        TAO3Converters Converters,
+        TAO3Converters BuiltInConverters,
         ITypeProviders TypeProviders,
-        TAO3Formatters Formatters) : IDisposable
+        TAO3Formatters Formatters,
+        IVsCodeService VsCode) : IDisposable
     {
         public void Dispose()
         {
@@ -43,16 +45,17 @@ namespace TAO3.Services
             Keyboard.Dispose();
             Clipboard.Dispose();
             Toast.Dispose();
-            FormatConverter.Dispose();
+            Converter.Dispose();
             SourceService.Dispose();
             DestinationService.Dispose();
             Cells.Dispose();
             WindowsService.Dispose();
             HttpClient.Dispose();
             Translation.Dispose();
-            Converters.Dispose();
+            BuiltInConverters.Dispose();
             TypeProviders.Dispose();
             Formatters.Dispose();
+            VsCode.Dispose();
         }
     }
 }

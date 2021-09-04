@@ -40,6 +40,7 @@ using TAO3.Internal.Kernels.Translate;
 using TAO3.Formatting;
 using TAO3.Internal.Kernels.Razor;
 using RazorLight;
+using TAO3.VsCode;
 
 namespace TAO3.Internal
 {
@@ -58,7 +59,7 @@ namespace TAO3.Internal
             IClipboardService clipboard = windowsService.Clipboard;
 
             IToastService toast = new ToastService();
-            IFormatConverterService formatConverter = new FormatConverterService();
+            IConverterService converterService = new ConverterService();
 
             ISourceService sourceService = new SourceService();
             IDestinationService destinationService = new DestinationService();
@@ -115,7 +116,7 @@ namespace TAO3.Internal
 
             JsonConverter jsonConverter = new JsonConverter(jsonTypeProvider);
 
-            TAO3Converters converters = new TAO3Converters(
+            TAO3Converters builtInConverters = new TAO3Converters(
                 new CSharpConverter(new CSharpObjectSerializer()),
                 new CsvConverter(csvTypeProvider, false),
                 new CsvConverter(csvTypeProvider, true),
@@ -127,6 +128,11 @@ namespace TAO3.Internal
                 new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
             CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
+            IInteractiveHost interactiveHost = cSharpKernel.TryGetVariable("InteractiveHost", out IInteractiveHost host)
+                ? host
+                : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
+
+            IVsCodeService vsCode = new VsCodeService(interactiveHost, converterService);
 
             IExcelService excel = new ExcelService(
                 cSharpKernel,
@@ -153,24 +159,25 @@ namespace TAO3.Internal
                 keyboard,
                 clipboard,
                 toast,
-                formatConverter,
+                converterService,
                 sourceService,
                 destinationService,
                 cellService,
                 windowsService,
                 httpClient,
                 translationService,
-                converters,
+                builtInConverters,
                 typeProviders,
-                formatters);
+                formatters,
+                vsCode);
 
             Prelude.Kernel = compositeKernel;
 
             compositeKernel.RegisterForDisposal(Prelude.Services);
 
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
-            compositeKernel.AddDirective(new InputCommand(sourceService, formatConverter, cSharpKernel));
-            compositeKernel.AddDirective(new OutputCommand(destinationService, formatConverter, cSharpKernel));
+            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());
@@ -185,15 +192,15 @@ namespace TAO3.Internal
 
             compositeKernel.Add(new RazorKernel(razorEngine));
 
-            formatConverter.Register(converters.Csv);
-            formatConverter.Register(converters.Csvh);
-            formatConverter.Register(converters.Json);
-            formatConverter.Register(converters.Xml);
-            formatConverter.Register(converters.Line);
-            formatConverter.Register(converters.Text);
-            formatConverter.Register(converters.Html);
-            formatConverter.Register(converters.CSharp);
-            formatConverter.Register(converters.Sql);
+            converterService.Register(builtInConverters.Csv);
+            converterService.Register(builtInConverters.Csvh);
+            converterService.Register(builtInConverters.Json);
+            converterService.Register(builtInConverters.Xml);
+            converterService.Register(builtInConverters.Line);
+            converterService.Register(builtInConverters.Text);
+            converterService.Register(builtInConverters.Html);
+            converterService.Register(builtInConverters.CSharp);
+            converterService.Register(builtInConverters.Sql);
 
             ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             NotepadIO notepadIO = new NotepadIO(notepad);

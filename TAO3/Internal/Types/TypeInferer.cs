@@ -82,7 +82,7 @@ namespace TAO3.Internal.Types
             }
 
             List<Type> genericTypeMatches = type
-                .GetParentTypes()
+                .GetSelfAndParentTypes()
                 .Where(x => x.IsGenericType)
                 .Where(x => x.GetGenericTypeDefinition() == genericTypeDefinition)
                 .ToList();

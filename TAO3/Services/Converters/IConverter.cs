@@ -14,13 +14,20 @@ namespace TAO3.Converters
         string Format { get; }
         IReadOnlyList<string> Aliases { get; }
         string MimeType { get; }
+        IReadOnlyList<string> FileExtensions { get; }
         Dictionary<string, object> Properties { get; }
+
+        string Serialize(object? value, object? settings = null);
+        object? Deserialize<T>(string text, object? settings = null);
     }
 
     public interface IConverter<T, TSettings> : IConverter
     {
         string Serialize(object? value, TSettings? settings);
         T Deserialize(string text, TSettings? settings);
+
+        string IConverter.Serialize(object? value, object? settings) => Serialize(value, (TSettings?)settings);
+        object? IConverter.Deserialize<TResult>(string text, object? settings) => Deserialize(text, (TSettings?)settings);
     }
 
     public interface IConverter<T> : IConverter<T, Unit>
@@ -45,6 +52,9 @@ namespace TAO3.Converters
     {
         string Serialize(object? value, TSettings? settings);
         T Deserialize<T>(string text, TSettings? settings);
+
+        string IConverter.Serialize(object? value, object? settings) => Serialize(value, (TSettings?)settings);
+        object? IConverter.Deserialize<T>(string text, object? settings) => Deserialize<T>(text, (TSettings?)settings);
 
         IDomCompiler DomCompiler { get; }
         Task<IDomType> ProvideTypeAsync(IConverterContext<TSettings> context, TCommandParameters args);

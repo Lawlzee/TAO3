@@ -19,6 +19,7 @@ namespace TAO3.Converters.CSharp
         public string Format => "csharp";
         public IReadOnlyList<string> Aliases => new[] { "c#" };
         public string MimeType => "text/x-csharp";
+        public IReadOnlyList<string> FileExtensions => new[] { ".cs" };
         public Dictionary<string, object> Properties { get; }
 
         public CSharpConverter(ICSharpObjectSerializer serializer)

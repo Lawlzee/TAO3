@@ -16,7 +16,7 @@ namespace TAO3.Converters.Html
         public string Format => "html";
         public string MimeType => "text/html";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
-
+        public IReadOnlyList<string> FileExtensions => new[] { ".html" };
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler { get; } 
 

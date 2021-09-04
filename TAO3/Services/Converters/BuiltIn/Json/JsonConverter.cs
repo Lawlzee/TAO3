@@ -29,6 +29,7 @@ namespace TAO3.Converters.Json
         public string Format => "json";
         public string MimeType => "application/json";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
+        public IReadOnlyList<string> FileExtensions => new[] { ".json" };
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler => _typeProvider;
 

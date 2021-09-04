@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Subjects;
 using TAO3.Converters;
 
 namespace TAO3.Converters
 {
-    public interface IFormatConverterService : IDisposable
+    public interface IConverterService : IDisposable
     {
+        IReadOnlyCollection<IConverter> Converters { get; }
         IObservable<IConverterEvent> Events { get; }
         IConverter? TryGetConverter(string format);
         void Register<T, TSettings>(IConverter<T, TSettings> converter);
@@ -14,13 +16,14 @@ namespace TAO3.Converters
         bool Remove(string format);
     }
 
-    public class FormatConverterService : IFormatConverterService
+    public class ConverterService : IConverterService
     {
         private readonly Dictionary<string, IConverter> _converters;
         private readonly ReplaySubject<IConverterEvent> _events;
         public IObservable<IConverterEvent> Events => _events;
+        public IReadOnlyCollection<IConverter> Converters => _converters.Values;
 
-        public FormatConverterService()
+        public ConverterService()
         {
             _converters = new(StringComparer.OrdinalIgnoreCase);
             _events = new();

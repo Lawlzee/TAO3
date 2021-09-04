@@ -10,17 +10,16 @@ using TAO3.TypeProvider;
 namespace TAO3.Internal.Commands.Input
 {
     internal class ConverterAdapter<TSettings, TCommandParameters> : 
-        IConverter, 
         IConverterTypeProviderAdapter<TSettings, TCommandParameters>,
         IInputConfigurableConverter<TSettings, TCommandParameters>
     {
         private readonly IConverterTypeProviderAdapter<TSettings, TCommandParameters> _typeProvider;
         private readonly IInputConfigurableConverter<TSettings, TCommandParameters> _configurable;
-        private readonly IConverter _converter;
-        public string Format => _converter.Format;
-        public IReadOnlyList<string> Aliases => _converter.Aliases;
-        public string MimeType => _converter.MimeType;
-        public Dictionary<string, object> Properties => _converter.Properties;
+        public IConverter Converter { get; }
+        public string Format => Converter.Format;
+        public IReadOnlyList<string> Aliases => Converter.Aliases;
+        public string MimeType => Converter.MimeType;
+        public Dictionary<string, object> Properties => Converter.Properties;
 
         public IDomCompiler DomCompiler => _typeProvider.DomCompiler;
 
@@ -31,7 +30,7 @@ namespace TAO3.Internal.Commands.Input
         {
             _typeProvider = typeProvider;
             _configurable = configurable;
-            _converter = converter;
+            Converter = converter;
         }
 
         public TSettings BindParameters(TSettings settings, TCommandParameters args)

@@ -9,22 +9,21 @@ using TAO3.Converters;
 namespace TAO3.Internal.Commands.Output
 {
     internal class ConverterAdapter<TSettings, TCommandParameters> :
-        IConverter,
         IOutputConfigurableConverter<TSettings, TCommandParameters>,
         IConverterSerializer<TSettings>
     {
-        private readonly IConverter _converter;
+        public IConverter Converter { get; }
         private readonly IOutputConfigurableConverter<TSettings, TCommandParameters> _configurable;
         private readonly IConverterSerializer<TSettings> _serializer;
 
-        public string Format => _converter.Format;
-        public IReadOnlyList<string> Aliases => _converter.Aliases;
-        public string MimeType => _converter.MimeType;
-        public Dictionary<string, object> Properties => _converter.Properties;
+        public string Format => Converter.Format;
+        public IReadOnlyList<string> Aliases => Converter.Aliases;
+        public string MimeType => Converter.MimeType;
+        public Dictionary<string, object> Properties => Converter.Properties;
 
         public ConverterAdapter(IConverter converter, IOutputConfigurableConverter<TSettings, TCommandParameters> configurable, IConverterSerializer<TSettings> serializer)
         {
-            _converter = converter;
+            Converter = converter;
             _configurable = configurable;
             _serializer = serializer;
         }

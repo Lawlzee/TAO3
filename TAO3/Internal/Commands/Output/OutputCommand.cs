@@ -26,7 +26,7 @@ namespace TAO3.Internal.Commands.Output
 
         public OutputCommand(
             IDestinationService destinationService,
-            IFormatConverterService formatConverterService,
+            IConverterService converterService,
             CSharpKernel cSharpKernel)
             : base("#!output", "Convert and copy returned value to destination")
         {
@@ -41,13 +41,13 @@ namespace TAO3.Internal.Commands.Output
                     return TypeInferer.Invoke(
                         evnt.Destination,
                         typeof(IDestination<>),
-                        () => CreateDestinationCommand<Unit>(evnt.Destination, formatConverterService));
+                        () => CreateDestinationCommand<Unit>(evnt.Destination, converterService));
                 });
         }
 
         private (Command, IDisposable) CreateDestinationCommand<TDestinationOptions>(
             IDestination destination, 
-            IFormatConverterService formatConverterService)
+            IConverterService converterService)
         {
             Command command = new Command(destination.Name);
             command.AddAliases(destination.Aliases);
@@ -59,7 +59,7 @@ namespace TAO3.Internal.Commands.Output
 
             IDestination<TDestinationOptions> typedDestination = (IDestination<TDestinationOptions>)destination;
 
-            IDisposable formatSubscription = formatConverterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
+            IDisposable formatSubscription = converterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                 command,
                 x => x.Converter.Format,
                 evnt => 
@@ -143,7 +143,7 @@ namespace TAO3.Internal.Commands.Output
                 command.Add(CommandFactory.CreateSettingsOption<TSettings>(_cSharpKernel));
             }
 
-            Action<TDestinationOptions> converterBinder = ParameterBinder.Create<TDestinationOptions, IConverter>(converter);
+            Action<TDestinationOptions> converterBinder = ParameterBinder.Create<TDestinationOptions, IConverter>(converter.Converter);
             Action<TCommandParameters> destinationBinder = ParameterBinder.Create<TCommandParameters, IDestination>(destination);
 
             command.Handler = CommandHandler.Create((SettingsWrapper<TSettings> settingsWrapper, TDestinationOptions destinationOptions, TCommandParameters converterCommandParameters, string? variable, KernelInvocationContext context) =>

@@ -76,7 +76,7 @@ namespace TAO3.TextSerializer
 
             Type type = obj.GetType();
 
-            foreach (Type parentType in type.GetParentTypes().Distinct())
+            foreach (Type parentType in type.GetSelfAndParentTypes())
             {
                 bool success = TryConvert(sb, obj, options, parentType, parentType)
                     || (parentType.IsGenericType && TryConvert(sb, obj, options, parentType.GetGenericTypeDefinition(), parentType));

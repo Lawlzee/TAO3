@@ -12,6 +12,7 @@ namespace TAO3.Converters.Text
         public string Format => "text";
         public IReadOnlyList<string> Aliases => new[] { "string" };
         public string MimeType => "text/plain";
+        public IReadOnlyList<string> FileExtensions => new[] { ".txt" };
         public Dictionary<string, object> Properties { get; }
 
         public TextConverter()

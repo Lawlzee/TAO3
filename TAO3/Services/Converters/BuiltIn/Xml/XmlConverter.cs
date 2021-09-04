@@ -41,6 +41,7 @@ namespace TAO3.Converters.Xml
         public string Format => "xml";
         public IReadOnlyList<string> Aliases => Array.Empty<string>();
         public string MimeType => "application/xml";
+        public IReadOnlyList<string> FileExtensions => new[] { ".xml" };
         public Dictionary<string, object> Properties { get; }
         public IDomCompiler DomCompiler => _typeProvider;
 

@@ -7,7 +7,7 @@ namespace TAO3.Internal.Types
 {
     internal static class TypeExtensions
     {
-        public static IEnumerable<Type> GetParentTypes(this Type type)
+        public static IEnumerable<Type> GetSelfAndParentTypes(this Type type)
         {
             yield return type;
             foreach (Type interfaceType in type.GetInterfaces())
@@ -26,7 +26,7 @@ namespace TAO3.Internal.Types
         //https://stackoverflow.com/questions/5461295/using-isassignablefrom-with-open-generic-types
         internal static bool IsAssignableToGenericType(this Type givenType, Type genericType)
         {
-            return givenType.GetParentTypes()
+            return givenType.GetSelfAndParentTypes()
                 .Where(x => x.IsGenericType)
                 .Select(x => x.GetGenericTypeDefinition())
                 .Where(x => x == genericType)
