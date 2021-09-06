@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WindowsHook;
 
-namespace TAO3.Internal.Commands.Macro
+namespace TAO3.Macro
 {
     internal static class ShortcutParser
     {

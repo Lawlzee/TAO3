@@ -65,9 +65,4 @@
 		<None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
 	</ItemGroup>
 
-
-	<ItemGroup>
-	  <Folder Include="Services\Macro\" />
-	</ItemGroup>
-
 </Project>

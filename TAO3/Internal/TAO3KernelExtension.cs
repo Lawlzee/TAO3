@@ -43,6 +43,8 @@ using RazorLight;
 using TAO3.VsCode;
 using TAO3.Internal.Commands.GenerateHttpClient;
 using TAO3.Avalonia;
+using TAO3.Macro;
+using TAO3.EventHandlers.Macro;
 
 namespace TAO3.Internal
 {
@@ -157,6 +159,8 @@ namespace TAO3.Internal
             IVsCodeService vsCode = new VsCodeService(interactiveHost, converterService);
             IAvaloniaService avalonia = new AvaloniaService();
 
+            IMacroService macroService = new MacroService(keyboard, compositeKernel);
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -174,13 +178,20 @@ namespace TAO3.Internal
                 typeProviders,
                 formatters,
                 vsCode,
-                avalonia);
+                avalonia,
+                macroService);
 
             Prelude.Kernel = compositeKernel;
 
             compositeKernel.RegisterForDisposal(Prelude.Services);
 
-            compositeKernel.AddDirective(await MacroCommand.CreateAsync(keyboard, toast));
+            compositeKernel.RegisterForDisposal(await ShowMacrosInAvalonia.CreateAsync(avalonia, macroService));
+            compositeKernel.RegisterForDisposal(new SendToastNotificationOnMacroCompletion(macroService, toast));
+
+            HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
+            JavaScriptKernel javascriptKernel = (JavaScriptKernel)compositeKernel.FindKernel("javascript");
+
+            compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
             compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel));
             compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));

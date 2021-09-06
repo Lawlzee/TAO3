@@ -12,6 +12,7 @@ using TAO3.Excel;
 using TAO3.Formatting;
 using TAO3.IO;
 using TAO3.Keyboard;
+using TAO3.Macro;
 using TAO3.Notepad;
 using TAO3.Toast;
 using TAO3.Translation;
@@ -38,7 +39,8 @@ namespace TAO3.Services
         ITypeProviders TypeProviders,
         TAO3Formatters Formatters,
         IVsCodeService VsCode,
-        IAvaloniaService Avalonia) : IDisposable
+        IAvaloniaService Avalonia,
+        IMacroService MacroService) : IDisposable
     {
         public void Dispose()
         {
@@ -59,6 +61,7 @@ namespace TAO3.Services
             Formatters.Dispose();
             VsCode.Dispose();
             Avalonia.Dispose();
+            MacroService.Dispose();
         }
     }
 }

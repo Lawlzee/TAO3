@@ -9,11 +9,14 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
 using TAO3.Keyboard;
+using TAO3.Macro;
 using TAO3.Toast;
 using WindowsHook;
 
@@ -21,7 +24,10 @@ namespace TAO3.Internal.Commands.Macro
 {
     internal class MacroCommand : Command
     {
-        private MacroCommand(IKeyboardService keyboard, IToastService toast)
+        private MacroCommand(
+            IMacroService macroService,
+            JavaScriptKernel javaScriptKernel,
+            HtmlKernel htmlKernel)
             : base("#!macro", "Add a macro that run the code in the cell")
         {
             Add(new Argument<string>("shortcut", "Ex. CTRL+SHIFT+1"));
@@ -30,53 +36,64 @@ namespace TAO3.Internal.Commands.Macro
 
             Handler = CommandHandler.Create(async (string shortcut, string name, bool silent, KernelInvocationContext context) =>
             {
-                Keys shortcutKeys = ShortcutParser.Parse(shortcut);
                 SubmitCode originalCommand = (SubmitCode)context.Command;
                 string code = RemoveMacroCommand(originalCommand.Code);
-                CompositeKernel rootKernel = context.HandlingKernel.ParentKernel;
 
-                Kernel javascriptKernel = rootKernel.FindKernel("javascript");
+                string macroName = string.IsNullOrEmpty(name)
+                    ? shortcut
+                    : name;
+
+                TAO3Macro macro = new TAO3Macro(
+                    macroName,
+                    shortcut,
+                    code,
+                    originalCommand.TargetKernelName,
+                    !silent);
+
                 string cellId = $"__internal_cell_{Guid.NewGuid():N}";
 
-                keyboard.RegisterOnKeyPressed(shortcutKeys, () =>
-                {
-                    Stopwatch? stopwatch = null;
-                    if (!silent)
+                CommandFailed? commandFailed = null;
+                List<ReturnValueProduced> valuesProduced = new List<ReturnValueProduced>();
+
+                IDisposable subscription = null!;
+                subscription = macroService.Events
+                    .Where(evnt => evnt.Macro == macro)
+                    .SelectMany(async evnt =>
                     {
-                        stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                    }
-
-                    _ = Task.Run(async () =>
-                    {
-                        context.Display(DateTime.Now);
-
-                        SubmitCode submitCode = new SubmitCode(code, originalCommand.TargetKernelName, originalCommand.SubmissionType);
-
-                        (CommandFailed? commandFailed, ReturnValueProduced? returnValueProduced) = await RunCellAsync(rootKernel, submitCode);
-
-                        string title = (commandFailed, name) switch
+                        if (evnt is MacroRemoved)
                         {
-                            (CommandFailed failed, _) => failed.Message,
-                            (_, "") => $"{shortcut} ran successfully!",
-                            (_, string macroName) => $"{macroName} ran successfully!",
-                            _ => $"{shortcut} ran successfully!",
-                        };
-                        await PrintCellResultAsync(silent, javascriptKernel, cellId, commandFailed, returnValueProduced, title);
-
-                        if (silent)
-                        {
-                            return;
+                            subscription.Dispose();
                         }
 
-                        stopwatch!.Stop();
-                        string body = FormatToastBody(stopwatch, commandFailed);
+                        if (evnt is MacroValueProduced valueProduced)
+                        {
+                            valuesProduced.Add(valueProduced.ReturnValueProduced);
+                        }
 
-                        toast.Notify(title, body, DateTimeOffset.Now.AddSeconds(1));
-                    });
-                });
+                        if (evnt is MacroExecutionFailed failed)
+                        {
+                            commandFailed = failed.CommandFailed;
+                        }
 
-                Kernel htmlKernel = rootKernel.FindKernel("html");
+                        if (evnt is MacroExecutionCompleted completed)
+                        {
+                            try
+                            {
+                                await PrintCellResultAsync(macro, cellId, commandFailed, valuesProduced);
+                            }
+                            finally
+                            {
+                                commandFailed = null;
+                                valuesProduced.Clear();
+                            }
+                        }
+
+                        return Unit.Default;
+                    })
+                    .Subscribe();
+                
+                macroService.Add(macro);
+
                 await htmlKernel.SubmitCodeAsync($@"
                     <!DOCTYPE html>
                     <html>
@@ -102,19 +119,51 @@ namespace TAO3.Internal.Commands.Macro
 
                 context.Complete(context.Command);
             });
+
+            async Task PrintCellResultAsync(
+                TAO3Macro macro,
+                string cellId,
+                CommandFailed? commandFailed,
+                List<ReturnValueProduced> valuesProduced)
+            {
+                string[] body = (valuesProduced.Count > 0, commandFailed != null, macro.ToastNotificationOnRun) switch
+                {
+                    (true, _, _) => valuesProduced.SelectMany(x => x.FormattedValues).Select(x => x.Value).ToArray(),
+                    (_, true, _) => FormatCommandFailedBody(),
+                    (_, _, false) => new[] { $"{macro.Name} ran successfully!" },
+                    _ => Array.Empty<string>()
+                };
+
+                string json = JsonConvert.SerializeObject(body);
+                await javaScriptKernel.SendAsync(new SubmitJsCodeCommand($@"{cellId}_Print({json})"));
+
+                string[] FormatCommandFailedBody()
+                {
+                    string[] body = Regex.Split(commandFailed!.Message, @"\r\n|\r|\n");
+
+                    if (commandFailed!.Exception == null)
+                    {
+                        return body;
+                    }
+
+                    return body.Concat(Regex.Split(commandFailed!.Exception.ToString(), @"\r\n|\r|\n")).ToArray();
+                }
+            }
         }
 
-        public static async Task<MacroCommand> CreateAsync(IKeyboardService keyboard, IToastService toast)
+        public static async Task<MacroCommand> CreateAsync(
+            IMacroService macroService,
+            JavaScriptKernel javaScriptKernel,
+            HtmlKernel htmlKernel)
         {
-            await RegisterSendJavascriptCodeCommandAsync();
-            return new MacroCommand(keyboard, toast);
+            await RegisterSendJavascriptCodeCommandAsync(javaScriptKernel);
+            return new MacroCommand(macroService, javaScriptKernel, htmlKernel);
         }
 
-        private static async Task RegisterSendJavascriptCodeCommandAsync()
+        private static async Task RegisterSendJavascriptCodeCommandAsync(JavaScriptKernel javaScriptKernel)
         {
-            Kernel jsKernel = Kernel.Root.FindKernel("javascript");
-            jsKernel.RegisterCommandType<SubmitJsCodeCommand>();
-            await jsKernel.SubmitCodeAsync(@"
+            javaScriptKernel.RegisterCommandType<SubmitJsCodeCommand>();
+            await javaScriptKernel.SubmitCodeAsync(@"
                 interactive.registerCommandHandler({commandType: 'SubmitJsCodeCommand', handle: c => {
                     eval(c.command.code);
                 }});");
@@ -129,74 +178,6 @@ namespace TAO3.Internal.Commands.Macro
                 code
                     .Split(Environment.NewLine)
                     .Where(line => !line.StartsWith("#!macro")));
-        }
-
-        private async Task<(CommandFailed?, ReturnValueProduced?)> RunCellAsync(CompositeKernel rootKernel, SubmitCode submitCode)
-        {
-            IDisposable? disposable = null;
-            CommandFailed? commandFailed = null;
-            ReturnValueProduced? returnValueProduced = null;
-
-            try
-            {
-                disposable = rootKernel.KernelEvents.Subscribe(
-                onNext: e =>
-                {
-                    KernelCommand rootCommand = e.Command.GetRootCommand();
-                    if (rootCommand == submitCode)
-                    {
-                        if (e is CommandFailed failed)
-                        {
-                            commandFailed = failed;
-                        }
-
-                        if (e is ReturnValueProduced valueProduced)
-                        {
-                            returnValueProduced = valueProduced;
-                        }
-                    }
-                });
-
-                await rootKernel.SendAsync(submitCode);
-                return (commandFailed, returnValueProduced);
-            }
-            finally
-            {
-                disposable?.Dispose();
-            }
-        }
-
-
-        private async Task PrintCellResultAsync(
-            bool silent, 
-            Kernel javascriptKernel, 
-            string cellId, 
-            CommandFailed? commandFailed, 
-            ReturnValueProduced? returnValueProduced, 
-            string title)
-        {
-            string[] body = (returnValueProduced != null, commandFailed != null, silent) switch
-            {
-                (true, _, _) => returnValueProduced!.FormattedValues.Select(x => x.Value).ToArray(),
-                (_, true, _) => FormatCommandFailedBody(),
-                (_, _, true) => new[] { title },
-                _ => Array.Empty<string>()
-            };
-
-            string json = JsonConvert.SerializeObject(body);
-            await javascriptKernel.SendAsync(new SubmitJsCodeCommand($@"{cellId}_Print({json})"));
-
-            string[] FormatCommandFailedBody()
-            {
-                string[] body = Regex.Split(commandFailed!.Message, @"\r\n|\r|\n");
-
-                if (commandFailed!.Exception == null)
-                {
-                    return body;
-                }
-                
-                return body.Concat(Regex.Split(commandFailed!.Exception.ToString(), @"\r\n|\r|\n")).ToArray();
-            }
         }
 
         private string FormatToastBody(Stopwatch stopwatch, CommandFailed? commandFailed)

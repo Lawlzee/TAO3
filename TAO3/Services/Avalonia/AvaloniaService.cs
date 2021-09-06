@@ -18,15 +18,16 @@ namespace TAO3.Avalonia
     public interface IAvaloniaService : IDisposable
     {
         AvaloniaApp Application { get; }
-        
+
         bool IsApplicationStarted { get; }
         IObservable<Unit> ApplicationStarted { get; }
         IObservable<Unit> ApplicationStoped { get; }
 
         Task DispatchAsync(Action action);
+        Task<T> DispatchAsync<T>(Func<T> action);
 
-        Task AddTabAsync(TabItem tab);
-        Task AddMenuItemAsync(MenuItem menuItem);
+        Task<TabItem> AddTabAsync(Func<TabItem> tabFactory);
+        Task<MenuItem> AddMenuItemAsync(Func<MenuItem> menuItemFactory);
 
         Task RemoveTabAsync(TabItem tab);
         Task RemoveMenuItemAsync(MenuItem menuItem);
@@ -99,20 +100,28 @@ namespace TAO3.Avalonia
             return Application.UIThread.InvokeAsync(action);
         }
 
-        public Task AddMenuItemAsync(MenuItem menuItem)
+        public Task<T> DispatchAsync<T>(Func<T> action)
         {
-            return DispatchAsync(() =>
-            {
-                Application.Menu.Items = Application.Menu.Items.OfType<IControl>().Append(menuItem).ToList();
-            });
-            
+            return Application.UIThread.InvokeAsync(action);
         }
 
-        public Task AddTabAsync(TabItem tab)
+        public Task<MenuItem> AddMenuItemAsync(Func<MenuItem> menuItemFactory)
         {
             return DispatchAsync(() =>
             {
-                Application.TabControl.Items = Application.TabControl.Items.OfType<IControl>().Append(tab).ToList();
+                MenuItem menuItem = menuItemFactory();
+                Application.Menu.Items = Application.Menu.Items.OfType<IControl>().Append(menuItem).ToList();
+                return menuItem;
+            });
+        }
+
+        public Task<TabItem> AddTabAsync(Func<TabItem> tabFactory)
+        {
+            return DispatchAsync(() =>
+            {
+                TabItem tabItem = tabFactory();
+                Application.TabControl.Items = Application.TabControl.Items.OfType<IControl>().Append(tabItem).ToList();
+                return tabItem;
             });
         }
 
@@ -168,9 +177,10 @@ namespace TAO3.Avalonia
                 {
                     Items = new List<IControl>
                     {
-                        new MenuItem{
-                            Header = "Open file",
-                            Command = ReactiveCommand.Create(() => { })
+                        new MenuItem
+                        {
+                            Header = "Open file"//,
+                            //Command = ReactiveCommand.Create(() => { })
                         }
                     }
                 };

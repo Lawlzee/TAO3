@@ -25,6 +25,7 @@ using TAO3.TypeProvider;
 using TAO3.Formatting;
 using TAO3.VsCode;
 using TAO3.Avalonia;
+using TAO3.Macro;
 
 namespace TAO3
 {
@@ -48,6 +49,7 @@ namespace TAO3
         public static TAO3Formatters Formatters => Services.Formatters;
         public static IVsCodeService VsCode => Services.VsCode;
         public static IAvaloniaService AvaloniaService => Services.Avalonia;
+        public static IMacroService MacroService => Services.MacroService;
 
         public static string ToJson(object? value, JsonSerializerSettings? settings = null) => BuiltInConverters.Json.Serialize(value, settings);
         public static string ToXml(object? value, XmlWriterSettings? settings = null) => BuiltInConverters.Xml.Serialize(value, settings);
