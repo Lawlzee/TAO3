@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Avalonia;
 using TAO3.Cell;
 using TAO3.Clipboard;
 using TAO3.Converters;
@@ -36,7 +37,8 @@ namespace TAO3.Services
         TAO3Converters BuiltInConverters,
         ITypeProviders TypeProviders,
         TAO3Formatters Formatters,
-        IVsCodeService VsCode) : IDisposable
+        IVsCodeService VsCode,
+        IAvaloniaService Avalonia) : IDisposable
     {
         public void Dispose()
         {
@@ -56,6 +58,7 @@ namespace TAO3.Services
             TypeProviders.Dispose();
             Formatters.Dispose();
             VsCode.Dispose();
+            Avalonia.Dispose();
         }
     }
 }

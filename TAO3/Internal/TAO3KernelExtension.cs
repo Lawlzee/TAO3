@@ -42,6 +42,7 @@ using TAO3.Internal.Kernels.Razor;
 using RazorLight;
 using TAO3.VsCode;
 using TAO3.Internal.Commands.GenerateHttpClient;
+using TAO3.Avalonia;
 
 namespace TAO3.Internal
 {
@@ -133,8 +134,7 @@ namespace TAO3.Internal
                 ? host
                 : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
 
-            IVsCodeService vsCode = new VsCodeService(interactiveHost, converterService);
-
+            
             IExcelService excel = new ExcelService(
                 cSharpKernel,
                 excelTypeProvider);
@@ -154,6 +154,9 @@ namespace TAO3.Internal
                 new SqlFormatter(),
                 new XmlFormatter());
 
+            IVsCodeService vsCode = new VsCodeService(interactiveHost, converterService);
+            IAvaloniaService avalonia = new AvaloniaService();
+
             Prelude.Services = new TAO3Services(
                 excel,
                 notepad,
@@ -170,7 +173,8 @@ namespace TAO3.Internal
                 builtInConverters,
                 typeProviders,
                 formatters,
-                vsCode);
+                vsCode,
+                avalonia);
 
             Prelude.Kernel = compositeKernel;
 
