@@ -22,7 +22,7 @@ namespace TAO3.Internal.Commands
                 }
 
                 string variableName = result.Tokens[0].Value;
-                if (cSharpKernel.TryGetVariable(variableName, out object variableInstance))
+                if (cSharpKernel.TryGetValue(variableName, out object variableInstance))
                 {
                     return (T)variableInstance;
                 }
@@ -34,7 +34,8 @@ namespace TAO3.Internal.Commands
             option.AddSuggestions((_, text) =>
             {
                 return cSharpKernel
-                    .GetVariableNames()
+                    .GetValueInfos()
+                    .Select(x => x.Name)
                     .Where(x => text?.Contains(x) ?? true);
             });
 

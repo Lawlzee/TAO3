@@ -42,13 +42,13 @@ namespace TAO3.Internal.Extensions
             CancellationToken cancellationToken = default,
             Func<Exception, bool>? catchException = default)
         {
-            return (Task)_runAsyncMethodInfo.Invoke(kernel, new object[] { code, cancellationToken, catchException })!;
+            return (Task)_runAsyncMethodInfo.Invoke(kernel, new object?[] { code, cancellationToken, catchException })!;
         }
 
         public static async Task<string> CreatePrivateVariableAsync(this CSharpKernel csharpKernel, object? value, Type type)
         {
             string name = $"__internal_{Guid.NewGuid().ToString("N")}";
-            await csharpKernel.SetVariableAsync(name, value, type);
+            await csharpKernel.SetValueAsync(name, value, type);
             return name;
         }
 

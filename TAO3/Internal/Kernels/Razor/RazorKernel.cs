@@ -118,7 +118,7 @@ namespace TAO3.Internal.Kernels.Razor
 
                 if (!options.Suppress)
                 {
-                    args.CSharpKernel.TryGetVariable(variableName, out string razorResult);
+                    args.CSharpKernel.TryGetValue(variableName, out string razorResult);
 
                     object diplayRazorResult = options.MimeType == "text/html"
                         ? new HtmlString(razorResult)
@@ -217,7 +217,7 @@ namespace TAO3.Internal.Kernels.Razor
                     // Report the compilation failure or exception
                     if (exception is not null)
                     {
-                        context.Fail(exception, message);
+                        context.Fail(submitCode, exception, message);
                     }
                     else
                     {
@@ -234,7 +234,7 @@ namespace TAO3.Internal.Kernels.Razor
                 }
                 else
                 {
-                    context.Fail(null, "Command cancelled");
+                    context.Fail(submitCode, null, "Command cancelled");
                 }
 
                 bool HasReturnValue()
@@ -335,7 +335,7 @@ namespace TAO3.Internal.Kernels.Razor
 
                 if (failContextIfGenerationFails)
                 {
-                    context.Fail(ex);
+                    context.Fail(command, ex);
                 }
 
                 return null;

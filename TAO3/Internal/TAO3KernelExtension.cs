@@ -132,7 +132,7 @@ namespace TAO3.Internal
                 new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
             CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
-            IInteractiveHost interactiveHost = cSharpKernel.TryGetVariable("InteractiveHost", out IInteractiveHost host)
+            IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
                 ? host
                 : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
 

@@ -230,7 +230,7 @@ string CleanFile(string file)
 ";
             await SubmitCodeAsync(submission1);
 
-            csharpKernel.TryGetVariable("code", out string submission2);
+            csharpKernel.TryGetValue("code", out string submission2);
 
             await SubmitCodeAsync(submission2);
 

@@ -1,68 +1,69 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Library</OutputType>
-		<TargetFramework>net5.0</TargetFramework>
-		<IncludeBuildOutput>true</IncludeBuildOutput>
-		<IsPackable>true</IsPackable>
-		<Nullable>enable</Nullable>
-		<Authors>Olivier Lavoie</Authors>
-		<Company>Olivier Lavoie</Company>
-		<Description>TAO3</Description>
-		<NoWarn>$(NoWarn);NU5100;VSTHRD002</NoWarn>
-	</PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+    <Authors>Olivier Lavoie</Authors>
+    <Company>Olivier Lavoie</Company>
+    <Description>TAO3</Description>
+    <NoWarn>$(NoWarn);NU5100;VSTHRD002</NoWarn>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<Compile Remove="bin\**" />
-		<None Remove="bin\**" />
-	</ItemGroup>
+  <ItemGroup>
+    <Compile Remove="bin\**" />
+    <None Remove="bin\**" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.7" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
-		<PackageReference Include="CsvHelper" Version="19.0.0" />
-		<PackageReference Include="FastExpressionCompiler" Version="3.2.1" />
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21357.1" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21357.1" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.21357.1" />
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
+    <PackageReference Include="CsvHelper" Version="19.0.0" />
+    <PackageReference Include="FastExpressionCompiler" Version="3.2.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.0" />
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21459.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.21459.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.21459.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.8" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-		<PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="150.5164.1" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-		<PackageReference Include="ReactiveUI" Version="16.2.1" />
-		<PackageReference Include="System.Reactive" Version="5.0.0" />
-		<PackageReference Include="WindowsHook" Version="1.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="150.5164.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="ReactiveUI" Version="16.2.1" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="WindowsHook" Version="1.0.1" />
     <PackageReference Include="RazorLight" Version="2.0.0-rc.3" />
-	</ItemGroup>
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Remove="bin\Debug\net5.0\/TAO3.dll" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Remove="bin\Debug\net5.0\/TAO3.dll" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<COMReference Include="Microsoft.Office.Interop.Excel">
-			<WrapperTool>tlbimp</WrapperTool>
-			<VersionMinor>9</VersionMinor>
-			<VersionMajor>1</VersionMajor>
-			<Guid>00020813-0000-0000-c000-000000000046</Guid>
-			<Lcid>0</Lcid>
-			<Isolated>false</Isolated>
-			<EmbedInteropTypes>true</EmbedInteropTypes>
-		</COMReference>
-	</ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Interop.Excel">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>9</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>00020813-0000-0000-c000-000000000046</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
 
 
-	<ItemGroup>
-		<None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
+  </ItemGroup>
 
 </Project>

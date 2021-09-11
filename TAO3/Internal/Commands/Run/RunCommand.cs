@@ -1,6 +1,7 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
-using Microsoft.DotNet.Interactive.Notebook;
+using Microsoft.DotNet.Interactive.Documents;
+using Microsoft.DotNet.Interactive.Events;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -8,12 +9,13 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Cell;
 using TAO3.Internal.Extensions;
 using TAO3.Internal.Utils;
-using NotebookCell = Microsoft.DotNet.Interactive.Notebook.NotebookCell;
 using TAO3NotebookCell = TAO3.Cell.NotebookCell;
 
 namespace TAO3.Internal.Commands.Run
@@ -79,15 +81,29 @@ namespace TAO3.Internal.Commands.Run
 
                 string extension = Path.GetExtension(path);
 
-                if (extension.Equals(".dib", StringComparison.OrdinalIgnoreCase) 
+                if (extension.Equals(".dib", StringComparison.OrdinalIgnoreCase)
                     || extension.Equals(".ipynb", StringComparison.OrdinalIgnoreCase))
                 {
-                    NotebookDocument notebook = Kernel.Current.ParentKernel.ParseNotebook(path, File.ReadAllBytes(path));
-                    foreach (NotebookCell cell in notebook.Cells)
-                    {
-                        //todo: handle errors
-                        await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
-                    }
+                    KernelCommandResult commandResult = await context.HandlingKernel.ParentKernel
+                        .SendAsync(new ParseInteractiveDocument(
+                            Path.GetFileName(path),
+                            await File.ReadAllBytesAsync(path),
+                            context.HandlingKernel.Name));
+
+                    commandResult.KernelEvents
+                        .SelectMany(async evnt =>
+                        {
+                            if (evnt is InteractiveDocumentParsed documentParsed)
+                            {
+                                foreach (InteractiveDocumentElement cell in documentParsed.Document.Elements)
+                                {
+                                    //todo: handle errors
+                                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
+                                }
+                            }
+                            return Unit.Default;
+                        })
+                        .Subscribe();
                 }
                 else if (extension.Equals(".csx", StringComparison.OrdinalIgnoreCase))
                 {

@@ -133,7 +133,8 @@ namespace TAO3.Internal.Commands.Output
             variableArgument.AddSuggestions((_, text) =>
             {
                 return _cSharpKernel
-                    .GetVariableNames()
+                    .GetValueInfos()
+                    .Select(x => x.Name)
                     .Where(x => text?.Contains(x) ?? true);
             });
             command.Add(variableArgument);
@@ -201,7 +202,7 @@ namespace TAO3.Internal.Commands.Output
                             {
                                 if (variableName != null)
                                 {
-                                    if (_cSharpKernel.TryGetVariable(variableName, out object? variable))
+                                    if (_cSharpKernel.TryGetValue(variableName, out object? variable))
                                     {
                                         string resultText = converter.Serialize(variable, settings);
                                         await destination.SetTextAsync(resultText, destinationOptions);

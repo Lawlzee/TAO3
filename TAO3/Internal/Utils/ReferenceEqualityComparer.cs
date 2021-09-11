@@ -22,7 +22,9 @@ namespace TAO3.Internal.Utils
 
         public int GetHashCode(T obj)
         {
+#pragma warning disable RS1024 // Compare symbols correctly
             return RuntimeHelpers.GetHashCode(obj);
+#pragma warning restore RS1024 // Compare symbols correctly
         }
     }
 }
