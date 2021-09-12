@@ -17,20 +17,25 @@ using System.Reactive.Disposables;
 using System.Reactive;
 using System.Linq.Expressions;
 using TAO3.Internal.Types;
+using TAO3.Converters.Default;
 
 namespace TAO3.Internal.Commands.Output
 {
     internal class OutputCommand : Command
     {
         private readonly CSharpKernel _cSharpKernel;
+        private readonly DefaultConverter _defaultConverter;
 
         public OutputCommand(
             IDestinationService destinationService,
             IConverterService converterService,
-            CSharpKernel cSharpKernel)
+            CSharpKernel cSharpKernel, 
+            DefaultConverter defaultConverter)
             : base("#!output", "Convert and copy returned value to destination")
         {
             _cSharpKernel = cSharpKernel;
+            _defaultConverter = defaultConverter;
+
             AddAlias("#!out");
 
             destinationService.Events.RegisterChildCommand<IDestinationEvent, DestinationAddedEvent, DestinationRemovedEvent>(
@@ -43,6 +48,7 @@ namespace TAO3.Internal.Commands.Output
                         typeof(IDestination<>),
                         () => CreateDestinationCommand<Unit>(evnt.Destination, converterService));
                 });
+            
         }
 
         private (Command, IDisposable) CreateDestinationCommand<TDestinationOptions>(
@@ -59,31 +65,42 @@ namespace TAO3.Internal.Commands.Output
 
             IDestination<TDestinationOptions> typedDestination = (IDestination<TDestinationOptions>)destination;
 
+            TypeInferer.Invoke(
+                _defaultConverter,
+                typeof(IConverterTypeProvider<,>),
+                () => CreateConverterTypeProviderCommand<Unit, Unit, TDestinationOptions>(typedDestination, _defaultConverter, command));
+
             IDisposable formatSubscription = converterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
                 command,
                 x => x.Converter.Format,
-                evnt => 
+                evnt =>
                 {
+                    Command converterCommand = new Command(evnt.Converter.Format);
                     if (evnt.Converter.GetType().IsAssignableToGenericType(typeof(IConverter<,>)))
                     {
-                        return TypeInferer.Invoke(
+                        TypeInferer.Invoke(
                             evnt.Converter,
                             typeof(IConverter<,>),
-                            () => CreateConverterCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter));
+                            () => CreateConverterCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
+                    }
+                    else
+                    {
+                        TypeInferer.Invoke(
+                            evnt.Converter,
+                            typeof(IConverterTypeProvider<,>),
+                            () => CreateConverterTypeProviderCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
                     }
 
-                    return TypeInferer.Invoke(
-                        evnt.Converter,
-                        typeof(IConverterTypeProvider<,>),
-                        () => CreateConverterTypeProviderCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter));
+                    return converterCommand;
                 });
 
             return (command, formatSubscription);
         }
 
-        private Command CreateConverterCommand<T, TSettings, TDestinationOptions>(
+        private void CreateConverterCommand<T, TSettings, TDestinationOptions>(
             IDestination<TDestinationOptions> destination,
-            IConverter converter)
+            IConverter converter,
+            Command command)
         {
             IConverter<T, TSettings> typedConverter = (IConverter<T, TSettings>)converter;
 
@@ -95,14 +112,16 @@ namespace TAO3.Internal.Commands.Output
                 configurable,
                 new ConverterSerializer<T, TSettings>(typedConverter));
 
-            return CreateConverterCommand(
+            CreateConverterCommand(
                 destination,
-                converterAdapter);
+                converterAdapter,
+                command);
         }
 
-        private Command CreateConverterTypeProviderCommand<TSettings, TCommandParameters, TDestinationOptions>(
+        private void CreateConverterTypeProviderCommand<TSettings, TCommandParameters, TDestinationOptions>(
             IDestination<TDestinationOptions> destination,
-            IConverter converter)
+            IConverter converter,
+            Command command)
         {
             IConverterTypeProvider<TSettings, TCommandParameters> typedConverter = (IConverterTypeProvider<TSettings, TCommandParameters>)converter;
 
@@ -114,17 +133,17 @@ namespace TAO3.Internal.Commands.Output
                 configurable,
                 new TypeProviderConverterSerializer<TSettings, TCommandParameters>(typedConverter));
 
-            return CreateConverterCommand(
+            CreateConverterCommand(
                 destination,
-                converterAdapter);
+                converterAdapter,
+                command);
         }
 
-        private Command CreateConverterCommand<TSettings, TCommandParameters, TDestinationOptions>(
+        private void CreateConverterCommand<TSettings, TCommandParameters, TDestinationOptions>(
             IDestination<TDestinationOptions> destination,
-            ConverterAdapter<TSettings, TCommandParameters> converter)
+            ConverterAdapter<TSettings, TCommandParameters> converter,
+            Command command)
         {
-            Command command = new Command(converter.Format);
-            
             command.AddAliases(converter.Aliases);
 
             converter.Configure(command);
@@ -155,8 +174,6 @@ namespace TAO3.Internal.Commands.Output
                 TSettings bindedSettings = converter.BindParameters(settingsWrapper.Settings ?? converter.GetDefaultSettings(), converterCommandParameters);
                 Handle(destination, destinationOptions, converter, bindedSettings, variable, context);
             });
-
-            return command;
         }
 
 

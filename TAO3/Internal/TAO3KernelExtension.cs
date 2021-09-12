@@ -45,6 +45,7 @@ using TAO3.Internal.Commands.GenerateHttpClient;
 using TAO3.Avalonia;
 using TAO3.Macro;
 using TAO3.EventHandlers.Macro;
+using TAO3.Converters.Default;
 
 namespace TAO3.Internal
 {
@@ -191,9 +192,12 @@ namespace TAO3.Internal
             HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
             JavaScriptKernel javascriptKernel = (JavaScriptKernel)compositeKernel.FindKernel("javascript");
 
-            compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
+            DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
+
             compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel));
-            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, defaultConverter));
+            
+            compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));
             compositeKernel.AddDirective(new RunCommand(cellService));
             compositeKernel.AddDirective(new ConnectMSSQLCommand());

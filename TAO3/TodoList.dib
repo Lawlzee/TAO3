@@ -12,6 +12,7 @@
   - [ ] Support T Create<T>();
   - [ ] Support dynamic Create(Type type);
   - [ ] Support T Create<T>(T example);//For anonymous types
+  - [ ] Support NakedObject UI generation
 - [x] Support alias for converters
 - [ ] Optimise Excel integration performance for large Excel files
 - [ ] Support multiple tabs in notepad++ text source
@@ -42,13 +43,13 @@
   - [ ] Enable/Disable macros
 - [ ] Add support formatters the text converters
 - [ ] Add support Clipboard files as a text source
-- [ ] Add an image .net interactive formatter
+- [x] Add an image .net interactive formatter
 - [ ] Add a fluent api to add serialization rules to ObjectSerializer
   - [ ] Rules to serialize an object of some type
 - [ ] Refactor ObjectSerializer to support custom context type and custom options type
 - [ ] Add an "head-less" version of TAO3 that can execute notebooks without a text editor (VSCode)
 - [x] Add #!out $destination $format $variableName
-- [ ] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
+- [x] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
 - [ ] Add a spelling checker API
 - [x] Add a translation API
 - [x] Path magic command with intellisense
