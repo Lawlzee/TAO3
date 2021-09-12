@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,7 +19,9 @@ namespace TAO3.Clipboard
         Task<string?> GetTextAsync(CancellationToken cancellation);
         Task SetTextAsync(string text);
         Task SetTextAsync(string text, CancellationToken cancellation);
-        
+
+        Task<Image?> GetImageAsync();
+
         void Clear();
         Task<List<string>> GetFilesAsync();
     }

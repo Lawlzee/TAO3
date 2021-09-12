@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
@@ -86,40 +87,32 @@ namespace TAO3.Clipboard
 
         private async Task TryOpenClipboardAsync(CancellationToken cancellation)
         {
-            int tryLeft = 20;
-            while (true)
+            for (int i = 0; i < 20; i++)
             {
                 if (OpenClipboard(IntPtr.Zero))
                 {
-                    break;
-                }
-
-                if (--tryLeft == 0)
-                {
-                    ThrowWin32();
+                    return;
                 }
 
                 await Task.Delay(50, cancellation);
             }
+
+            ThrowWin32();
         }
 
         private void TryOpenClipboard()
         {
-            int tryLeft = 20;
-            while (true)
+            for (int i = 0; i < 20; i++)
             {
                 if (OpenClipboard(IntPtr.Zero))
                 {
-                    break;
-                }
-
-                if (--tryLeft == 0)
-                {
-                    ThrowWin32();
+                    return;
                 }
 
                 Thread.Sleep(50);
             }
+
+            ThrowWin32();
         }
 
         public Task<string?> GetTextAsync() => GetTextAsync(CancellationToken.None);
@@ -183,13 +176,67 @@ namespace TAO3.Clipboard
             }
         }
 
+        public async Task<Image?> GetImageAsync()
+        {
+            int hr = 0;
+            for (int i = 0; i < 20; i++)
+            {
+                hr = OleGetClipboard(out IDataObject dataObject);
+
+                if (hr == 0)
+                {
+                    FORMATETC formatEtc = new FORMATETC
+                    {
+                        cfFormat = (short)ClipboardFormat.CF_BITMAP,
+                        dwAspect = DVASPECT.DVASPECT_CONTENT,
+                        lindex = -1,
+                        tymed = TYMED.TYMED_GDI
+                    };
+
+                    if (dataObject.QueryGetData(ref formatEtc) != 0)
+                    {
+                        return null;
+                    }
+
+                    dataObject.GetData(ref formatEtc, out STGMEDIUM medium);
+                    try
+                    {
+                        if (medium.unionmember == IntPtr.Zero)
+                        {
+                            return null;
+                        }
+
+
+                        Image image = Image.FromHbitmap(medium.unionmember);
+                        if (image == null)
+                        {
+                            return null;
+                        }
+
+                        Image clone = (Image)image.Clone();
+                        image.Dispose();
+                        return clone;
+                    }
+                    finally
+                    {
+                        ReleaseStgMedium(ref medium);
+                    }
+                }
+
+                await Task.Delay(50);
+            }
+
+            Marshal.ThrowExceptionForHR(hr);
+            return null;
+        }
+
+
         public async Task<List<string>> GetFilesAsync()
         {
-            var i = 20;
-
-            while (true)
+            int hr = 0;
+            for (int i = 0; i < 20; i++)
             {
-                var hr = OleGetClipboard(out IDataObject dataObject);
+                hr = OleGetClipboard(out IDataObject dataObject);
 
                 if (hr == 0)
                 {
@@ -200,11 +247,11 @@ namespace TAO3.Clipboard
                     return formats;
                 }
 
-                if (--i == 0)
-                    Marshal.ThrowExceptionForHR(hr);
-
                 await Task.Delay(50);
             }
+
+            Marshal.ThrowExceptionForHR(hr);
+            return null!;
         }
 
         private List<string> GetFilesFromOleHGLOBAL(IDataObject dataObject)
