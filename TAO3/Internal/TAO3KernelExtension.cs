@@ -194,7 +194,7 @@ namespace TAO3.Internal
 
             DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
 
-            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel));
+            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, defaultConverter));
             compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, defaultConverter));
             
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
