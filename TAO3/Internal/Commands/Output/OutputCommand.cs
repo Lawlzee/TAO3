@@ -18,6 +18,8 @@ using System.Reactive;
 using System.Linq.Expressions;
 using TAO3.Internal.Types;
 using TAO3.Converters.Default;
+using Newtonsoft.Json;
+using TAO3.Converters.Json;
 
 namespace TAO3.Internal.Commands.Output
 {
@@ -29,7 +31,8 @@ namespace TAO3.Internal.Commands.Output
         public OutputCommand(
             IDestinationService destinationService,
             IConverterService converterService,
-            CSharpKernel cSharpKernel, 
+            CSharpKernel cSharpKernel,
+            ClipboardIO defaultDestination,
             DefaultConverter defaultConverter)
             : base("#!output", "Convert and copy returned value to destination")
         {
@@ -37,6 +40,15 @@ namespace TAO3.Internal.Commands.Output
             _defaultConverter = defaultConverter;
 
             AddAlias("#!out");
+
+            CreateConverterCommand(
+                defaultDestination,
+                new ConverterAdapter<JsonSerializerSettings, Unit>(
+                    defaultConverter,
+                    defaultConverter,
+                    new TypeProviderConverterSerializer<JsonSerializerSettings, JsonConverterInputParameters>(
+                        defaultConverter)),
+                this);
 
             destinationService.Events.RegisterChildCommand<IDestinationEvent, DestinationAddedEvent, DestinationRemovedEvent>(
                 this,

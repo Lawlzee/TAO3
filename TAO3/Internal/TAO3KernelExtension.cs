@@ -192,10 +192,11 @@ namespace TAO3.Internal
             HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
             JavaScriptKernel javascriptKernel = (JavaScriptKernel)compositeKernel.FindKernel("javascript");
 
+            ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
 
-            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, defaultConverter));
-            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, defaultConverter));
+            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, clipboardIO, defaultConverter));
+            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, clipboardIO, defaultConverter));
             
             compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
             compositeKernel.AddDirective(new CellCommand(cellService));
@@ -223,7 +224,6 @@ namespace TAO3.Internal
             converterService.Register(builtInConverters.CSharp);
             converterService.Register(builtInConverters.Sql);
 
-            ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             NotepadIO notepadIO = new NotepadIO(notepad);
             FileIO fileIO = new FileIO();
             HttpIO httpIO = new HttpIO(httpClient);

@@ -21,6 +21,8 @@ using TAO3.Internal.Types;
 using System.Reactive;
 using TAO3.TypeProvider;
 using TAO3.Converters.Default;
+using TAO3.Converters.Json;
+using Newtonsoft.Json;
 
 namespace TAO3.Internal.Commands.Input
 {
@@ -33,13 +35,22 @@ namespace TAO3.Internal.Commands.Input
             ISourceService sourceService,
             IConverterService converterService,
             CSharpKernel cSharpKernel,
+            ClipboardIO defaultSource,
             DefaultConverter defaultConverter)
             : base("#!input", "Get a value from a source and convert it to a C# object")
         {
             _cSharpKernel = cSharpKernel;
             _defaultConverter = defaultConverter;
-
             AddAlias("#!in");
+
+            DoCreateConverterCommand(
+                new TextSourceAdapter<Unit>(defaultSource),
+                new ConverterAdapter<JsonSerializerSettings, JsonConverterInputParameters>(
+                    new ConverterTypeProviderAdapter<JsonSerializerSettings, JsonConverterInputParameters>(
+                        defaultConverter),
+                    defaultConverter,
+                    defaultConverter),
+                this);
 
             sourceService.Events.RegisterChildCommand<ISourceEvent, SourceAddedEvent, SourceRemovedEvent>(
                 this,
