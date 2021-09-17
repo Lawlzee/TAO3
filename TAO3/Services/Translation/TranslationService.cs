@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.NaturalLanguage;
 
 namespace TAO3.Translation
 {
@@ -17,17 +18,26 @@ namespace TAO3.Translation
 
         Task<string?[]> TranslateAsync(string sourceLanguage, string targetLanguage, params string[] texts);
         Task<string?[]> TranslateAsync(Language sourceLanguage, Language targetLanguage, params string[] texts);
+
+        ILanguageDictionary? GetDictionary(string language);
+        ILanguageDictionary? GetDictionary(Language language);
+
+
+        void LoadDictionary(string language, ILanguageDictionary dictionary);
+        void LoadDictionary(Language language, ILanguageDictionary dictionary);
     }
 
     public class TranslationService : ITranslationService
     {
         private readonly HttpClient _httpClient;
+        private readonly Dictionary<string, ILanguageDictionary> _dictionaryByLanguage;
         private string? _url;
         private string? _apiKey;
 
         public TranslationService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _dictionaryByLanguage = new Dictionary<string, ILanguageDictionary>();
         }
 
         public void Configure(string url, string? apiKey = null)
@@ -87,9 +97,31 @@ namespace TAO3.Translation
                 .ToArray();
         }
 
+        public ILanguageDictionary? GetDictionary(string language)
+        {
+            return _dictionaryByLanguage.GetValueOrDefault(language);
+        }
+
+        public ILanguageDictionary? GetDictionary(Language language)
+        {
+            return _dictionaryByLanguage.GetValueOrDefault(language.ToString());
+        }
+
+        public void LoadDictionary(string language, ILanguageDictionary dictionary)
+        {
+            _dictionaryByLanguage[language] = dictionary;
+        }
+
+        public void LoadDictionary(Language language, ILanguageDictionary dictionary)
+        {
+            _dictionaryByLanguage[language.ToString()] = dictionary;
+        }
+
         public void Dispose()
         {
             
         }
+
+        
     }
 }
