@@ -2,6 +2,7 @@
 
 - [ ] Support dataflows
   - [ ] Support a change notification for each sources (IWatchable interface)
+  - [ ] Added -r option on #!input and #!output with IObsersable<T>
 - [ ] SQL Converter
   - [x] Serializer
   - [x] Deserializer
@@ -43,7 +44,7 @@
   - [ ] Enable/Disable macros
 - [ ] Add support formatters the text converters
 - [ ] Add support Clipboard files as a text source
-- [x] Add an image .net interactive formatter
+- [ ] Add an image .net interactive formatter
 - [ ] Add a fluent api to add serialization rules to ObjectSerializer
   - [ ] Rules to serialize an object of some type
 - [ ] Refactor ObjectSerializer to support custom context type and custom options type
@@ -75,3 +76,9 @@
   - [x] Call `code -d <file1> <file2>`
 - [x] Add open file command
   - [x] Call `code <file>`
+- [ ] VS2022 integration with [VSExtensibility](https://github.com/microsoft/VSExtensibility/blob/main/docs/new-extensibility-model/getting-started/create-your-first-extension.md)
+- [ ] Integration de React
+- [ ] Support dictionnary for #!translate
+  - [ ] Add a method to load dictionnaries
+    - [ ] Save them in %appdata%
+  - [ ] Use Locality-sensitive hashing for autocompletion

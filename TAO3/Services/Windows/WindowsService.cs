@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -80,7 +81,7 @@ namespace TAO3.Windows
                 switch (msg)
                 {
                     case WindowsMessages.DRAWCLIPBOARD:
-                        clipboard.Subject.OnNext(null!);
+                        clipboard.Subject.OnNext(Unit.Default);
                         break;
                 }
 

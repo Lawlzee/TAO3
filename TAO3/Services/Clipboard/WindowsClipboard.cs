@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,12 +14,12 @@ namespace TAO3.Clipboard
 {
     internal class WindowsClipboard : IClipboardService
     {
-        public Subject<object> Subject { get; }
-        public IObservable<object> OnClipboardChange => Subject;
+        public Subject<Unit> Subject { get; }
+        public IObservable<Unit> OnClipboardChange => Subject;
 
         public WindowsClipboard()
         {
-            Subject = new Subject<object>(); ;
+            Subject = new Subject<Unit>();
         }
 
         public Task SetTextAsync(string text) => SetTextAsync(text, CancellationToken.None);
