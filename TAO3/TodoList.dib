@@ -61,10 +61,10 @@
 - [x] Format json/xml etc
 - [x] DisplayAsJson() ...
 - [x] DisplayToJson() ...
-- [ ] clipboard image source
-- [ ] Save Clipboard to file
-- [ ] Auto save clipboard to file
-  - [ ]  https://www.addictivetips.com/windows-tips/automatically-save-images-from-the-clipboard-on-windows-10/
+- [x] clipboard image source
+- [x] Save Clipboard to file
+- [x] Auto save clipboard to file
+  - [x]  https://www.addictivetips.com/windows-tips/automatically-save-images-from-the-clipboard-on-windows-10/
 - [ ] Provide getting started documentation when user reference TAO3 like extension lab does
 - [x] Add a template language (razor)
 - [x] Fix inconsistant case (camelCase, PascalCase, etc) for command arguments/options
@@ -77,7 +77,23 @@
 - [x] Add open file command
   - [x] Call `code <file>`
 - [ ] VS2022 integration with [VSExtensibility](https://github.com/microsoft/VSExtensibility/blob/main/docs/new-extensibility-model/getting-started/create-your-first-extension.md)
-- [ ] Integration de React
+- [ ] React integration
 - [x] Support dictionnary for #!translate
   - [x] Add a method to load dictionnaries
   - [x] Use Locality-sensitive hashing for autocompletion
+- [ ] Create a logo for TAO3
+- [ ] Add a command for each converter, to easily load values
+  - [ ] Add an option to load as object or as raw text
+  - [ ] Example:
+```
+          #!json <variableName> [options]
+          { "A" : 1 }
+```
+- [ ] Add `variable` source
+  - [ ] Example
+```
+          #!json myJson --text
+          { "A" : 1 }
+          #!in variable json myJson
+```
+- [ ] Fix `#!in <source> csvh <name>`

@@ -38,7 +38,7 @@ namespace TAO3.Internal.Types
             Type genericTypeDefinition,
             Expression<Action> methodExpression)
         {
-            MethodCallExpression bindedMethod = BindMethod(
+            Expression bindedMethod = BindMethod(
                 type,
                 genericTypeDefinition,
                 methodExpression);
@@ -55,7 +55,7 @@ namespace TAO3.Internal.Types
             Type genericTypeDefinition,
             Expression<Func<R>> methodExpression)
         {
-            MethodCallExpression bindedMethod = BindMethod(
+            Expression bindedMethod = BindMethod(
                 type,
                 genericTypeDefinition,
                 methodExpression);
@@ -67,7 +67,7 @@ namespace TAO3.Internal.Types
             return lambdaExpression.Invoke();
         }
 
-        private static MethodCallExpression BindMethod(
+        private static Expression BindMethod(
             Type type,
             Type genericTypeDefinition,
             LambdaExpression methodExpression)
@@ -99,7 +99,15 @@ namespace TAO3.Internal.Types
 
             Type genericType = genericTypeMatches[0];
 
-            MethodCallExpression? methodCallExpression = methodExpression.Body as MethodCallExpression;
+            Expression body = methodExpression.Body;
+
+            UnaryExpression? castExpression = body as UnaryExpression;
+            if (castExpression != null && castExpression.NodeType == ExpressionType.Convert)
+            {
+                body = castExpression.Operand;
+            }
+
+            MethodCallExpression? methodCallExpression = body as MethodCallExpression;
             if (methodCallExpression == null)
             {
                 throw new ArgumentException($"{methodExpression} must contain a MethodCallExpression");
@@ -123,17 +131,23 @@ namespace TAO3.Internal.Types
                 .GetGenericMethodDefinition()
                 .MakeGenericMethod(typeArguments);
 
-            if (methodInfo.IsStatic)
-            {
-                return Expression.Call(
+            MethodCallExpression methodCall = methodInfo.IsStatic
+                ? Expression.Call(
+                    methodInfo,
+                    methodCallExpression.Arguments)
+                : Expression.Call(
+                    methodCallExpression.Object,
                     methodInfo,
                     methodCallExpression.Arguments);
+
+            if (castExpression != null)
+            {
+                return Expression.Convert(
+                    methodCall,
+                    castExpression.Type);
             }
 
-            return Expression.Call(
-                methodCallExpression.Object,
-                methodInfo,
-                methodCallExpression.Arguments);
+            return methodCall;
         }
     }
 }

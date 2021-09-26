@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAO3.Internal.Types;
 
 namespace TAO3.TypeProvider
 {
@@ -17,7 +18,7 @@ namespace TAO3.TypeProvider
 
         public DomClassReference(Type type)
         {
-            Type = type.FullName!;
+            Type = type.PrettyPrintFullName();
         }
 
         public void Accept(DomVisitor visitor)

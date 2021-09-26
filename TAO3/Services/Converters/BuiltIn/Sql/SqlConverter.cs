@@ -48,7 +48,7 @@ namespace TAO3.Converters.Sql
 
         T IConverterTypeProvider<SqlConverterParameters>.Deserialize<T>(string text)
         {
-            return (T)(object)TypeInferer.Invoke(
+            return (T)TypeInferer.Invoke<object>(
                 typeof(T),
                 typeof(List<>),
                 () => Deserialize<Unit>(text));

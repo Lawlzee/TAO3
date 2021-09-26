@@ -11,36 +11,32 @@ namespace TAO3.NaturalLanguage
     {
         private static readonly uint _prime = 1174247;
 
-        private readonly uint[,] _minHashes;
         private readonly int _bandCount;
-        private readonly int _hasFunctionCount;
         private readonly int _hashPerBand;
-        private readonly int _wordCount;
         private readonly List<Dictionary<uint, List<int>>> _bands;
 
         public LSH(uint[,] minHashes, int hashPerBand)
         {
-            _minHashes = minHashes;
-            _hasFunctionCount = minHashes.GetUpperBound(1) + 1;
-            _wordCount = minHashes.GetUpperBound(0) + 1;
+            int hashFunctionCount = minHashes.GetUpperBound(1) + 1;
+            int wordCount = minHashes.GetUpperBound(0) + 1;
             _hashPerBand = hashPerBand;
-            _bandCount = _hasFunctionCount / hashPerBand;
-            _bands = FillBuckets();
+            _bandCount = hashFunctionCount / hashPerBand;
+            _bands = FillBuckets(minHashes, wordCount);
         }
 
-        private List<Dictionary<uint, List<int>>> FillBuckets()
+        private List<Dictionary<uint, List<int>>> FillBuckets(uint[,] minHashes, int wordCount)
         {
             List<Dictionary<uint, List<int>>> bands = new List<Dictionary<uint, List<int>>>();
 
             for (int startHashIndex = 0; startHashIndex < _bandCount; startHashIndex += _hashPerBand)
             {
                 Dictionary<uint, List<int>> band = new Dictionary<uint, List<int>>();
-                for (int wordIndex = 0; wordIndex < _wordCount; wordIndex++)
+                for (int wordIndex = 0; wordIndex < wordCount; wordIndex++)
                 {
                     uint hash = 0;
                     for (int hashIndex = startHashIndex; hashIndex < startHashIndex + _hashPerBand; hashIndex++)
                     {
-                        hash = unchecked(hash * _prime + _minHashes[wordIndex, hashIndex]);
+                        hash = unchecked(hash * _prime + minHashes[wordIndex, hashIndex]);
                     }
 
                     if (!band.ContainsKey(hash))

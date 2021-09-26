@@ -66,7 +66,7 @@ namespace TAO3.Converters.Csv
 
         T IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>.Deserialize<T>(string text, CsvConfiguration? settings)
         {
-            return (T)(object)TypeInferer.Invoke(
+            return (T)TypeInferer.Invoke<object>(
                 typeof(T),
                 typeof(List<>),
                 () => Deserialize<Unit>(text, settings));
