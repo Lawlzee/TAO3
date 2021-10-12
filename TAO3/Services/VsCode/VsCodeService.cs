@@ -31,12 +31,12 @@ namespace TAO3.VsCode
     internal class VsCodeService : IVsCodeService
     {
         private string? _userPassword;
-        private readonly IInteractiveHost _interactiveHost;
+        //private readonly IInteractiveHost _interactiveHost;
         private readonly IConverterService _converterService;
 
-        public VsCodeService(IInteractiveHost interactiveHost, IConverterService converterService)
-        {
-            _interactiveHost = interactiveHost;
+        public VsCodeService(/*IInteractiveHost interactiveHost, */IConverterService converterService)
+        {  
+            //_interactiveHost = interactiveHost;
             _converterService = converterService;
         }
 
@@ -119,7 +119,8 @@ namespace TAO3.VsCode
 
         public Task<string> AskAsync(string prompt = "", bool isPassword = false, CancellationToken cancellationToken = default)
         {
-            return _interactiveHost.GetInputAsync(prompt, isPassword, cancellationToken);
+            throw new NotImplementedException();
+            //return _interactiveHost.GetInputAsync(prompt, isPassword, cancellationToken);
         }
 
         public void ClearPassword()

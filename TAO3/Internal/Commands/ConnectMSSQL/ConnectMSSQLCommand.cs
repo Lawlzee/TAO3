@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
@@ -76,8 +78,8 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
             Handler = CommandHandler.Create(async (ConnectMSSQLOptions options, bool verbose) =>
             {
                 Kernel kernel = await CreateKernelAsync(
-                    options.GetConnectionString(), 
-                    options.GetkernelName(), 
+                    options.GetConnectionString(),
+                    options.GetkernelName(),
                     options.Context,
                     verbose);
 
@@ -88,20 +90,63 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
         private async Task<Kernel> CreateKernelAsync(
             string connectionString,
             string kernelName,
-            KernelInvocationContext context, 
+            KernelInvocationContext context,
             bool verbose)
         {
-            Kernel kernel = await new MsSqlKernelConnection().CreateKernelAsync(new MsSqlConnectionOptions
-            {
-                ConnectionString = connectionString,
-                CreateDbContext = false,
-                KernelName = kernelName
-            }, context);
+            string pathToService = PathToService(FindResolvedPackageReference(Kernel.Root), "MicrosoftSqlToolsServiceLayer");
 
+            MsSqlKernelConnector connector = new MsSqlKernelConnector(createDbContext: false, connectionString)
+            {
+                PathToService = pathToService
+            };
+
+            Kernel kernel = await connector.ConnectKernelAsync(new KernelName(kernelName));
 
             await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
 
             return kernel;
+
+            //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.FindResolvedPackageReference
+            ResolvedPackageReference FindResolvedPackageReference(Kernel rootKernel)
+            {
+                var runtimePackageIdSuffix = "native.Microsoft.SqlToolsService";
+                var resolved = rootKernel.SubkernelsAndSelf()
+                    .OfType<ISupportNuget>()
+                    .SelectMany(k => k.ResolvedPackageReferences)
+                    .FirstOrDefault(p => p.PackageName.EndsWith(runtimePackageIdSuffix, StringComparison.OrdinalIgnoreCase));
+                return resolved!;
+            }
+
+            //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.PathToService
+            string PathToService(ResolvedPackageReference resolvedPackageReference, string serviceName)
+            {
+                var pathToService = "";
+                if (resolvedPackageReference is not null)
+                {
+                    // Extract the platform 'osx-x64' from the package name 'runtime.osx-x64.native.microsoft.sqltoolsservice'
+                    var packageNameSegments = resolvedPackageReference.PackageName.Split(".");
+                    if (packageNameSegments.Length > 2)
+                    {
+                        var platform = packageNameSegments[1];
+
+                        // Build the path to the MicrosoftSqlToolsServiceLayer executable by reaching into the resolve nuget package
+                        // assuming a convention for native binaries.
+                        pathToService = Path.Combine(
+                            resolvedPackageReference.PackageRoot,
+                            "runtimes",
+                            platform,
+                            "native",
+                            serviceName);
+
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            pathToService += ".exe";
+                        }
+                    }
+                }
+
+                return pathToService;
+            }
         }
 
         private async Task InitializeDbContextAsync(

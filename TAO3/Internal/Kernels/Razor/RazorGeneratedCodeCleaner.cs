@@ -187,7 +187,7 @@ namespace TAO3.Internal.Kernels.Razor
             foreach ((string name, Type type) in _variables)
             {
                 /*
-                    private $type $name => _csharpKernel.TryGetVariable("$name", out $type value) ? value : default;
+                    private $type $name => _csharpKernel.TryGetValue("$name", out $type value) ? value : default;
                 */
 
                 string fullType = type.PrettyPrintFullName(anymousClassAsDynamic: true);
@@ -222,7 +222,7 @@ namespace TAO3.Internal.Kernels.Razor
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         SyntaxFactory.IdentifierName("_csharpKernel"),
-                                        SyntaxFactory.IdentifierName("TryGetVariable")))
+                                        SyntaxFactory.IdentifierName("TryGetValue")))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList<ArgumentSyntax>(

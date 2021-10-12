@@ -1,6 +1,7 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.Documents;
+using Microsoft.DotNet.Interactive.Documents.ParserServer;
 using Microsoft.DotNet.Interactive.Events;
 using System;
 using System.Collections.Generic;
@@ -81,29 +82,23 @@ namespace TAO3.Internal.Commands.Run
 
                 string extension = Path.GetExtension(path);
 
-                if (extension.Equals(".dib", StringComparison.OrdinalIgnoreCase)
-                    || extension.Equals(".ipynb", StringComparison.OrdinalIgnoreCase))
+                bool isDib = extension.Equals(".dib", StringComparison.OrdinalIgnoreCase);
+                bool isIpynb = extension.Equals(".ipynb", StringComparison.OrdinalIgnoreCase);
+                if (isDib || isIpynb)
                 {
-                    KernelCommandResult commandResult = await context.HandlingKernel.ParentKernel
-                        .SendAsync(new ParseInteractiveDocument(
-                            Path.GetFileName(path),
-                            await File.ReadAllBytesAsync(path),
-                            context.HandlingKernel.Name));
+                    NotebookParseRequest request = new NotebookParseRequest(
+                        id: Guid.NewGuid().ToString(),
+                        serializationType: isDib ? DocumentSerializationType.Dib : DocumentSerializationType.Ipynb,
+                        defaultLanguage: context.HandlingKernel.Name,
+                        rawData: await File.ReadAllBytesAsync(path));
 
-                    commandResult.KernelEvents
-                        .SelectMany(async evnt =>
-                        {
-                            if (evnt is InteractiveDocumentParsed documentParsed)
-                            {
-                                foreach (InteractiveDocumentElement cell in documentParsed.Document.Elements)
-                                {
-                                    //todo: handle errors
-                                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
-                                }
-                            }
-                            return Unit.Default;
-                        })
-                        .Subscribe();
+                    NotebookParseResponse response = (NotebookParseResponse)NotebookParserServer.HandleRequest(request);
+
+                    foreach (InteractiveDocumentElement cell in response.Document.Elements)
+                    {
+                        //todo: handle errors
+                        await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
+                    }
                 }
                 else if (extension.Equals(".csx", StringComparison.OrdinalIgnoreCase))
                 {

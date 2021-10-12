@@ -133,9 +133,9 @@ namespace TAO3.Internal
                 new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
             CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
-            IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
-                ? host
-                : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
+            //IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
+            //    ? host
+            //    : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
 
             
             IExcelService excel = new ExcelService(
@@ -157,7 +157,7 @@ namespace TAO3.Internal
                 new SqlFormatter(),
                 new XmlFormatter());
 
-            IVsCodeService vsCode = new VsCodeService(interactiveHost, converterService);
+            IVsCodeService vsCode = new VsCodeService(/*interactiveHost, */converterService);
             IAvaloniaService avalonia = new AvaloniaService();
 
             IMacroService macroService = new MacroService(keyboard, compositeKernel);
