@@ -4,9 +4,9 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class EnumTypeConverter : TypeConverter<Enum>
+internal class EnumTypeConverter : TypeConverter<Enum, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, Enum obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(Enum obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         Type type = obj.GetType();
 
@@ -21,31 +21,31 @@ internal class EnumTypeConverter : TypeConverter<Enum>
             {
                 if (i > 0)
                 {
-                    sb.Append(" | ");
+                    context.Append(" | ");
                 }
 
-                sb.Append(prettyType);
-                sb.Append(".");
-                sb.Append(values[i]);
+                context.Append(prettyType);
+                context.Append(".");
+                context.Append(values[i]);
             }
             return true;
         }
 
-        sb.Append("(");
-        sb.Append(type.PrettyPrint());
-        sb.Append(")");
+        context.Append("(");
+        context.Append(type.PrettyPrint());
+        context.Append(")");
 
         bool isNegative = ((IConvertible)obj).ToInt64(null) < 0;
         if (isNegative)
         {
-            sb.Append("(");
+            context.Append("(");
         }
 
-        serializer.Serialize(sb, System.Convert.ChangeType(obj, type.GetEnumUnderlyingType()), options);
+        context.Serialize(System.Convert.ChangeType(obj, type.GetEnumUnderlyingType()));
 
         if (isNegative)
         {
-            sb.Append(")");
+            context.Append(")");
         }
 
         return true;

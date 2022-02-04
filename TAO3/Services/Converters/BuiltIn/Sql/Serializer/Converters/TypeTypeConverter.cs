@@ -3,7 +3,7 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.Sql;
 
-internal class TypeTypeConverter : TypeConverter<Type>
+internal class TypeTypeConverter : TypeConverter<Type, SqlConverterSettings>
 {
     private static readonly Dictionary<Type, string> _typeMappingByType = new Dictionary<Type, string>()
     {
@@ -42,11 +42,11 @@ internal class TypeTypeConverter : TypeConverter<Type>
 
     };
 
-    public override bool Convert(StringBuilder sb, Type type, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(Type type, ObjectSerializerContext<SqlConverterSettings> context)
     {
-        sb.Append("CREATE TABLE [");
-        sb.Append(type.PrettyPrint());
-        sb.AppendLine("] (");
+        context.Append("CREATE TABLE [");
+        context.Append(type.PrettyPrint());
+        context.AppendLine("] (");
 
         List<SqlColumn> columns = SqlColumnInferer.InferColumns(type);
 
@@ -55,7 +55,7 @@ internal class TypeTypeConverter : TypeConverter<Type>
             return false;
         }
 
-        ObjectSerializerOptions columnsOptions = options.Indent();
+        ObjectSerializerContext<SqlConverterSettings> columnsContext = context.Indent();
 
         SqlColumn? idColumn = columns
             .Where(x => x.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
@@ -63,8 +63,8 @@ internal class TypeTypeConverter : TypeConverter<Type>
 
         if (idColumn == null)
         {
-            sb.Append(columnsOptions.Indentation);
-            sb.AppendLine("[Id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT (NEWID()),");
+            columnsContext.Append(columnsContext.Indentation);
+            columnsContext.AppendLine("[Id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT (NEWID()),");
         }
 
         for (int i = 0; i < columns.Count; i++)
@@ -73,32 +73,32 @@ internal class TypeTypeConverter : TypeConverter<Type>
 
             if (i > 0)
             {
-                sb.AppendLine(",");
+                columnsContext.AppendLine(",");
             }
 
-            sb.Append(columnsOptions.Indentation);
-            sb.Append("[");
-            sb.Append(column.Name);
-            sb.Append("] ");
-            sb.Append(GetColumnType(column.Type));
+            columnsContext.Append(columnsContext.Indentation);
+            columnsContext.Append("[");
+            columnsContext.Append(column.Name);
+            columnsContext.Append("] ");
+            columnsContext.Append(GetColumnType(column.Type));
 
 
             if (column == idColumn)
             {
-                sb.Append(" PRIMARY KEY");
+                columnsContext.Append(" PRIMARY KEY");
                 if (column.Type == typeof(Guid) || column.Type == typeof(Guid?))
                 {
-                    
-                    sb.Append(" DEFAULT (NEWID())");
+
+                    columnsContext.Append(" DEFAULT (NEWID())");
                 }
-                else if (column.Type == typeof(int) || column.Type == typeof(int?))
+                else if (column.Type == typeof(int) || column.Type == typeof(int?) || column.Type == typeof(long) || column.Type == typeof(long?))
                 {
-                    sb.Append(" IDENTITY(1,1)");
+                    columnsContext.Append(" IDENTITY(1,1)");
                 }
             }
         }
 
-        sb.Append(");");
+        columnsContext.Append(");");
 
         return true;
     }

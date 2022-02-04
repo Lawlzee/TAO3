@@ -2,16 +2,16 @@
 
 namespace TAO3.TextSerializer;
 
-public interface IObjectSerializer : IDisposable
+public interface IObjectSerializer<TSettings> : IDisposable
 {
-    IObjectSerializer AddConverter<T, TTypeConverter>(int priority = 0) where TTypeConverter : TypeConverter<T>, new();
-    IObjectSerializer AddConverter<T>(TypeConverter<T> typeConverter, int priority = 0);
-    IObjectSerializer AddGenericConverter(Type genericTypeConverterType, int priority = 0);
-    string Serialize(object? obj, int indentationLevel = 0, string indentationString = "    ");
-    void Serialize(StringBuilder sb, object? obj, int indentationLevel = 0, string indentationString = "    ");
+    IObjectSerializer<TSettings> AddConverter<T, TTypeConverter>(int priority = 0) where TTypeConverter : TypeConverter<T, TSettings>, new();
+    IObjectSerializer<TSettings> AddConverter<T>(TypeConverter<T, TSettings> typeConverter, int priority = 0);
+    IObjectSerializer<TSettings> AddGenericConverter(Type genericTypeConverterType, int priority = 0);
+    string Serialize(object? obj, TSettings settings, int indentationLevel = 0, string indentationString = "    ");
+    void Serialize(StringBuilder sb, object? obj, TSettings settings, int indentationLevel = 0, string indentationString = "    ");
 }
 
-public class ObjectSerializer : IObjectSerializer
+public class ObjectSerializer<TSettings> : IObjectSerializer<TSettings>
 {
     private readonly Dictionary<Type, List<PriorisedTypeConverter>> _converters;
 
@@ -20,26 +20,26 @@ public class ObjectSerializer : IObjectSerializer
         _converters = new Dictionary<Type, List<PriorisedTypeConverter>>();
     }
 
-    public IObjectSerializer AddConverter<T, TTypeConverter>(int priority = 0)
-        where TTypeConverter : TypeConverter<T>, new()
+    public IObjectSerializer<TSettings> AddConverter<T, TTypeConverter>(int priority = 0)
+        where TTypeConverter : TypeConverter<T, TSettings>, new()
     {
         return AddConverter(new TTypeConverter(), priority);
     }
 
-    public IObjectSerializer AddConverter<T>(TypeConverter<T> typeConverter, int priority = 0)
+    public IObjectSerializer<TSettings> AddConverter<T>(TypeConverter<T, TSettings> typeConverter, int priority = 0)
     {
         DoAddConverter(typeof(T), typeConverter, priority);
         return this;
     }
 
-    public IObjectSerializer AddGenericConverter(Type genericTypeConverterType, int priority = 0)
+    public IObjectSerializer<TSettings> AddGenericConverter(Type genericTypeConverterType, int priority = 0)
     {
-        GenericTypeConverter typeConverter = new GenericTypeConverter(genericTypeConverterType);
+        GenericTypeConverter<TSettings> typeConverter = new GenericTypeConverter<TSettings>(genericTypeConverterType);
         DoAddConverter(typeConverter.TypeToConvert.GetGenericTypeDefinition(), typeConverter, priority);
         return this;
     }
 
-    private void DoAddConverter(Type type, ITypeConverter typeConverter, int priority)
+    private void DoAddConverter(Type type, ITypeConverter<TSettings> typeConverter, int priority)
     {
         if (!_converters.ContainsKey(type))
         {
@@ -49,23 +49,23 @@ public class ObjectSerializer : IObjectSerializer
         _converters[type].Add(new PriorisedTypeConverter(typeConverter, priority));
     }
 
-    public string Serialize(object? obj, int indentationLevel = 0, string indentationString = "    ")
+    public string Serialize(object? obj, TSettings settings, int indentationLevel = 0, string indentationString = "    ")
     {
         StringBuilder sb = new StringBuilder();
-        Serialize(sb, obj, new ObjectSerializerOptions(indentationLevel, indentationString));
+        Serialize(obj, new ObjectSerializerContext<TSettings>(indentationLevel, indentationString, settings, sb, this));
         return sb.ToString();
     }
 
-    public void Serialize(StringBuilder sb, object? obj, int indentationLevel = 0, string indentationString = "    ")
+    public void Serialize(StringBuilder sb, object? obj, TSettings settings, int indentationLevel = 0, string indentationString = "    ")
     {
-        Serialize(sb, obj, new ObjectSerializerOptions(indentationLevel, indentationString));
+        Serialize(obj, new ObjectSerializerContext<TSettings>(indentationLevel, indentationString, settings, sb, this));
     }
 
-    internal void Serialize(StringBuilder sb, object? obj, ObjectSerializerOptions options)
+    internal void Serialize(object? obj, ObjectSerializerContext<TSettings> context)
     {
         if (obj == null)
         {
-            SerializeNull(sb, this, options);
+            SerializeNull(this, context);
             return;
         }
 
@@ -73,8 +73,8 @@ public class ObjectSerializer : IObjectSerializer
 
         foreach (Type parentType in type.GetSelfAndParentTypes())
         {
-            bool success = TryConvert(sb, obj, options, parentType, parentType)
-                || (parentType.IsGenericType && TryConvert(sb, obj, options, parentType.GetGenericTypeDefinition(), parentType));
+            bool success = TryConvert(obj, context, parentType, parentType)
+                || (parentType.IsGenericType && TryConvert(obj, context, parentType.GetGenericTypeDefinition(), parentType));
 
             if (success)
             {
@@ -84,17 +84,17 @@ public class ObjectSerializer : IObjectSerializer
         throw new Exception($"Type {type.Name} is not supported");
     }
 
-    private bool TryConvert(StringBuilder sb, object obj, ObjectSerializerOptions options, Type type, Type rawType)
+    private bool TryConvert(object obj, ObjectSerializerContext<TSettings> settings, Type type, Type rawType)
     {
         if (_converters.ContainsKey(type))
         {
-            IEnumerable<ITypeConverter> sortedTypeConverters = _converters[type]
+            IEnumerable<ITypeConverter<TSettings>> sortedTypeConverters = _converters[type]
                 .OrderByDescending(x => x.Priority)
                 .Select(x => x.TypeConverter);
 
-            foreach (ITypeConverter converter in sortedTypeConverters)
+            foreach (ITypeConverter<TSettings> converter in sortedTypeConverters)
             {
-                bool success = converter.Convert(sb, obj, rawType, this, options);
+                bool success = converter.Convert(obj, rawType, settings);
                 if (success)
                 {
                     return true;
@@ -105,14 +105,14 @@ public class ObjectSerializer : IObjectSerializer
         return false;
     }
 
-    protected virtual void SerializeNull(StringBuilder sb, ObjectSerializer serializer, ObjectSerializerOptions options)
+    protected virtual void SerializeNull(ObjectSerializer<TSettings> serializer, ObjectSerializerContext<TSettings> context)
     {
-        sb.Append("null");
+        context.Append("null");
     }
 
     public virtual void Dispose()
     {
-        foreach (ITypeConverter converter in _converters.Values.SelectMany(x => x))
+        foreach (ITypeConverter<TSettings> converter in _converters.Values.SelectMany(x => x))
         {
             converter.Dispose();
         }
@@ -121,6 +121,6 @@ public class ObjectSerializer : IObjectSerializer
     }
 
     internal record PriorisedTypeConverter(
-        ITypeConverter TypeConverter,
+        ITypeConverter<TSettings> TypeConverter,
         int Priority);
 }

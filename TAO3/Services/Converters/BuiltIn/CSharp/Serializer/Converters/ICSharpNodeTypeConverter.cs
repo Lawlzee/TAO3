@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class ICSharpNodeTypeConverter : TypeConverter<ICSharpNode>
+internal class ICSharpNodeTypeConverter : TypeConverter<ICSharpNode, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ICSharpNode obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ICSharpNode obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append(obj.Syntax.ToString());
+        context.Append(obj.Syntax.ToString());
         return true;
     }
 }

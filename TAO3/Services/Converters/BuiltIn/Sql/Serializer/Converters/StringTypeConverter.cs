@@ -2,13 +2,13 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class StringTypeConverter : TypeConverter<string>
+internal class StringTypeConverter : TypeConverter<string, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, string obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(string obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
-        sb.Append("'");
-        sb.Append(obj.ToString().Replace("'", "''"));
-        sb.Append("'");
+        context.Append("'");
+        context.Append(obj.ToString().Replace("'", "''"));
+        context.Append("'");
         return true;
     }
 }

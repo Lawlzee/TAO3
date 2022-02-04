@@ -3,15 +3,15 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class NumberTypeConverter<T> : TypeConverter<T>
+internal class NumberTypeConverter<T> : TypeConverter<T, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, T obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(T obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append(obj!.ToString());
+        context.Append(obj!.ToString());
         string? suffix = NumberHelper.GetNumberSuffix(typeof(T));
         if (suffix != null)
         {
-            sb.Append(suffix);
+            context.Append(suffix);
         }
 
         return true;

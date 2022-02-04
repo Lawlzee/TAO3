@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class GuidTypeConverter : TypeConverter<Guid>
+internal class GuidTypeConverter : TypeConverter<Guid, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, Guid obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(Guid obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
-        sb.Append($"'{obj.ToString().ToUpperInvariant()}'");
+        context.Append($"'{obj.ToString().ToUpperInvariant()}'");
         return true;
     }
 }

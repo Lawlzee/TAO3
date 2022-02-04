@@ -3,49 +3,49 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class DictionaryInitializerTypeConverter<TKey, TValue> : TypeConverter<IDictionary<TKey, TValue>>
+internal class DictionaryInitializerTypeConverter<TKey, TValue> : TypeConverter<IDictionary<TKey, TValue>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, IDictionary<TKey, TValue> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(IDictionary<TKey, TValue> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         if (obj.GetType().GetConstructor(Type.EmptyTypes) == null)
         {
             return false;
         }
 
-        sb.Append("new ");
-        sb.Append(obj.GetType().PrettyPrint());
-        sb.Append("()");
+        context.Append("new ");
+        context.Append(obj.GetType().PrettyPrint());
+        context.Append("()");
 
         if (obj.Count == 0)
         {
             return true;
         }
 
-        sb.AppendLine();
-        sb.Append(options.Indentation);
-        sb.AppendLine("{");
+        context.AppendLine();
+        context.AppendIndentation();
+        context.AppendLine("{");
 
-        ObjectSerializerOptions elementOptions = options.Indent();
+        ObjectSerializerContext<CSharpSerializerSettings> elementContext = context.Indent();
 
         bool isFirst = true;
         foreach (KeyValuePair<TKey, TValue> kvp in obj)
         {
             if (!isFirst)
             {
-                sb.AppendLine(",");
+                elementContext.AppendLine(",");
             }
 
-            sb.Append(elementOptions.Indentation);
-            sb.Append("[");
-            serializer.Serialize(sb, kvp.Key, elementOptions);
-            sb.Append("] = ");
-            serializer.Serialize(sb, kvp.Value, elementOptions);
+            elementContext.Append(elementContext.Indentation);
+            elementContext.Append("[");
+            elementContext.Serialize(kvp.Key);
+            elementContext.Append("] = ");
+            elementContext.Serialize(kvp.Value);
             isFirst = false;
         }
 
-        sb.AppendLine();
-        sb.Append(options.Indentation);
-        sb.Append("}");
+        context.AppendLine();
+        context.AppendIndentation();
+        context.Append("}");
 
         return true;
     }

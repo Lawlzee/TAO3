@@ -10,7 +10,13 @@ public record SqlConverterParameters
     public string? Type { get; init; }
 }
 
-public class SqlConverter : IConverterTypeProvider<SqlConverterParameters>
+public record SqlConverterInputParameters : SqlConverterParameters
+{
+    public string? TableName { get; init; }
+}
+
+public class SqlConverter : IConverterTypeProvider<SqlConverterSettings, SqlConverterParameters>,
+    IOutputConfigurableConverter<SqlConverterSettings, SqlConverterInputParameters>
 {
     private readonly ITypeProvider<string> _typeProvider;
     private readonly SqlDeserializer _deserializer;
@@ -24,8 +30,8 @@ public class SqlConverter : IConverterTypeProvider<SqlConverterParameters>
     public IDomCompiler DomCompiler => _typeProvider;
 
     public SqlConverter(
-        ITypeProvider<string> typeProvider, 
-        SqlDeserializer deserializer, 
+        ITypeProvider<string> typeProvider,
+        SqlDeserializer deserializer,
         ISqlObjectSerializer serializer)
     {
         _typeProvider = typeProvider;
@@ -34,31 +40,60 @@ public class SqlConverter : IConverterTypeProvider<SqlConverterParameters>
         Properties = new Dictionary<string, object>();
     }
 
-    public string Serialize(object? value)
+    public string Serialize(object? value, SqlConverterSettings? settings = null)
     {
-        return _serializer.Serialize(value);
+        return _serializer.Serialize(value, settings ?? new SqlConverterSettings(null));
     }
 
-    T IConverterTypeProvider<SqlConverterParameters>.Deserialize<T>(string text)
+    T IConverterTypeProvider<SqlConverterSettings, SqlConverterParameters>.Deserialize<T>(string text, SqlConverterSettings? settings)
     {
         return (T)TypeInferer.Invoke<object>(
             typeof(T),
             typeof(List<>),
-            () => Deserialize<Unit>(text));
+            () => Deserialize<Unit>(text, settings));
     }
 
-    public List<T> Deserialize<T>(string text)
+    public List<T> Deserialize<T>(string text, SqlConverterSettings? settings = null)
         where T : new()
     {
         return _deserializer.Deserialize<T>(text);
     }
 
-    public void Configure(Command command)
+    void IInputConfigurableConverter<SqlConverterSettings, SqlConverterParameters>.Configure(Command command)
     {
         command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
     }
 
-    public async Task<IDomType> ProvideTypeAsync(IConverterContext context, SqlConverterParameters args)
+    void IOutputConfigurableConverter<SqlConverterSettings, SqlConverterInputParameters>.Configure(Command command)
+    {
+        command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+        command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+    }
+
+    SqlConverterSettings IInputConfigurableConverter<SqlConverterSettings, SqlConverterParameters>.GetDefaultSettings()
+    {
+        return new SqlConverterSettings(null);
+    }
+
+    SqlConverterSettings IInputConfigurableConverter<SqlConverterSettings, SqlConverterParameters>.BindParameters(SqlConverterSettings settings, SqlConverterParameters args)
+    {
+        return settings;
+    }
+
+    SqlConverterSettings IOutputConfigurableConverter<SqlConverterSettings, SqlConverterInputParameters>.GetDefaultSettings()
+    {
+        return new SqlConverterSettings(null);
+    }
+
+    SqlConverterSettings IOutputConfigurableConverter<SqlConverterSettings, SqlConverterInputParameters>.BindParameters(SqlConverterSettings settings, SqlConverterInputParameters args)
+    {
+        return settings with
+        {
+            TableName = args.TableName
+        };
+    }
+
+    async Task<IDomType> IConverterTypeProvider<SqlConverterSettings, SqlConverterParameters>.ProvideTypeAsync(IConverterContext<SqlConverterSettings> context, SqlConverterParameters args)
     {
         if (args.Type != null)
         {

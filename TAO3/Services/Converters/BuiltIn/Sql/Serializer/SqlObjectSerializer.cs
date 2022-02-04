@@ -2,16 +2,28 @@
 
 namespace TAO3.Converters.Sql;
 
-public interface ISqlObjectSerializer : IObjectSerializer
+public record SqlConverterSettings(
+    string? TableName);
+
+public interface ISqlObjectSerializer : IObjectSerializer<SqlConverterSettings>
 {
 
 }
 
-public class SqlObjectSerializer : ObjectSerializer, ISqlObjectSerializer
+public class SqlObjectSerializer : ObjectSerializer<SqlConverterSettings>, ISqlObjectSerializer
 {
     public SqlObjectSerializer()
     {
         AddBuiltIn();
+    }
+
+    public string Serialize(object? obj, int indentationLevel = 0, string indentationString = "    ")
+    {
+        return Serialize(obj, new SqlConverterSettings(null), indentationLevel, indentationString);
+    }
+    public void Serialize(StringBuilder sb, object? obj, int indentationLevel = 0, string indentationString = "    ")
+    {
+        Serialize(sb, obj, new SqlConverterSettings(null), indentationLevel, indentationString);
     }
 
     private void AddBuiltIn()

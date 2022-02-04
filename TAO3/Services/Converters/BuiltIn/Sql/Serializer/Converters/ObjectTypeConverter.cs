@@ -4,9 +4,9 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.Sql;
 
-internal class ObjectTypeConverter : TypeConverter<object>
+internal class ObjectTypeConverter : TypeConverter<object, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(object obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
         Type type = obj.GetType();
 
@@ -17,38 +17,40 @@ internal class ObjectTypeConverter : TypeConverter<object>
             return false;
         }
 
-        sb.Append("INSERT INTO [");
-        sb.Append(GetTableName(type));
-        sb.Append("] ([");
+        context.Append("INSERT INTO [");
+        context.Append(GetTableName(type, context.Settings));
+        context.Append("] ([");
 
         for (int i = 0; i < members.Count; i++)
         {
             if (i > 0)
             {
-                sb.Append("], [");
+                context.Append("], [");
             }
-            sb.Append(members[i].Name);
+            context.Append(members[i].Name);
         }
 
-        sb.Append("]) VALUES(");
+        context.Append("]) VALUES(");
 
         for (int i = 0; i < members.Count; i++)
         {
             if (i > 0)
             {
-                sb.Append(", ");
+                context.Append(", ");
             }
-            serializer.Serialize(sb, members[i].Value, options);
+            context.Serialize(members[i].Value);
         }
 
-        sb.Append(");");
+        context.Append(");");
 
         return true;
     }
 
-    private string GetTableName(Type type)
+    private string GetTableName(Type type, SqlConverterSettings settings)
     {
-        return type.GetCustomAttribute<TableNameAttribute>()?.Name ?? type.PrettyPrint();
+        return settings.TableName 
+            ?? type.GetCustomAttribute<TableNameAttribute>()?.Name 
+            ?? type.PrettyPrint();
     }
 
     private record Member(string Name, object? Value);

@@ -29,6 +29,6 @@ public class CSharpConverter : IConverter<CSharpCompilationUnit>
 
     public string Serialize(object? value)
     {
-        return Serializer.Serialize(value);
+        return Serializer.Serialize(value, new CSharpSerializerSettings());
     }
 }

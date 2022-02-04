@@ -2,14 +2,14 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class CharTypeConverter : TypeConverter<char>
+internal class CharTypeConverter : TypeConverter<char, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, char obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(char obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("'");
+        context.Append("'");
         //to do: escape caracteres
-        sb.Append(obj);
-        sb.Append("'");
+        context.Append(obj);
+        context.Append("'");
 
         return true;
     }

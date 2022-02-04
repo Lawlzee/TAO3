@@ -87,7 +87,7 @@ internal static class CommandFactory
 
         public override IEnumerable<CompletionItem> GetCompletions(CompletionContext context)
         {
-            if (context.WordToComplete == null || context.ParseResult == null)
+            if (context.WordToComplete == null || context.ParseResult.CommandResult.Command.Arguments.Count == 0)
             {
                 return base.GetCompletions(context);
             }

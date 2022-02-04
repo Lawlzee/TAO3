@@ -31,7 +31,7 @@ public class HtmlConverter : IConverterTypeProvider
         return Formatter.ToDisplayString(value, "text/html");
     }
 
-    public Task<IDomType> ProvideTypeAsync(IConverterContext context)
+    Task<IDomType> IConverterTypeProvider.ProvideTypeAsync(IConverterContext context)
     {
         return Task.FromResult<IDomType>(new DomClassReference(typeof(HtmlString)));
     }

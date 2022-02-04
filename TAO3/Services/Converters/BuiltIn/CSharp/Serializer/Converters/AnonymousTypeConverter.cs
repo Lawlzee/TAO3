@@ -4,44 +4,44 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class AnonymousTypeConverter : TypeConverter<object>
+internal class AnonymousTypeConverter : TypeConverter<object, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(object obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         if (!obj.GetType().IsAnonymous())
         {
             return false;
         }
 
-        sb.AppendLine("new");
-        sb.Append(options.Indentation);
-        sb.Append("{");
+        context.AppendLine("new");
+        context.Append(context.Indentation);
+        context.Append("{");
 
-        ObjectSerializerOptions propOptions = options.Indent();
+        ObjectSerializerContext<CSharpSerializerSettings> propContext = context.Indent();
 
         PropertyInfo[] properties = obj.GetType().GetProperties();
 
         int i = 0;
         foreach (PropertyInfo propertyInfo in properties)
         {
-            sb.AppendLine();
-            sb.Append(propOptions.Indentation);
+            context.AppendLine();
+            context.Append(propContext.Indentation);
 
-            sb.Append(propertyInfo.Name);
-            sb.Append(" = ");
+            context.Append(propertyInfo.Name);
+            context.Append(" = ");
 
-            serializer.Serialize(sb, propertyInfo.GetValue(obj), propOptions);
+            propContext.Serialize(propertyInfo.GetValue(obj));
 
             i++;
             if (i != properties.Length)
             {
-                sb.Append(",");
+                context.Append(",");
             }
         }
 
-        sb.AppendLine();
-        sb.Append(options.Indentation);
-        sb.Append("}");
+        context.AppendLine();
+        context.AppendIndentation();
+        context.Append("}");
 
         return true;
     }

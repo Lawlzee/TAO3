@@ -1,8 +1,8 @@
 ﻿namespace TAO3.TextSerializer;
 
-internal class GenericTypeConverter : ITypeConverter
+internal class GenericTypeConverter<TSettings> : ITypeConverter<TSettings>
 {
-    private readonly Dictionary<Type, ITypeConverter> _convertersCache = new Dictionary<Type, ITypeConverter>();
+    private readonly Dictionary<Type, ITypeConverter<TSettings>> _convertersCache = new Dictionary<Type, ITypeConverter<TSettings>>();
 
     public Type TypeToConvert { get; }
 
@@ -13,7 +13,7 @@ internal class GenericTypeConverter : ITypeConverter
         if (!typeConverterType.IsGenericTypeDefinition
             || typeConverterType.BaseType == null
             || !typeConverterType.BaseType.IsGenericType
-            || typeConverterType.BaseType.GetGenericTypeDefinition() != typeof(TypeConverter<>))
+            || typeConverterType.BaseType.GetGenericTypeDefinition() != typeof(TypeConverter<,>))
         {
             throw new ArgumentException(nameof(typeConverterType));
         }
@@ -25,11 +25,16 @@ internal class GenericTypeConverter : ITypeConverter
             throw new Exception("The type to convert must be a generic type");
         }
 
-        _convertersCache = new Dictionary<Type, ITypeConverter>();
+        if (typeConverterType.BaseType.GetGenericArguments()[1] != typeof(TSettings))
+        {
+            throw new Exception("Invalid TSettings type");
+        }
+
+        _convertersCache = new Dictionary<Type, ITypeConverter<TSettings>>();
         _typeConverterType = typeConverterType;
     }
 
-    public bool Convert(StringBuilder sb, object obj, Type objectType, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public bool Convert(object obj, Type objectType, ObjectSerializerContext<TSettings> context)
     {
         if (!objectType.IsGenericType
             || objectType.GetGenericTypeDefinition() != TypeToConvert.GetGenericTypeDefinition())
@@ -39,17 +44,17 @@ internal class GenericTypeConverter : ITypeConverter
 
         //to do: add validation type constaints
 
-        ITypeConverter? cachedTypeConverter = _convertersCache.GetValueOrDefault(objectType);
+        ITypeConverter<TSettings>? cachedTypeConverter = _convertersCache.GetValueOrDefault(objectType);
         if (cachedTypeConverter != null)
         {
-            return cachedTypeConverter.Convert(sb, obj, objectType, serializer, options);
+            return cachedTypeConverter.Convert(obj, objectType, context);
         }
 
         Type typeConverterType = CreateConcreteTypeConverterType(objectType);
-        ITypeConverter typeConverter = (ITypeConverter)Activator.CreateInstance(typeConverterType)!;
+        ITypeConverter<TSettings> typeConverter = (ITypeConverter<TSettings>)Activator.CreateInstance(typeConverterType)!;
         _convertersCache[objectType] = typeConverter;
 
-        return typeConverter.Convert(sb, obj, objectType, serializer, options);
+        return typeConverter.Convert(obj, objectType, context);
     }
 
     //to do: support nested types. Ex A<B<C>, D>

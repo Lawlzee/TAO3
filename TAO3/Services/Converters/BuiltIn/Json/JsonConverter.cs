@@ -39,7 +39,17 @@ public class JsonConverter :
         return JsonConvert.SerializeObject(value, settings ?? GetDefaultSettings());
     }
 
-    public void Configure(Command command)
+    void IInputConfigurableConverter<JsonSerializerSettings, JsonConverterInputParameters>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    void IOutputConfigurableConverter<JsonSerializerSettings, Unit>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    private static void Configure(Command command)
     {
         command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
     }
@@ -52,12 +62,12 @@ public class JsonConverter :
         };
     }
 
-    public JsonSerializerSettings BindParameters(JsonSerializerSettings settings, JsonConverterInputParameters args)
+    JsonSerializerSettings IInputConfigurableConverter<JsonSerializerSettings, JsonConverterInputParameters>.BindParameters(JsonSerializerSettings settings, JsonConverterInputParameters args)
     {
         return settings;
     }
 
-    public async Task<IDomType> ProvideTypeAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
+    async Task<IDomType> IConverterTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>.ProvideTypeAsync(IConverterContext<JsonSerializerSettings> context, JsonConverterInputParameters args)
     {
         if (args.Type != null)
         {

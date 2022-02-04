@@ -26,7 +26,7 @@ public class XmlConverter :
     IConverterTypeProvider<XmlWriterSettings, XmlInputConverterParameters>,
     IOutputConfigurableConverter<XmlWriterSettings, XmlOutputConverterParameters>
 {
-    private readonly TAO3.Converters.Json.JsonConverter _jsonConverter;
+    private readonly Json.JsonConverter _jsonConverter;
     private readonly ITypeProvider<JsonSource> _typeProvider;
 
     public string Format => "xml";
@@ -36,7 +36,7 @@ public class XmlConverter :
     public Dictionary<string, object> Properties { get; }
     public IDomCompiler DomCompiler => _typeProvider;
 
-    public XmlConverter(TAO3.Converters.Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
+    public XmlConverter(Json.JsonConverter jsonConverter, ITypeProvider<JsonSource> typeProvider)
     {
         _jsonConverter = jsonConverter;
         _typeProvider = typeProvider;
@@ -94,7 +94,17 @@ public class XmlConverter :
         }
     }
 
-    public void Configure(Command command)
+    void IInputConfigurableConverter<XmlWriterSettings, XmlInputConverterParameters>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    void IOutputConfigurableConverter<XmlWriterSettings, XmlOutputConverterParameters>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    private static void Configure(Command command)
     {
         command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
     }
@@ -110,12 +120,12 @@ public class XmlConverter :
         };
     }
 
-    public XmlWriterSettings BindParameters(XmlWriterSettings settings, XmlInputConverterParameters args)
+    XmlWriterSettings IInputConfigurableConverter<XmlWriterSettings, XmlInputConverterParameters>.BindParameters(XmlWriterSettings settings, XmlInputConverterParameters args)
     {
         return settings;
     }
 
-    public async Task<IDomType> ProvideTypeAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
+    async Task<IDomType> IConverterTypeProvider<XmlWriterSettings, XmlInputConverterParameters>.ProvideTypeAsync(IConverterContext<XmlWriterSettings> context, XmlInputConverterParameters args)
     {
         if (args.Type != null)
         {

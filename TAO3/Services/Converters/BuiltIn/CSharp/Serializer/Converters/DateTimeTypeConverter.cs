@@ -2,34 +2,34 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class DateTimeTypeConverter : TypeConverter<DateTime>
+internal class DateTimeTypeConverter : TypeConverter<DateTime, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, DateTime date, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(DateTime date, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("new DateTime(");
-        sb.Append(date.Year);
-        sb.Append(", ");
-        sb.Append(date.Month.ToString("00"));
-        sb.Append(", ");
-        sb.Append(date.Day.ToString("00"));
+        context.Append("new DateTime(");
+        context.Append(date.Year);
+        context.Append(", ");
+        context.Append(date.Month.ToString("00"));
+        context.Append(", ");
+        context.Append(date.Day.ToString("00"));
 
         if (date.Date != date)
         {
-            sb.Append(", ");
-            sb.Append(date.Hour.ToString("00"));
-            sb.Append(", ");
-            sb.Append(date.Minute.ToString("00"));
-            sb.Append(", ");
-            sb.Append(date.Second.ToString("00"));
+            context.Append(", ");
+            context.Append(date.Hour.ToString("00"));
+            context.Append(", ");
+            context.Append(date.Minute.ToString("00"));
+            context.Append(", ");
+            context.Append(date.Second.ToString("00"));
 
             if (date.Millisecond != 0)
             {
-                sb.Append(", ");
-                sb.Append(date.Millisecond);
+                context.Append(", ");
+                context.Append(date.Millisecond);
             }
         }
 
-        sb.Append(")");
+        context.Append(")");
 
         return true;
     }

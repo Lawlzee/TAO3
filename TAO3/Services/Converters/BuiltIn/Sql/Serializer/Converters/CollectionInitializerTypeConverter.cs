@@ -2,20 +2,20 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable<T>>
+internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable<T>, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, IEnumerable<T> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(IEnumerable<T> obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
         bool isFirst = true;
         foreach (T element in obj)
         {
             if (!isFirst)
             {
-                sb.AppendLine();
+                context.AppendLine();
             }
 
-            sb.Append(options.Indentation);
-            serializer.Serialize(sb, element, options);
+            context.AppendIndentation();
+            context.Serialize(element);
 
             isFirst = false;
         }

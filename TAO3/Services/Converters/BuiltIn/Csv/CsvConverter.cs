@@ -236,13 +236,23 @@ public class CsvConverter :
         return GetGenericTypeUsage(baseType, genericType);
     }
 
-    public void Configure(Command command)
+    void IInputConfigurableConverter<CsvConfiguration, CsvConverterInputParameters>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    void IOutputConfigurableConverter<CsvConfiguration, CsvConverterOutputParameters>.Configure(Command command)
+    {
+        Configure(command);
+    }
+
+    private void Configure(Command command)
     {
         command.Add(new Option<string>(new[] { "-s", "--separator" }, "Value separator"));
         command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
     }
 
-    public CsvConfiguration BindParameters(CsvConfiguration settings, CsvConverterInputParameters args)
+    CsvConfiguration IInputConfigurableConverter<CsvConfiguration, CsvConverterInputParameters>.BindParameters(CsvConfiguration settings, CsvConverterInputParameters args)
     {
         if (!string.IsNullOrEmpty(args.Separator))
         {
@@ -251,7 +261,7 @@ public class CsvConverter :
         return settings;
     }
 
-    public CsvConfiguration BindParameters(CsvConfiguration settings, CsvConverterOutputParameters args)
+    CsvConfiguration IOutputConfigurableConverter<CsvConfiguration, CsvConverterOutputParameters>.BindParameters(CsvConfiguration settings, CsvConverterOutputParameters args)
     {
         if (!string.IsNullOrEmpty(args.Separator))
         {
@@ -260,7 +270,7 @@ public class CsvConverter :
         return settings;
     }
 
-    public async Task<IDomType> ProvideTypeAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
+    async Task<IDomType> IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>.ProvideTypeAsync(IConverterContext<CsvConfiguration> context, CsvConverterInputParameters args)
     {
         if (args.Type != null)
         {

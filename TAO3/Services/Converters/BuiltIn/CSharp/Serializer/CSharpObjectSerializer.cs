@@ -3,16 +3,27 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-public interface ICSharpObjectSerializer : IObjectSerializer
+public record CSharpSerializerSettings();
+
+public interface ICSharpObjectSerializer : IObjectSerializer<CSharpSerializerSettings>
 {
 
 }
 
-public class CSharpObjectSerializer : ObjectSerializer, ICSharpObjectSerializer
+public class CSharpObjectSerializer : ObjectSerializer<CSharpSerializerSettings>, ICSharpObjectSerializer
 {
     public CSharpObjectSerializer()
     {
         AddBuiltIn();
+    }
+
+    public string Serialize(object? obj, int indentationLevel = 0, string indentationString = "    ")
+    {
+        return Serialize(obj, new CSharpSerializerSettings(), indentationLevel, indentationString);
+    }
+    public void Serialize(StringBuilder sb, object? obj, int indentationLevel = 0, string indentationString = "    ")
+    {
+        Serialize(sb, obj, new CSharpSerializerSettings(), indentationLevel, indentationString);
     }
 
     private void AddBuiltIn()

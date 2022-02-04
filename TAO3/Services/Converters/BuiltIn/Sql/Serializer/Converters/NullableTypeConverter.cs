@@ -2,13 +2,13 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class NullableTypeConverter<T> : TypeConverter<T?>
+internal class NullableTypeConverter<T> : TypeConverter<T?, SqlConverterSettings>
     where T : struct
 {
-    public override bool Convert(StringBuilder sb, T? obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(T? obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
         //obj can't be null by convention
-        serializer.Serialize(sb, obj!.Value, options);
+        context.Serialize(obj!.Value);
         return true;
     }
 }

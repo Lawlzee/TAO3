@@ -4,9 +4,9 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class ObjectTypeConverter : TypeConverter<object>
+internal class ObjectTypeConverter : TypeConverter<object, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(object obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         ConstructorInfo[] constructorInfos = obj.GetType().GetConstructors();
 
@@ -19,16 +19,16 @@ internal class ObjectTypeConverter : TypeConverter<object>
 
         if (constructorInfo.GetParameters().Length == 0)
         {
-            DTOStyleInitialization(sb, obj, serializer, options);
+            DTOStyleInitialization(obj, context);
             return true;
         }
         else
         {
-            return RecordStyleInitialization(sb, obj, constructorInfo, serializer, options);
+            return RecordStyleInitialization(obj, constructorInfo, context);
         }
     }
 
-    private void DTOStyleInitialization(StringBuilder sb, object obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    private void DTOStyleInitialization(object obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         PropertyInfo[] propertyInfos = obj.GetType()
             .GetProperties()
@@ -37,40 +37,38 @@ internal class ObjectTypeConverter : TypeConverter<object>
             .Where(x => x.GetGetMethod() != null)
             .ToArray();
 
-        sb.Append("new ");
-        sb.Append(obj.GetType().PrettyPrint());
-        sb.Append("()");
+        context.Append("new ");
+        context.Append(obj.GetType().PrettyPrint());
+        context.Append("()");
 
         if (propertyInfos.Length == 0)
         {
             return;
         }
 
-        sb.AppendLine();
-        sb.Append(options.Indentation);
-        sb.AppendLine("{");
+        context.AppendLine();
+        context.AppendIndentation();
+        context.AppendLine("{");
 
-        ObjectSerializerOptions propertyOptions = options.Indent();
+        ObjectSerializerContext<CSharpSerializerSettings> propertyContext = context.Indent();
 
         foreach (PropertyInfo property in propertyInfos)
         {
-            sb.Append(propertyOptions.Indentation);
-            sb.Append(property.Name);
-            sb.Append(" = ");
-            serializer.Serialize(sb, property.GetValue(obj), propertyOptions);
-            sb.AppendLine(",");
+            propertyContext.AppendIndentation();
+            propertyContext.Append(property.Name);
+            propertyContext.Append(" = ");
+            propertyContext.Serialize(property.GetValue(obj));
+            propertyContext.AppendLine(",");
         }
 
-        sb.Append(options.Indentation);
-        sb.Append("}");
+        context.AppendIndentation();
+        context.Append("}");
     }
 
     private bool RecordStyleInitialization(
-        StringBuilder sb, 
         object obj, 
         ConstructorInfo constructorInfo,
-        ObjectSerializer serializer, 
-        ObjectSerializerOptions options)
+        ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         PropertyInfo[] propertyInfos = obj.GetType().GetProperties();
 
@@ -92,11 +90,11 @@ internal class ObjectTypeConverter : TypeConverter<object>
             }
         }
 
-        sb.Append("new ");
-        sb.Append(obj.GetType().PrettyPrint());
-        sb.Append("(");
+        context.Append("new ");
+        context.Append(obj.GetType().PrettyPrint());
+        context.Append("(");
 
-        ObjectSerializerOptions argumentsOptions = options.Indent();
+        ObjectSerializerContext<CSharpSerializerSettings> argumentsContext = context.Indent();
 
         bool isFirstProp = true;
 
@@ -108,21 +106,21 @@ internal class ObjectTypeConverter : TypeConverter<object>
             {
                 if (!isFirstProp)
                 {
-                    sb.Append(",");
+                    argumentsContext.Append(",");
                 }
 
-                sb.AppendLine();
-                sb.Append(argumentsOptions.Indentation);
+                argumentsContext.AppendLine();
+                argumentsContext.AppendIndentation();
 
-                sb.Append(parameter.Name);
-                sb.Append(": ");
-                serializer.Serialize(sb, propertyInfo.GetValue(obj), argumentsOptions);
+                argumentsContext.Append(parameter.Name);
+                argumentsContext.Append(": ");
+                argumentsContext.Serialize(propertyInfo.GetValue(obj));
 
                 isFirstProp = false;
             }   
         }
 
-        sb.Append(")");
+        context.Append(")");
 
         return true;
     }

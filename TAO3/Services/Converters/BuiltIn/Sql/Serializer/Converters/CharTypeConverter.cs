@@ -2,12 +2,12 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class CharTypeConverter : TypeConverter<char>
+internal class CharTypeConverter : TypeConverter<char, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, char obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(char obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
         //todo: escape
-        sb.Append($"'{obj}'");
+        context.Append($"'{obj}'");
         return true;
     }
 }

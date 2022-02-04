@@ -1,24 +1,24 @@
 ﻿namespace TAO3.TextSerializer;
 
-internal interface ITypeConverter : IDisposable
+internal interface ITypeConverter<TSettings> : IDisposable
 {
-    bool Convert(StringBuilder sb, object obj, Type objectType, ObjectSerializer serializer, ObjectSerializerOptions options);
+    bool Convert(object obj, Type objectType, ObjectSerializerContext<TSettings> context);
 
 }
 
-public abstract class TypeConverter<T> : ITypeConverter
+public abstract class TypeConverter<T, TSettings> : ITypeConverter<TSettings>
 {
-    public bool Convert(StringBuilder sb, object obj, Type objectType, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public bool Convert(object obj, Type objectType, ObjectSerializerContext<TSettings> context)
     {
         if (obj is T x && typeof(T) == objectType)
         {
-            return Convert(sb, x, serializer, options);
+            return Convert(x, context);
         }
 
         return false;
     }
 
-    public abstract bool Convert(StringBuilder sb, T obj, ObjectSerializer serializer, ObjectSerializerOptions options);
+    public abstract bool Convert(T obj, ObjectSerializerContext<TSettings> context);
 
     public virtual void Dispose()
     {

@@ -2,13 +2,13 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class StringTypeConverter : TypeConverter<string>
+internal class StringTypeConverter : TypeConverter<string, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, string str, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(string str, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("@\"");
-        sb.Append(str.Replace("\"", "\"\""));
-        sb.Append("\"");
+        context.Append("@\"");
+        context.Append(str.Replace("\"", "\"\""));
+        context.Append("\"");
 
         return true;
     }

@@ -3,11 +3,11 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class SyntaxNodeTypeConverter : TypeConverter<SyntaxNode>
+internal class SyntaxNodeTypeConverter : TypeConverter<SyntaxNode, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, SyntaxNode obj, ObjectSerializer generator, ObjectSerializerOptions options)
+    public override bool Convert(SyntaxNode obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append(obj.ToString());
+        context.Append(obj.ToString());
         return true;
     }
 }

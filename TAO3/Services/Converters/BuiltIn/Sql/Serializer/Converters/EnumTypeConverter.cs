@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class EnumTypeConverter : TypeConverter<Enum>
+internal class EnumTypeConverter : TypeConverter<Enum, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, Enum obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(Enum obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
-        serializer.Serialize(sb, System.Convert.ChangeType(obj, obj.GetType().GetEnumUnderlyingType()), options);
+        context.Serialize(System.Convert.ChangeType(obj, obj.GetType().GetEnumUnderlyingType()));
         return true;
     }
 }

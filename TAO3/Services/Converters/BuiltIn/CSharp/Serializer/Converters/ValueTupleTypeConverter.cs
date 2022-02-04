@@ -2,136 +2,136 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class ValueTupleTypeConverter<T1, T2> : TypeConverter<ValueTuple<T1, T2>>
+internal class ValueTupleTypeConverter<T1, T2> : TypeConverter<ValueTuple<T1, T2>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3> : TypeConverter<ValueTuple<T1, T2, T3>>
+internal class ValueTupleTypeConverter<T1, T2, T3> : TypeConverter<ValueTuple<T1, T2, T3>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3, T4> : TypeConverter<ValueTuple<T1, T2, T3, T4>>
+internal class ValueTupleTypeConverter<T1, T2, T3, T4> : TypeConverter<ValueTuple<T1, T2, T3, T4>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3, T4> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3, T4> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item4, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(", ");
+        context.Serialize(obj.Item4);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5>>
+internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3, T4, T5> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3, T4, T5> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item4, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item5, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(", ");
+        context.Serialize(obj.Item4);
+        context.Append(", ");
+        context.Serialize(obj.Item5);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6>>
+internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3, T4, T5, T6> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3, T4, T5, T6> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item4, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item5, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item6, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(", ");
+        context.Serialize(obj.Item4);
+        context.Append(", ");
+        context.Serialize(obj.Item5);
+        context.Append(", ");
+        context.Serialize(obj.Item6);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6, T7> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>
+internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6, T7> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6, T7>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3, T4, T5, T6, T7> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3, T4, T5, T6, T7> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item4, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item5, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item6, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item7, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(", ");
+        context.Serialize(obj.Item4);
+        context.Append(", ");
+        context.Serialize(obj.Item5);
+        context.Append(", ");
+        context.Serialize(obj.Item6);
+        context.Append(", ");
+        context.Serialize(obj.Item7);
+        context.Append(")");
         return true;
     }
 }
 
-internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6, T7, TRest> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
+internal class ValueTupleTypeConverter<T1, T2, T3, T4, T5, T6, T7, TRest> : TypeConverter<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>, CSharpSerializerSettings>
      where TRest : struct
 {
-    public override bool Convert(StringBuilder sb, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append("(");
-        serializer.Serialize(sb, obj.Item1, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item2, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item3, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item4, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item5, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item6, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Item7, options);
-        sb.Append(", ");
-        serializer.Serialize(sb, obj.Rest, options);
-        sb.Append(")");
+        context.Append("(");
+        context.Serialize(obj.Item1);
+        context.Append(", ");
+        context.Serialize(obj.Item2);
+        context.Append(", ");
+        context.Serialize(obj.Item3);
+        context.Append(", ");
+        context.Serialize(obj.Item4);
+        context.Append(", ");
+        context.Serialize(obj.Item5);
+        context.Append(", ");
+        context.Serialize(obj.Item6);
+        context.Append(", ");
+        context.Serialize(obj.Item7);
+        context.Append(", ");
+        context.Serialize(obj.Rest);
+        context.Append(")");
         return true;
     }
 }

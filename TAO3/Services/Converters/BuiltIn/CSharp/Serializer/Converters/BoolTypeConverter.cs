@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class BoolTypeConverter : TypeConverter<bool>
+internal class BoolTypeConverter : TypeConverter<bool, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, bool obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(bool obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append(obj ? "true" : "false");
+        context.Append(obj ? "true" : "false");
         return true;
     }
 }

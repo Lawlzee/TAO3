@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.Sql;
 
-internal class NumberTypeConverter<T> : TypeConverter<T>
+internal class NumberTypeConverter<T> : TypeConverter<T, SqlConverterSettings>
 {
-    public override bool Convert(StringBuilder sb, T obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(T obj, ObjectSerializerContext<SqlConverterSettings> context)
     {
-        sb.Append(obj!.ToString());
+        context.Append(obj!.ToString());
         return true;
     }
 }

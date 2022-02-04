@@ -2,11 +2,11 @@
 
 namespace TAO3.Converters.CSharp;
 
-internal class GuidTypeConverter : TypeConverter<Guid>
+internal class GuidTypeConverter : TypeConverter<Guid, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, Guid obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(Guid obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
-        sb.Append($"new Guid(\"{obj}\")");
+        context.Append($"new Guid(\"{obj}\")");
 
         return true;
     }

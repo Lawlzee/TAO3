@@ -3,9 +3,9 @@ using TAO3.TextSerializer;
 
 namespace TAO3.Converters.CSharp;
 
-internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable<T>>
+internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable<T>, CSharpSerializerSettings>
 {
-    public override bool Convert(StringBuilder sb, IEnumerable<T> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+    public override bool Convert(IEnumerable<T> obj, ObjectSerializerContext<CSharpSerializerSettings> context)
     {
         Type type = obj.GetType();
 
@@ -31,49 +31,49 @@ internal class CollectionInitializerTypeConverter<T> : TypeConverter<IEnumerable
 
         List<T> values = obj.ToList();
 
-        sb.Append("new ");
+        context.Append("new ");
 
         if (values.Count == 0)
         {
             if (type.IsArray)
             {
                 //Ugly, but it kinds of works
-                sb.Append(obj.GetType().PrettyPrint()
+                context.Append(obj.GetType().PrettyPrint()
                     .Replace("[", "[0")
                     .Replace(",", ", 0"));
             }
             else
             {
-                sb.Append(obj.GetType().PrettyPrint());
-                sb.Append("()");
+                context.Append(obj.GetType().PrettyPrint());
+                context.Append("()");
             }
 
             return true;
         }
 
-        sb.AppendLine(obj.GetType().PrettyPrint());
-        sb.Append(options.Indentation);
-        sb.AppendLine("{");
+        context.AppendLine(obj.GetType().PrettyPrint());
+        context.AppendIndentation();
+        context.AppendLine("{");
 
-        ObjectSerializerOptions elementOptions = options.Indent();
+        var elementContext = context.Indent();
 
         bool isFirst = true;
         foreach (T element in obj)
         {
             if (!isFirst)
             {
-                sb.AppendLine(",");
+                elementContext.AppendLine(",");
             }
 
-            sb.Append(elementOptions.Indentation);
-            serializer.Serialize(sb, element, elementOptions);
+            elementContext.AppendIndentation();
+            elementContext.Serialize(element);
 
             isFirst = false;
         }
 
-        sb.AppendLine();
-        sb.Append(options.Indentation);
-        sb.Append("}");
+        context.AppendLine();
+        context.AppendIndentation();
+        context.Append("}");
 
         return true;
     }

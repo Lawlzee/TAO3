@@ -54,12 +54,12 @@ internal class DefaultConverter :
 
     public void Configure(Command command)
     {
-        _jsonConverter.Configure(command);
+        ((IInputConfigurableConverter<JsonSerializerSettings, JsonConverterInputParameters>)_jsonConverter).Configure(command);
     }
 
     public JsonSerializerSettings BindParameters(JsonSerializerSettings settings, JsonConverterInputParameters args)
     {
-        return _jsonConverter.BindParameters(settings, args);
+        return ((IInputConfigurableConverter<JsonSerializerSettings, JsonConverterInputParameters>)_jsonConverter).BindParameters(settings, args);
     }
 
     
@@ -72,7 +72,7 @@ internal class DefaultConverter :
     {
         try
         {
-            return await _jsonConverter.ProvideTypeAsync(context, args);
+            return await ((IConverterTypeProvider<JsonSerializerSettings, JsonConverterInputParameters>)_jsonConverter).ProvideTypeAsync(context, args);
         }
         catch
         {
