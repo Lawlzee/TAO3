@@ -38,9 +38,7 @@ internal class OutputCommand : Command
             defaultDestination,
             new ConverterAdapter<JsonSerializerSettings, Unit>(
                 defaultConverter,
-                defaultConverter,
-                new TypeProviderConverterSerializer<JsonSerializerSettings, JsonConverterInputParameters>(
-                    defaultConverter)),
+                defaultConverter),
             this);
 
         destinationService.Events.RegisterChildCommand<IDestinationEvent, DestinationAddedEvent, DestinationRemovedEvent>(
@@ -72,8 +70,8 @@ internal class OutputCommand : Command
 
         TypeInferer.Invoke(
             _defaultConverter,
-            typeof(IConverterTypeProvider<,>),
-            () => CreateConverterTypeProviderCommand<Unit, Unit, TDestinationOptions>(typedDestination, _defaultConverter, command));
+            typeof(IOutputConfigurableConverter<,>),
+            () => CreateConverterCommandOutputConfigurable<Unit, Unit, TDestinationOptions>(typedDestination, _defaultConverter, command));
 
         IDisposable formatSubscription = converterService.Events.RegisterChildCommand<IConverterEvent, ConverterRegisteredEvent, ConverterUnregisteredEvent>(
             command,
@@ -81,19 +79,30 @@ internal class OutputCommand : Command
             evnt =>
             {
                 Command converterCommand = new Command(evnt.Converter.Format);
-                if (evnt.Converter.GetType().IsAssignableToGenericType(typeof(IConverter<,>)))
+                if (evnt.Converter.GetType().IsAssignableToGenericType(typeof(IOutputConfigurableConverter<,>)))
+                {
+                    TypeInferer.Invoke(
+                        evnt.Converter,
+                        typeof(IOutputConfigurableConverter<,>),
+                        () => CreateConverterCommandOutputConfigurable<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
+                }
+                else if (evnt.Converter.GetType().IsAssignableToGenericType(typeof(IConverter<,>)))
                 {
                     TypeInferer.Invoke(
                         evnt.Converter,
                         typeof(IConverter<,>),
-                        () => CreateConverterCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
+                        () => CreateConverterCommandInputSettings<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
                 }
                 else
                 {
-                    TypeInferer.Invoke(
+                    ConverterAdapter<Unit, Unit> converterAdapter = new(
                         evnt.Converter,
-                        typeof(IConverterTypeProvider<,>),
-                        () => CreateConverterTypeProviderCommand<Unit, Unit, TDestinationOptions>(typedDestination, evnt.Converter, converterCommand));
+                        new DefaultOutputConfigurableConverter<Unit, Unit>());
+
+                    CreateConverterCommand(
+                        typedDestination,
+                        converterAdapter,
+                        converterCommand);
                 }
 
                 return converterCommand;
@@ -102,20 +111,17 @@ internal class OutputCommand : Command
         return (command, formatSubscription);
     }
 
-    private void CreateConverterCommand<T, TSettings, TDestinationOptions>(
+    private void CreateConverterCommandOutputConfigurable<TSettings, TCommandParameters, TDestinationOptions>(
         IDestination<TDestinationOptions> destination,
         IConverter converter,
         Command command)
     {
-        IConverter<T, TSettings> typedConverter = (IConverter<T, TSettings>)converter;
+        IOutputConfigurableConverter<TSettings, TCommandParameters> configurable = converter as IOutputConfigurableConverter<TSettings, TCommandParameters>
+            ?? new DefaultOutputConfigurableConverter<TSettings, TCommandParameters>();
 
-        IOutputConfigurableConverter<TSettings, Unit> configurable = converter as IOutputConfigurableConverter<TSettings, Unit>
-            ?? new DefaultOutputConfigurableConverter<TSettings, Unit>();
-
-        ConverterAdapter<TSettings, Unit> converterAdapter = new(
+        ConverterAdapter<TSettings, TCommandParameters> converterAdapter = new(
             converter,
-            configurable,
-            new ConverterSerializer<T, TSettings>(typedConverter));
+            configurable);
 
         CreateConverterCommand(
             destination,
@@ -123,20 +129,16 @@ internal class OutputCommand : Command
             command);
     }
 
-    private void CreateConverterTypeProviderCommand<TSettings, TCommandParameters, TDestinationOptions>(
+    private void CreateConverterCommandInputSettings<T, TSettings, TDestinationOptions>(
         IDestination<TDestinationOptions> destination,
         IConverter converter,
         Command command)
     {
-        IConverterTypeProvider<TSettings, TCommandParameters> typedConverter = (IConverterTypeProvider<TSettings, TCommandParameters>)converter;
+        IOutputConfigurableConverter<TSettings, Unit> configurable = new DefaultOutputConfigurableConverter<TSettings, Unit>();
 
-        IOutputConfigurableConverter<TSettings, TCommandParameters> configurable = converter as IOutputConfigurableConverter<TSettings, TCommandParameters>
-            ?? new DefaultOutputConfigurableConverter<TSettings, TCommandParameters>();
-
-        ConverterAdapter<TSettings, TCommandParameters> converterAdapter = new(
+        ConverterAdapter<TSettings, Unit> converterAdapter = new(
             converter,
-            configurable,
-            new TypeProviderConverterSerializer<TSettings, TCommandParameters>(typedConverter));
+            configurable);
 
         CreateConverterCommand(
             destination,
@@ -149,7 +151,7 @@ internal class OutputCommand : Command
         ConverterAdapter<TSettings, TCommandParameters> converter,
         Command command)
     {
-        command.AddAliases(converter.Aliases);
+        command.AddAliases(converter.Converter.Aliases);
 
         converter.Configure(command);
 
@@ -205,7 +207,7 @@ internal class OutputCommand : Command
                     {
                         try
                         {
-                            string resultText = converter.Serialize(valueProduced.Value, settings);
+                            string resultText = converter.Converter.Serialize(valueProduced.Value, settings);
                             await destination.SetTextAsync(resultText, destinationOptions);
                         }
                         catch (Exception ex)
@@ -226,7 +228,7 @@ internal class OutputCommand : Command
                             {
                                 if (_cSharpKernel.TryGetValue(variableName, out object? variable))
                                 {
-                                    string resultText = converter.Serialize(variable, settings);
+                                    string resultText = converter.Converter.Serialize(variable, settings);
                                     await destination.SetTextAsync(resultText, destinationOptions);
                                 }
                             }

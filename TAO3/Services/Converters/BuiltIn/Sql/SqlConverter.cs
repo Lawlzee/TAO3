@@ -67,7 +67,7 @@ public class SqlConverter : IConverterTypeProvider<SqlConverterSettings, SqlConv
     void IOutputConfigurableConverter<SqlConverterSettings, SqlConverterInputParameters>.Configure(Command command)
     {
         command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
-        command.Add(new Option<string>(new[] { "-t", "--type" }, "The type that will be use to deserialize the input text"));
+        command.Add(new Option<string>(new[] { "-tn", "--tableName" }, "The name of the table used for the insert commands"));
     }
 
     SqlConverterSettings IInputConfigurableConverter<SqlConverterSettings, SqlConverterParameters>.GetDefaultSettings()
