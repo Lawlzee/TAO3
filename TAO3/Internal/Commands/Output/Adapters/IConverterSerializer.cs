@@ -1,44 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.Converters;
+﻿using TAO3.Converters;
 
-namespace TAO3.Internal.Commands.Output
+namespace TAO3.Internal.Commands.Output;
+
+internal interface IConverterSerializer<TSettings>
 {
-    internal interface IConverterSerializer<TSettings>
+    string Serialize(object? value, TSettings? settings);
+}
+
+internal class ConverterSerializer<T, TSettings> : IConverterSerializer<TSettings>
+{
+    private readonly IConverter<T, TSettings> _converter;
+
+    public ConverterSerializer(IConverter<T, TSettings> converter)
     {
-        string Serialize(object? value, TSettings? settings);
+        _converter = converter;
     }
 
-    internal class ConverterSerializer<T, TSettings> : IConverterSerializer<TSettings>
+    public string Serialize(object? value, TSettings? settings)
     {
-        private readonly IConverter<T, TSettings> _converter;
+        return _converter.Serialize(value, settings);
+    }
+}
 
-        public ConverterSerializer(IConverter<T, TSettings> converter)
-        {
-            _converter = converter;
-        }
+internal class TypeProviderConverterSerializer<TSettings, TCommandParameters> : IConverterSerializer<TSettings>
+{
+    private readonly IConverterTypeProvider<TSettings, TCommandParameters> _converter;
 
-        public string Serialize(object? value, TSettings? settings)
-        {
-            return _converter.Serialize(value, settings);
-        }
+    public TypeProviderConverterSerializer(IConverterTypeProvider<TSettings, TCommandParameters> converter)
+    {
+        _converter = converter;
     }
 
-    internal class TypeProviderConverterSerializer<TSettings, TCommandParameters> : IConverterSerializer<TSettings>
+    public string Serialize(object? value, TSettings? settings)
     {
-        private readonly IConverterTypeProvider<TSettings, TCommandParameters> _converter;
-
-        public TypeProviderConverterSerializer(IConverterTypeProvider<TSettings, TCommandParameters> converter)
-        {
-            _converter = converter;
-        }
-
-        public string Serialize(object? value, TSettings? settings)
-        {
-            return _converter.Serialize(value, settings);
-        }
+        return _converter.Serialize(value, settings);
     }
 }

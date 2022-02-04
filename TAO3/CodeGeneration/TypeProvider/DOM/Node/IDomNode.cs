@@ -1,7 +1,6 @@
-﻿namespace TAO3.TypeProvider
+﻿namespace TAO3.TypeProvider;
+
+public interface IDomNode
 {
-    public interface IDomNode
-    {
-        void Accept(DomVisitor visitor);
-    }
+    void Accept(DomVisitor visitor);
 }

@@ -1,31 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace TAO3.Internal.Types;
 
-namespace TAO3.Internal.Types
+internal static class TupleHelper
 {
-    internal static class TupleHelper
+    private static readonly HashSet<Type> _valueTupleTypes = new HashSet<Type>(new Type[]
     {
-        private static readonly HashSet<Type> _valueTupleTypes = new HashSet<Type>(new Type[]
-        {
-            typeof(ValueTuple<>),
-            typeof(ValueTuple<,>),
-            typeof(ValueTuple<,,>),
-            typeof(ValueTuple<,,,>),
-            typeof(ValueTuple<,,,,>),
-            typeof(ValueTuple<,,,,,>),
-            typeof(ValueTuple<,,,,,,>),
-            typeof(ValueTuple<,,,,,,,>)
-        });
+        typeof(ValueTuple<>),
+        typeof(ValueTuple<,>),
+        typeof(ValueTuple<,,>),
+        typeof(ValueTuple<,,,>),
+        typeof(ValueTuple<,,,,>),
+        typeof(ValueTuple<,,,,,>),
+        typeof(ValueTuple<,,,,,,>),
+        typeof(ValueTuple<,,,,,,,>)
+    });
 
-        public static bool IsValueTuple(this Type type)
+    public static bool IsValueTuple(this Type type)
+    {
+        if (type.IsGenericType)
         {
-            if (type.IsGenericType)
-            {
-                type = type.GetGenericTypeDefinition();
-            }
-
-            return _valueTupleTypes.Contains(type);
+            type = type.GetGenericTypeDefinition();
         }
+
+        return _valueTupleTypes.Contains(type);
     }
 }

@@ -1,22 +1,16 @@
 ﻿using Microsoft.DotNet.Interactive.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TAO3.Internal.Extensions
+namespace TAO3.Internal.Extensions;
+
+internal static class KernelCommandExtensions
 {
-    internal static class KernelCommandExtensions
+    public static KernelCommand GetRootCommand(this KernelCommand kernelCommand)
     {
-        public static KernelCommand GetRootCommand(this KernelCommand kernelCommand)
+        while (kernelCommand.Parent != null)
         {
-            while (kernelCommand.Parent != null)
-            {
-                kernelCommand = kernelCommand.Parent;
-            }
-
-            return kernelCommand;
+            kernelCommand = kernelCommand.Parent;
         }
+
+        return kernelCommand;
     }
 }

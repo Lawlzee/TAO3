@@ -1,9 +1,8 @@
-﻿namespace TAO3.TypeProvider
+﻿namespace TAO3.TypeProvider;
+
+public interface ISchema
 {
-    public interface ISchema
-    {
-        ISchema Accept(SchemaRewriter rewriter);
-        void Accept(SchemaVisitor visitor);
-        bool AreEquivalent(ISchema other);
-    }
+    ISchema Accept(SchemaRewriter rewriter);
+    void Accept(SchemaVisitor visitor);
+    bool AreEquivalent(ISchema other);
 }

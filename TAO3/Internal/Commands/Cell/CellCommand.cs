@@ -1,35 +1,27 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
-using Microsoft.DotNet.Interactive.Events;
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Cell;
 using TAO3.Internal.Extensions;
 
-namespace TAO3.Internal.Commands.Cell
+namespace TAO3.Internal.Commands.Cell;
+
+internal class CellCommand : Command
 {
-    internal class CellCommand : Command
+    public CellCommand(ICellService cellService)
+        : base("#!cell", "Add a named cell")
     {
-        public CellCommand(ICellService cellService)
-            : base("#!cell", "Add a named cell")
+        Add(new Argument<string>("name", "Name of the cell"));
+
+        Handler = CommandHandler.Create((string name, KernelInvocationContext context) =>
         {
-            Add(new Argument<string>("name", "Name of the cell"));
+            KernelCommand command = context.Command.GetRootCommand();
 
-            Handler = CommandHandler.Create((string name, KernelInvocationContext context) =>
+            if (command is SubmitCode submitCode && NotebookCell.ContainsCellDirective(name, submitCode.Code))
             {
-                KernelCommand command = context.Command.GetRootCommand();
-
-                if (command is SubmitCode submitCode && NotebookCell.ContainsCellDirective(name, submitCode.Code))
-                {
-                    cellService.AddOrUpdateCell(name, submitCode.Code, context.HandlingKernel);
-                }
-            });
-        }
+                cellService.AddOrUpdateCell(name, submitCode.Code, context.HandlingKernel);
+            }
+        });
     }
 }

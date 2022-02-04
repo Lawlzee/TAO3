@@ -4,6 +4,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
+    <ImplicitUsings>false</ImplicitUsings>
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
     <Authors>Olivier Lavoie</Authors>

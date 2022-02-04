@@ -1,63 +1,56 @@
-﻿using Microsoft.DotNet.Interactive;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Subjects;
 
-namespace TAO3.IO
+namespace TAO3.IO;
+
+public interface IDestinationService : IDisposable
 {
-    public interface IDestinationService : IDisposable
-    {
-        IObservable<IDestinationEvent> Events { get; }
-        IEnumerable<IDestination> Destinations {  get; }
+    IObservable<IDestinationEvent> Events { get; }
+    IEnumerable<IDestination> Destinations {  get; }
 
-        void Register<T>(IDestination<T> destination);
-        bool Remove(string name);
+    void Register<T>(IDestination<T> destination);
+    bool Remove(string name);
+}
+
+public class DestinationService : IDestinationService
+{
+    private readonly Dictionary<string, IDestination> _destinationByName;
+    private readonly ReplaySubject<IDestinationEvent> _events;
+    public IObservable<IDestinationEvent> Events => _events;
+
+    public IEnumerable<IDestination> Destinations => _destinationByName.Values;
+
+    public DestinationService()
+    {
+        _destinationByName = new(StringComparer.OrdinalIgnoreCase);
+        _events = new();
     }
 
-    public class DestinationService : IDestinationService
+    public void Register<T>(IDestination<T> destination)
     {
-        private readonly Dictionary<string, IDestination> _destinationByName;
-        private readonly ReplaySubject<IDestinationEvent> _events;
-        public IObservable<IDestinationEvent> Events => _events;
-
-        public IEnumerable<IDestination> Destinations => _destinationByName.Values;
-
-        public DestinationService()
+        if (_destinationByName.TryGetValue(destination.Name, out IDestination? old))
         {
-            _destinationByName = new(StringComparer.OrdinalIgnoreCase);
-            _events = new();
+            _events.OnNext(new DestinationRemovedEvent(old));
         }
 
-        public void Register<T>(IDestination<T> destination)
-        {
-            if (_destinationByName.TryGetValue(destination.Name, out IDestination? old))
-            {
-                _events.OnNext(new DestinationRemovedEvent(old));
-            }
+        _destinationByName[destination.Name] = destination;
+        _events.OnNext(new DestinationAddedEvent(destination));
+    }
 
-            _destinationByName[destination.Name] = destination;
-            _events.OnNext(new DestinationAddedEvent(destination));
+    public bool Remove(string name)
+    {
+        if (_destinationByName.TryGetValue(name, out IDestination? outputDestination))
+        {
+            _events.OnNext(new DestinationRemovedEvent(outputDestination));
+            _destinationByName.Remove(name);
+            return true;
         }
 
-        public bool Remove(string name)
-        {
-            if (_destinationByName.TryGetValue(name, out IDestination? outputDestination))
-            {
-                _events.OnNext(new DestinationRemovedEvent(outputDestination));
-                _destinationByName.Remove(name);
-                return true;
-            }
+        return false;
+    }
 
-            return false;
-        }
-
-        public void Dispose()
-        {
-            _destinationByName.Clear();
-            _events.Dispose();
-        }
+    public void Dispose()
+    {
+        _destinationByName.Clear();
+        _events.Dispose();
     }
 }

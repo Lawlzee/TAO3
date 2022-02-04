@@ -1,29 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
+﻿using System.CommandLine;
 using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Converters;
 
-namespace TAO3.Internal.Commands.Input
+namespace TAO3.Internal.Commands.Input;
+
+internal class DefaultInputConfigurableConverter<TSettings>
+    : IInputConfigurableConverter<TSettings, Unit>
 {
-    internal class DefaultInputConfigurableConverter<TSettings>
-        : IInputConfigurableConverter<TSettings, Unit>
+    public TSettings BindParameters(TSettings settings, Unit args)
     {
-        public TSettings BindParameters(TSettings settings, Unit args)
-        {
-            return settings;
-        }
+        return settings;
+    }
 
-        public void Configure(Command command)
-        {
-        }
+    public void Configure(Command command)
+    {
+    }
 
-        public TSettings GetDefaultSettings()
-        {
-            return default!;
-        }
+    public TSettings GetDefaultSettings()
+    {
+        return default!;
     }
 }

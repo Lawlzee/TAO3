@@ -1,32 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TAO3.Formatting;
 
-namespace TAO3.Formatting
+public interface IFormatter
 {
-    public interface IFormatter
+    string Format(string text);
+    string Format(string text, object? config)
     {
-        string Format(string text);
-        string Format(string text, object? config)
-        {
-            return Format(text);
-        }
+        return Format(text);
+    }
+}
+
+public interface IFormatter<TConfig> : IFormatter
+{
+    string Format(string text, TConfig? config);
+
+    string IFormatter.Format(string text, object? config)
+    {
+        return Format(text, (TConfig)config!);
     }
 
-    public interface IFormatter<TConfig> : IFormatter
+    string IFormatter.Format(string text)
     {
-        string Format(string text, TConfig? config);
-
-        string IFormatter.Format(string text, object? config)
-        {
-            return Format(text, (TConfig)config!);
-        }
-
-        string IFormatter.Format(string text)
-        {
-            return Format(text, default(TConfig));
-        }
+        return Format(text, default(TConfig));
     }
 }

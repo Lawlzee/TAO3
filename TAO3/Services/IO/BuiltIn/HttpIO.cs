@@ -1,105 +1,99 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
+﻿using System.CommandLine;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Converters;
 
-namespace TAO3.IO
+namespace TAO3.IO;
+
+public enum HttpVerb
 {
-    public enum HttpVerb
+    Get,
+    Delete,
+    Head,
+    Options,
+    Patch,
+    Post,
+    Put,
+    Trace
+}
+
+internal record HttpSourceOptions
+{
+    public string Uri { get; init; } = null!;
+    public HttpVerb? Verb { get; init; }
+}
+
+internal record HttpDestinationOptions
+{
+    public string Uri { get; init; } = null!;
+    public HttpVerb? Verb { get; init; }
+    public IConverter Converter { get; init; } = null!;
+}
+
+internal class HttpIO : 
+    ITextSource<HttpSourceOptions>,
+    IDestination<HttpDestinationOptions>,
+    IConfigurableSource,
+    IConfigurableDestination
+{
+    private readonly HttpClient _httpClient;
+
+    public string Name => "http";
+    public IReadOnlyList<string> Aliases => Array.Empty<string>();
+
+    public HttpIO(HttpClient httpClient)
     {
-        Get,
-        Delete,
-        Head,
-        Options,
-        Patch,
-        Post,
-        Put,
-        Trace
+        _httpClient = httpClient;
     }
 
-    internal record HttpSourceOptions
+    void IConfigurableSource.Configure(Command command)
     {
-        public string Uri { get; init; } = null!;
-        public HttpVerb? Verb { get; init; }
+        command.Add(new Argument<string>("uri"));
+        command.Add(new Option<HttpVerb>("--verb"));
     }
 
-    internal record HttpDestinationOptions
+    public async Task<string> GetTextAsync(HttpSourceOptions options)
     {
-        public string Uri { get; init; } = null!;
-        public HttpVerb? Verb { get; init; }
-        public IConverter Converter { get; init; } = null!;
+        HttpMethod method = GetMethod(options.Verb ?? HttpVerb.Get);
+
+        HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri));
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
     }
 
-    internal class HttpIO : 
-        ITextSource<HttpSourceOptions>,
-        IDestination<HttpDestinationOptions>,
-        IConfigurableSource,
-        IConfigurableDestination
+    void IConfigurableDestination.Configure(Command command)
     {
-        private readonly HttpClient _httpClient;
+        command.Add(new Argument<string>("uri"));
+        command.Add(new Option<HttpVerb>("--verb"));
+        command.Add(new Option<HttpVerb>("--mediaType"));
+    }
 
-        public string Name => "http";
-        public IReadOnlyList<string> Aliases => Array.Empty<string>();
+    public async Task SetTextAsync(string text, HttpDestinationOptions options)
+    {
+        HttpMethod method = GetMethod(options.Verb ?? HttpVerb.Post);
 
-        public HttpIO(HttpClient httpClient)
+        HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri)
         {
-            _httpClient = httpClient;
+            Content = new StringContent(text, Encoding.UTF8, options.Converter.MimeType)
+        });
+        response.EnsureSuccessStatusCode();
+    }
+
+    private HttpMethod GetMethod(HttpVerb verb)
+    {
+        switch (verb)
+        {
+            case HttpVerb.Get: return HttpMethod.Get;
+            case HttpVerb.Delete: return HttpMethod.Delete;
+            case HttpVerb.Head: return HttpMethod.Head;
+            case HttpVerb.Options: return HttpMethod.Options;
+            case HttpVerb.Patch: return HttpMethod.Patch;
+            case HttpVerb.Post: return HttpMethod.Post;
+            case HttpVerb.Put: return HttpMethod.Put;
+            case HttpVerb.Trace: return HttpMethod.Trace;
+
         }
 
-        void IConfigurableSource.Configure(Command command)
-        {
-            command.Add(new Argument<string>("uri"));
-            command.Add(new Option<HttpVerb>("--verb"));
-        }
-
-        public async Task<string> GetTextAsync(HttpSourceOptions options)
-        {
-            HttpMethod method = GetMethod(options.Verb ?? HttpVerb.Get);
-
-            HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri));
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        void IConfigurableDestination.Configure(Command command)
-        {
-            command.Add(new Argument<string>("uri"));
-            command.Add(new Option<HttpVerb>("--verb"));
-            command.Add(new Option<HttpVerb>("--mediaType"));
-        }
-
-        public async Task SetTextAsync(string text, HttpDestinationOptions options)
-        {
-            HttpMethod method = GetMethod(options.Verb ?? HttpVerb.Post);
-
-            HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri)
-            {
-                Content = new StringContent(text, Encoding.UTF8, options.Converter.MimeType)
-            });
-            response.EnsureSuccessStatusCode();
-        }
-
-        private HttpMethod GetMethod(HttpVerb verb)
-        {
-            switch (verb)
-            {
-                case HttpVerb.Get: return HttpMethod.Get;
-                case HttpVerb.Delete: return HttpMethod.Delete;
-                case HttpVerb.Head: return HttpMethod.Head;
-                case HttpVerb.Options: return HttpMethod.Options;
-                case HttpVerb.Patch: return HttpMethod.Patch;
-                case HttpVerb.Post: return HttpMethod.Post;
-                case HttpVerb.Put: return HttpMethod.Put;
-                case HttpVerb.Trace: return HttpMethod.Trace;
-
-            }
-
-            throw new ArgumentException(nameof(verb));
-        }
+        throw new ArgumentException(nameof(verb));
     }
 }

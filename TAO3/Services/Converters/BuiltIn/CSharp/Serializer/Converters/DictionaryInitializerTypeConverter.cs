@@ -1,56 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TAO3.Internal.Types;
+﻿using TAO3.Internal.Types;
 using TAO3.TextSerializer;
 
-namespace TAO3.Converters.CSharp
+namespace TAO3.Converters.CSharp;
+
+internal class DictionaryInitializerTypeConverter<TKey, TValue> : TypeConverter<IDictionary<TKey, TValue>>
 {
-    internal class DictionaryInitializerTypeConverter<TKey, TValue> : TypeConverter<IDictionary<TKey, TValue>>
+    public override bool Convert(StringBuilder sb, IDictionary<TKey, TValue> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
     {
-        public override bool Convert(StringBuilder sb, IDictionary<TKey, TValue> obj, ObjectSerializer serializer, ObjectSerializerOptions options)
+        if (obj.GetType().GetConstructor(Type.EmptyTypes) == null)
         {
-            if (obj.GetType().GetConstructor(Type.EmptyTypes) == null)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            sb.Append("new ");
-            sb.Append(obj.GetType().PrettyPrint());
-            sb.Append("()");
+        sb.Append("new ");
+        sb.Append(obj.GetType().PrettyPrint());
+        sb.Append("()");
 
-            if (obj.Count == 0)
-            {
-                return true;
-            }
-
-            sb.AppendLine();
-            sb.Append(options.Indentation);
-            sb.AppendLine("{");
-
-            ObjectSerializerOptions elementOptions = options.Indent();
-
-            bool isFirst = true;
-            foreach (KeyValuePair<TKey, TValue> kvp in obj)
-            {
-                if (!isFirst)
-                {
-                    sb.AppendLine(",");
-                }
-
-                sb.Append(elementOptions.Indentation);
-                sb.Append("[");
-                serializer.Serialize(sb, kvp.Key, elementOptions);
-                sb.Append("] = ");
-                serializer.Serialize(sb, kvp.Value, elementOptions);
-                isFirst = false;
-            }
-
-            sb.AppendLine();
-            sb.Append(options.Indentation);
-            sb.Append("}");
-
+        if (obj.Count == 0)
+        {
             return true;
         }
+
+        sb.AppendLine();
+        sb.Append(options.Indentation);
+        sb.AppendLine("{");
+
+        ObjectSerializerOptions elementOptions = options.Indent();
+
+        bool isFirst = true;
+        foreach (KeyValuePair<TKey, TValue> kvp in obj)
+        {
+            if (!isFirst)
+            {
+                sb.AppendLine(",");
+            }
+
+            sb.Append(elementOptions.Indentation);
+            sb.Append("[");
+            serializer.Serialize(sb, kvp.Key, elementOptions);
+            sb.Append("] = ");
+            serializer.Serialize(sb, kvp.Value, elementOptions);
+            isFirst = false;
+        }
+
+        sb.AppendLine();
+        sb.Append(options.Indentation);
+        sb.Append("}");
+
+        return true;
     }
 }

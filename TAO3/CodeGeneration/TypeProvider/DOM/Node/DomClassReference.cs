@@ -1,29 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.Internal.Types;
+﻿using TAO3.Internal.Types;
 
-namespace TAO3.TypeProvider
+namespace TAO3.TypeProvider;
+
+public class DomClassReference : IDomType
 {
-    public class DomClassReference : IDomType
+    public string Type { get; }
+
+    public DomClassReference(string type)
     {
-        public string Type { get; }
+        Type = type;
+    }
 
-        public DomClassReference(string type)
-        {
-            Type = type;
-        }
+    public DomClassReference(Type type)
+    {
+        Type = type.PrettyPrintFullName();
+    }
 
-        public DomClassReference(Type type)
-        {
-            Type = type.PrettyPrintFullName();
-        }
-
-        public void Accept(DomVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public void Accept(DomVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

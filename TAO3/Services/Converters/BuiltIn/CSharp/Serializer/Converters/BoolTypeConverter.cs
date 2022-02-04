@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TAO3.TextSerializer;
+﻿using TAO3.TextSerializer;
 
-namespace TAO3.Converters.CSharp
+namespace TAO3.Converters.CSharp;
+
+internal class BoolTypeConverter : TypeConverter<bool>
 {
-    internal class BoolTypeConverter : TypeConverter<bool>
+    public override bool Convert(StringBuilder sb, bool obj, ObjectSerializer serializer, ObjectSerializerOptions options)
     {
-        public override bool Convert(StringBuilder sb, bool obj, ObjectSerializer serializer, ObjectSerializerOptions options)
-        {
-            sb.Append(obj ? "true" : "false");
-            return true;
-        }
+        sb.Append(obj ? "true" : "false");
+        return true;
     }
 }

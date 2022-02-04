@@ -1,19 +1,16 @@
-﻿using System.Collections.Generic;
+﻿namespace TAO3.TypeProvider;
 
-namespace TAO3.TypeProvider
+public class DomCollection : IDomType
 {
-    public class DomCollection : IDomType
+    public List<IDomType> Values { get; }
+
+    public DomCollection(List<IDomType> values)
     {
-        public List<IDomType> Values { get; }
+        Values = values;
+    }
 
-        public DomCollection(List<IDomType> values)
-        {
-            Values = values;
-        }
-
-        public void Accept(DomVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public void Accept(DomVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

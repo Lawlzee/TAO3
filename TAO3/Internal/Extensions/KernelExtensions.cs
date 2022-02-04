@@ -1,68 +1,62 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TAO3.Internal.Extensions
+namespace TAO3.Internal.Extensions;
+
+internal static class KernelExtensions
 {
-    internal static class KernelExtensions
+    public static void ScheduleSubmitCode(this Kernel kernel, string code)
     {
-        public static void ScheduleSubmitCode(this Kernel kernel, string code)
+        if (KernelInvocationContext.Current == null || KernelInvocationContext.Current.IsComplete)
         {
-            if (KernelInvocationContext.Current == null || KernelInvocationContext.Current.IsComplete)
-            {
-                kernel.SubmitCodeAsync(code).Wait();
-            }
-            else
-            {
-                kernel.DeferCommand(new SubmitCode(code));
-            }
+            kernel.SubmitCodeAsync(code).Wait();
         }
-
-        public static async Task ScheduleSubmitCodeAsync(this Kernel kernel, string code)
+        else
         {
-            //Hack, submiting code of a kernel doesn't work in the CompositeKernel
-            //and submiting a command (ex. #!cell myCell) doesn't work in a child kernel (ex. CSharpKernel)
-            code = $"#!{kernel.Name}\r\n" + code;
+            kernel.DeferCommand(new SubmitCode(code));
+        }
+    }
 
-            if (KernelInvocationContext.Current == null || KernelInvocationContext.Current.IsComplete)
-            {
-                await kernel.ParentKernel.SubmitCodeAsync(code);
-            }
-            else
-            {
-                KernelInvocationContext context = KernelInvocationContext.Current;
+    public static async Task ScheduleSubmitCodeAsync(this Kernel kernel, string code)
+    {
+        //Hack, submiting code of a kernel doesn't work in the CompositeKernel
+        //and submiting a command (ex. #!cell myCell) doesn't work in a child kernel (ex. CSharpKernel)
+        code = $"#!{kernel.Name}\r\n" + code;
 
-                IDisposable disposable = null!;
-                disposable = kernel.ParentKernel.KernelEvents
-                    .SelectMany(async e =>
+        if (KernelInvocationContext.Current == null || KernelInvocationContext.Current.IsComplete)
+        {
+            await kernel.ParentKernel.SubmitCodeAsync(code);
+        }
+        else
+        {
+            KernelInvocationContext context = KernelInvocationContext.Current;
+
+            IDisposable disposable = null!;
+            disposable = kernel.ParentKernel.KernelEvents
+                .SelectMany(async e =>
+                {
+                    KernelCommand rootCommand = e.Command.GetRootCommand();
+
+                    if (context.Command == rootCommand)
                     {
-                        KernelCommand rootCommand = e.Command.GetRootCommand();
-
-                        if (context.Command == rootCommand)
+                        if (e is CommandSucceeded succeeded)
                         {
-                            if (e is CommandSucceeded succeeded)
-                            {
-                                disposable.Dispose();
-                                await kernel.ParentKernel.SubmitCodeAsync(code);
-                            }
-
-                            if (e is CommandFailed failed)
-                            {
-                                disposable.Dispose();
-                            }
+                            disposable.Dispose();
+                            await kernel.ParentKernel.SubmitCodeAsync(code);
                         }
 
-                        return Unit.Default;
-                    })
-                    .Subscribe();
-            }
+                        if (e is CommandFailed failed)
+                        {
+                            disposable.Dispose();
+                        }
+                    }
+
+                    return Unit.Default;
+                })
+                .Subscribe();
         }
     }
 }

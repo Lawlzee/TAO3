@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TAO3.Excel;
 
-namespace TAO3.Excel
+internal static class BaseOneArray
 {
-    internal static class BaseOneArray
+    public static object[,] Create(int rows, int cols)
     {
-        public static object[,] Create(int rows, int cols)
-        {
-            int[] lengths = new int[] { rows, cols };
-            int[] lowerBounds = new int[] { 1, 1 };
+        int[] lengths = new int[] { rows, cols };
+        int[] lowerBounds = new int[] { 1, 1 };
 
-            return (object[,])Array.CreateInstance(typeof(object), lengths, lowerBounds);
-        }
+        return (object[,])Array.CreateInstance(typeof(object), lengths, lowerBounds);
     }
 }

@@ -1,107 +1,105 @@
-﻿using System;
-using ExcelRange = Microsoft.Office.Interop.Excel.Range;
+﻿using ExcelRange = Microsoft.Office.Interop.Excel.Range;
 
-namespace TAO3.Excel
+namespace TAO3.Excel;
+
+public class ExcelWorksheetCell
 {
-    public class ExcelWorksheetCell
+    private readonly ExcelRange _cell;
+    public dynamic Instance => _cell;
+
+    public ExcelWorksheetCell(ExcelRange cell)
     {
-        private readonly ExcelRange _cell;
-        public dynamic Instance => _cell;
+        _cell = cell;
+    }
 
-        public ExcelWorksheetCell(ExcelRange cell)
+    public dynamic GetRaw()
+    {
+        return _cell.Value2;
+    }
+
+    /*public dynamic Get()
+    {
+        Type inferedType = ExcelFormatHelper.GetCellType(_cell).ToClrType();
+        return ExcelFormatHelper.ParseCellValue(_cell.Value2, inferedType);
+    }*/
+
+    public string? GetString()
+    {
+        object? value = _cell;
+        return value?.ToString();
+    }
+
+    public double GetDouble()
+    {
+        object? value = _cell;
+        return (value as double?) ?? 0;
+    }
+
+    public double? GetNullableDouble()
+    {
+        object? value = _cell;
+        return value as double?;
+    }
+
+    public int GetInt()
+    {
+        object? value = _cell;
+        return (value as int?) ?? 0;
+    }
+
+    public int? GetNullableInt()
+    {
+        object? value = _cell;
+        return value as int?;
+    }
+
+    public DateTime GetDateTime()
+    {
+        object? value = _cell;
+        if (value is double doubleValue)
         {
-            _cell = cell;
+            DateTime.FromOADate(doubleValue);
         }
+        return default(DateTime);
+    }
 
-        public dynamic GetRaw()
+    public DateTime? GetNullableDateTime()
+    {
+        object? value = _cell;
+        if (value is double doubleValue)
         {
-            return _cell.Value2;
+            DateTime.FromOADate(doubleValue);
         }
+        return null;
+    }
 
-        /*public dynamic Get()
+    public TimeSpan GetTimeSpan()
+    {
+        object? value = _cell;
+        if (value is double doubleValue)
         {
-            Type inferedType = ExcelFormatHelper.GetCellType(_cell).ToClrType();
-            return ExcelFormatHelper.ParseCellValue(_cell.Value2, inferedType);
-        }*/
-
-        public string? GetString()
-        {
-            object? value = _cell;
-            return value?.ToString();
+            TimeSpan.FromDays(doubleValue);
         }
+        return TimeSpan.Zero;
+    }
 
-        public double GetDouble()
+    public TimeSpan? GetNullableTimeSpan()
+    {
+        object? value = _cell;
+        if (value is double doubleValue)
         {
-            object? value = _cell;
-            return (value as double?) ?? 0;
+            TimeSpan.FromDays(doubleValue);
         }
+        return null;
+    }
 
-        public double? GetNullableDouble()
+    public ExcelWorksheetCell Set(object value, bool formatCell = true)
+    {
+        if (formatCell)
         {
-            object? value = _cell;
-            return value as double?;
+            _cell.NumberFormat = ExcelFormatHelper.GetFormat(value?.GetType());
         }
-
-        public int GetInt()
-        {
-            object? value = _cell;
-            return (value as int?) ?? 0;
-        }
-
-        public int? GetNullableInt()
-        {
-            object? value = _cell;
-            return value as int?;
-        }
-
-        public DateTime GetDateTime()
-        {
-            object? value = _cell;
-            if (value is double doubleValue)
-            {
-                DateTime.FromOADate(doubleValue);
-            }
-            return default(DateTime);
-        }
-
-        public DateTime? GetNullableDateTime()
-        {
-            object? value = _cell;
-            if (value is double doubleValue)
-            {
-                DateTime.FromOADate(doubleValue);
-            }
-            return null;
-        }
-
-        public TimeSpan GetTimeSpan()
-        {
-            object? value = _cell;
-            if (value is double doubleValue)
-            {
-                TimeSpan.FromDays(doubleValue);
-            }
-            return TimeSpan.Zero;
-        }
-
-        public TimeSpan? GetNullableTimeSpan()
-        {
-            object? value = _cell;
-            if (value is double doubleValue)
-            {
-                TimeSpan.FromDays(doubleValue);
-            }
-            return null;
-        }
-
-        public ExcelWorksheetCell Set(object value, bool formatCell = true)
-        {
-            if (formatCell)
-            {
-                _cell.NumberFormat = ExcelFormatHelper.GetFormat(value?.GetType());
-            }
-            _cell.Value2 = value?.ToString();
-            return this;
-        }
+        _cell.Value2 = value?.ToString();
+        return this;
     }
 }

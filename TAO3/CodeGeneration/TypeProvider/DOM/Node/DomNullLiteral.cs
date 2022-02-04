@@ -1,10 +1,9 @@
-﻿namespace TAO3.TypeProvider
+﻿namespace TAO3.TypeProvider;
+
+public class DomNullLiteral : IDomType
 {
-    public class DomNullLiteral : IDomType
+    public void Accept(DomVisitor visitor)
     {
-        public void Accept(DomVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+        visitor.Visit(this);
     }
 }

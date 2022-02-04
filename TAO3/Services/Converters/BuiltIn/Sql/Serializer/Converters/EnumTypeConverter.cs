@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.TextSerializer;
+﻿using TAO3.TextSerializer;
 
-namespace TAO3.Converters.Sql
+namespace TAO3.Converters.Sql;
+
+internal class EnumTypeConverter : TypeConverter<Enum>
 {
-    internal class EnumTypeConverter : TypeConverter<Enum>
+    public override bool Convert(StringBuilder sb, Enum obj, ObjectSerializer serializer, ObjectSerializerOptions options)
     {
-        public override bool Convert(StringBuilder sb, Enum obj, ObjectSerializer serializer, ObjectSerializerOptions options)
-        {
-            serializer.Serialize(sb, System.Convert.ChangeType(obj, obj.GetType().GetEnumUnderlyingType()), options);
-            return true;
-        }
+        serializer.Serialize(sb, System.Convert.ChangeType(obj, obj.GetType().GetEnumUnderlyingType()), options);
+        return true;
     }
 }

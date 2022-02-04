@@ -1,61 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 using TAO3.Converters;
 using TAO3.TypeProvider;
 
-namespace TAO3.Internal.Commands.Input
+namespace TAO3.Internal.Commands.Input;
+
+internal class ConverterAdapter<TSettings, TCommandParameters> : 
+    IConverterTypeProviderAdapter<TSettings, TCommandParameters>,
+    IInputConfigurableConverter<TSettings, TCommandParameters>
 {
-    internal class ConverterAdapter<TSettings, TCommandParameters> : 
-        IConverterTypeProviderAdapter<TSettings, TCommandParameters>,
-        IInputConfigurableConverter<TSettings, TCommandParameters>
+    private readonly IConverterTypeProviderAdapter<TSettings, TCommandParameters> _typeProvider;
+    private readonly IInputConfigurableConverter<TSettings, TCommandParameters> _configurable;
+    public IConverter Converter { get; }
+    public string Format => Converter.Format;
+    public IReadOnlyList<string> Aliases => Converter.Aliases;
+    public string MimeType => Converter.MimeType;
+    public Dictionary<string, object> Properties => Converter.Properties;
+
+    public IDomCompiler DomCompiler => _typeProvider.DomCompiler;
+
+    public ConverterAdapter(
+        IConverterTypeProviderAdapter<TSettings, TCommandParameters> typeProvider, 
+        IInputConfigurableConverter<TSettings, TCommandParameters> configurable, 
+        IConverter converter)
     {
-        private readonly IConverterTypeProviderAdapter<TSettings, TCommandParameters> _typeProvider;
-        private readonly IInputConfigurableConverter<TSettings, TCommandParameters> _configurable;
-        public IConverter Converter { get; }
-        public string Format => Converter.Format;
-        public IReadOnlyList<string> Aliases => Converter.Aliases;
-        public string MimeType => Converter.MimeType;
-        public Dictionary<string, object> Properties => Converter.Properties;
+        _typeProvider = typeProvider;
+        _configurable = configurable;
+        Converter = converter;
+    }
 
-        public IDomCompiler DomCompiler => _typeProvider.DomCompiler;
+    public TSettings BindParameters(TSettings settings, TCommandParameters args)
+    {
+        return _configurable.BindParameters(settings, args);
+    }
 
-        public ConverterAdapter(
-            IConverterTypeProviderAdapter<TSettings, TCommandParameters> typeProvider, 
-            IInputConfigurableConverter<TSettings, TCommandParameters> configurable, 
-            IConverter converter)
-        {
-            _typeProvider = typeProvider;
-            _configurable = configurable;
-            Converter = converter;
-        }
+    public void Configure(Command command)
+    {
+        _configurable.Configure(command);
+    }
 
-        public TSettings BindParameters(TSettings settings, TCommandParameters args)
-        {
-            return _configurable.BindParameters(settings, args);
-        }
+    public TSettings GetDefaultSettings()
+    {
+        return _configurable.GetDefaultSettings();
+    }
 
-        public void Configure(Command command)
-        {
-            _configurable.Configure(command);
-        }
+    public Task<IDomType> ProvideTypeAsync(IConverterContext<TSettings> context, TCommandParameters args)
+    {
+        return _typeProvider.ProvideTypeAsync(context, args);
+    }
 
-        public TSettings GetDefaultSettings()
-        {
-            return _configurable.GetDefaultSettings();
-        }
-
-        public Task<IDomType> ProvideTypeAsync(IConverterContext<TSettings> context, TCommandParameters args)
-        {
-            return _typeProvider.ProvideTypeAsync(context, args);
-        }
-
-        public T Deserialize<T>(string text, TSettings? settings)
-        {
-            return _typeProvider.Deserialize<T>(text, settings);
-        }
+    public T Deserialize<T>(string text, TSettings? settings)
+    {
+        return _typeProvider.Deserialize<T>(text, settings);
     }
 }

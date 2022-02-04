@@ -1,19 +1,16 @@
-﻿using System;
+﻿namespace TAO3.TypeProvider;
 
-namespace TAO3.TypeProvider
+public class DomLiteral : IDomType
 {
-    public class DomLiteral : IDomType
+    public Type Type { get; }
+
+    public DomLiteral(Type type)
     {
-        public Type Type { get; }
+        Type = type;
+    }
 
-        public DomLiteral(Type type)
-        {
-            Type = type;
-        }
-
-        public void Accept(DomVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public void Accept(DomVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

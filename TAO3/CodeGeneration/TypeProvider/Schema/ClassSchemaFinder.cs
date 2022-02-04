@@ -1,30 +1,26 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace TAO3.TypeProvider;
 
-namespace TAO3.TypeProvider
+public class ClassSchemaFinder : SchemaVisitor
 {
-    public class ClassSchemaFinder : SchemaVisitor
+    private readonly List<ClassSchema> _classesFound;
+
+    private ClassSchemaFinder()
     {
-        private readonly List<ClassSchema> _classesFound;
+        _classesFound = new List<ClassSchema>();
+    }
 
-        private ClassSchemaFinder()
-        {
-            _classesFound = new List<ClassSchema>();
-        }
+    public static List<ClassSchema> FindClasses(ISchema schema)
+    {
+        ClassSchemaFinder classFinder = new ClassSchemaFinder();
+        schema.Accept(classFinder);
+        return classFinder._classesFound
+            .Distinct()
+            .ToList();
+    }
 
-        public static List<ClassSchema> FindClasses(ISchema schema)
-        {
-            ClassSchemaFinder classFinder = new ClassSchemaFinder();
-            schema.Accept(classFinder);
-            return classFinder._classesFound
-                .Distinct()
-                .ToList();
-        }
-
-        public override void Visit(ClassSchema node)
-        {
-            _classesFound.Add(node);
-            base.Visit(node);
-        }
+    public override void Visit(ClassSchema node)
+    {
+        _classesFound.Add(node);
+        base.Visit(node);
     }
 }

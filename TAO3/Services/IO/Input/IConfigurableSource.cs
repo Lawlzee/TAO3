@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 
-namespace TAO3.IO
+namespace TAO3.IO;
+
+public interface IConfigurableSource
 {
-    public interface IConfigurableSource
-    {
-        void Configure(Command command);
-    }
+    void Configure(Command command);
 }

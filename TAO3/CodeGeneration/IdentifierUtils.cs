@@ -1,44 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TAO3.CodeGeneration;
 
-namespace TAO3.CodeGeneration
+internal static class IdentifierUtils
 {
-    internal static class IdentifierUtils
+    internal static string ToCSharpIdentifier(string str)
     {
-        internal static string ToCSharpIdentifier(string str)
+        StringBuilder? sb = new StringBuilder(str.Length);
+        bool shouldUpper = true;
+
+        for (int i = 0; i < str.Length; i++)
         {
-            StringBuilder? sb = new StringBuilder(str.Length);
-            bool shouldUpper = true;
-
-            for (int i = 0; i < str.Length; i++)
+            char c = str[i];
+            if (char.IsLetterOrDigit(c))
             {
-                char c = str[i];
-                if (char.IsLetterOrDigit(c))
-                {
-                    sb.Append(shouldUpper ? char.ToUpper(c) : c);
-                    shouldUpper = false;
-                }
-                else
-                {
-                    shouldUpper = true;
-                }
+                sb.Append(shouldUpper ? char.ToUpper(c) : c);
+                shouldUpper = false;
             }
-
-            return sb.ToString();
+            else
+            {
+                shouldUpper = true;
+            }
         }
 
-        internal static string GetUniqueIdentifier(string identifier, HashSet<string> usedIdentifiers)
+        return sb.ToString();
+    }
+
+    internal static string GetUniqueIdentifier(string identifier, HashSet<string> usedIdentifiers)
+    {
+        for (int i = 2; true; i++)
         {
-            for (int i = 2; true; i++)
+            string newIdentifier = identifier + i;
+            if (!usedIdentifiers.Contains(newIdentifier))
             {
-                string newIdentifier = identifier + i;
-                if (!usedIdentifiers.Contains(newIdentifier))
-                {
-                    return newIdentifier;
-                }
+                return newIdentifier;
             }
         }
     }

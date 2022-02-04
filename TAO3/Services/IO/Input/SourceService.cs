@@ -1,78 +1,67 @@
-﻿using Microsoft.DotNet.Interactive;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Reactive;
-using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.IO;
+﻿using System.Reactive.Subjects;
 
-namespace TAO3.IO
+namespace TAO3.IO;
+
+public interface ISourceService : IDisposable
 {
-    public interface ISourceService : IDisposable
-    {
-        IObservable<ISourceEvent> Events { get; }
-        IEnumerable<ISource> Sources { get; }
+    IObservable<ISourceEvent> Events { get; }
+    IEnumerable<ISource> Sources { get; }
 
-        void Register<T>(ITextSource<T> source);
-        void Register<T>(IIntermediateSource<T> source);
-        bool Remove(string name);
+    void Register<T>(ITextSource<T> source);
+    void Register<T>(IIntermediateSource<T> source);
+    bool Remove(string name);
+}
+
+public class SourceService : ISourceService
+{
+    private readonly Dictionary<string, ISource> _sourceByName;
+    private readonly ReplaySubject<ISourceEvent> _events;
+    public IObservable<ISourceEvent> Events => _events;
+
+    public IEnumerable<ISource> Sources => _sourceByName.Values;
+
+    public SourceService()
+    {
+        _sourceByName = new(StringComparer.OrdinalIgnoreCase);
+        _events = new();
     }
 
-    public class SourceService : ISourceService
+    public void Register<T>(ITextSource<T> source)
     {
-        private readonly Dictionary<string, ISource> _sourceByName;
-        private readonly ReplaySubject<ISourceEvent> _events;
-        public IObservable<ISourceEvent> Events => _events;
+        DoRegister(source);
+    }
 
-        public IEnumerable<ISource> Sources => _sourceByName.Values;
+    public void Register<T>(IIntermediateSource<T> source)
+    {
+        DoRegister(source);
+    }
 
-        public SourceService()
+    private void DoRegister(ISource source)
+    {
+        if (_sourceByName.TryGetValue(source.Name, out ISource? oldInputSource))
         {
-            _sourceByName = new(StringComparer.OrdinalIgnoreCase);
-            _events = new();
+            _events.OnNext(new SourceRemovedEvent(oldInputSource));
         }
 
-        public void Register<T>(ITextSource<T> source)
+        _sourceByName[source.Name] = source;
+        _events.OnNext(new SourceAddedEvent(source));
+    }
+
+    public bool Remove(string name)
+    {
+        if (_sourceByName.TryGetValue(name, out var source))
         {
-            DoRegister(source);
+            _sourceByName.Remove(name);
+            _events.OnNext(new SourceRemovedEvent(source));
+            return true;
         }
 
-        public void Register<T>(IIntermediateSource<T> source)
-        {
-            DoRegister(source);
-        }
+        return false;
+    }
 
-        private void DoRegister(ISource source)
-        {
-            if (_sourceByName.TryGetValue(source.Name, out ISource? oldInputSource))
-            {
-                _events.OnNext(new SourceRemovedEvent(oldInputSource));
-            }
-
-            _sourceByName[source.Name] = source;
-            _events.OnNext(new SourceAddedEvent(source));
-        }
-
-        public bool Remove(string name)
-        {
-            if (_sourceByName.TryGetValue(name, out var source))
-            {
-                _sourceByName.Remove(name);
-                _events.OnNext(new SourceRemovedEvent(source));
-                return true;
-            }
-
-            return false;
-        }
-
-        public void Dispose()
-        {
-            _sourceByName.Clear();
-            _events.Dispose();
-        }
+    public void Dispose()
+    {
+        _sourceByName.Clear();
+        _events.Dispose();
     }
 }

@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
+﻿namespace TAO3.IO;
 
-namespace TAO3.IO
+public interface ISource
 {
-    public interface ISource
-    {
-        string Name { get; }
-        IReadOnlyList<string> Aliases { get; }
-    }
+    string Name { get; }
+    IReadOnlyList<string> Aliases { get; }
 }

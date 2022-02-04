@@ -2,164 +2,159 @@
 using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.DotNet.Interactive.SqlServer;
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Internal.Extensions;
 
-namespace TAO3.Internal.Commands.ConnectMSSQL
+namespace TAO3.Internal.Commands.ConnectMSSQL;
+
+internal class ConnectMSSQLCommand : Command
 {
-    internal class ConnectMSSQLCommand : Command
+    public ConnectMSSQLCommand()
+        : base("#!connectMSSQL", "Connects to a Microsoft SQL Server database")
     {
-        public ConnectMSSQLCommand()
-            : base("#!connectMSSQL", "Connects to a Microsoft SQL Server database")
+        Add(new Argument<string?>("connectionString", () => null, "Connection String"));
+        Add(new Option<string>(new[] { "--kernelName" }, "Kernel Name"));
+        Add(new Option<int>(new[] { "--minPoolSize" }, "Min Pool Size"));
+        Add(new Option<bool>(new[] { "--multipleActiveResultSets" }, "Multiple Active Result Sets"));
+        Add(new Option<bool>(new[] { "--multiSubnetFailover" }, "Multi Subnet Failover"));
+        Add(new Option<int>(new[] { "--packetSize" }, "Packet Size"));
+        Add(new Option<string>(new[] { "--password" }, "Password"));
+        Add(new Option<string>(new[] { "--pwd" }, "PWD"));
+        Add(new Option<bool>(new[] { "--persistSecurityInfo" }, "Persist Security Info"));
+        Add(new Option<bool>(new[] { "--pooling" }, "Pooling"));
+        Add(new Option<bool>(new[] { "--replication" }, "Replication"));
+        Add(new Option<string>(new[] { "--transactionBinding" }, "Transaction Binding"));
+        Add(new Option<bool>(new[] { "--trustServerCertificate" }, "Trust Server Certificate"));
+        Add(new Option<string>(new[] { "--typeSystemVersion" }, "Type System Version"));
+        Add(new Option<string>(new[] { "--userID" }, "User ID"));
+        Add(new Option<string>(new[] { "--user" }, "User"));
+        Add(new Option<string>(new[] { "--uid" }, "UID"));
+        Add(new Option<bool>(new[] { "--userInstance" }, "User Instance"));
+        Add(new Option<string>(new[] { "--workstationID" }, "Workstation ID"));
+        Add(new Option<string>(new[] { "--wsid" }, "WSID"));
+        Add(new Option<PoolBlockingPeriod>(new[] { "--poolBlockingPeriod" }, "Pool Blocking Period"));
+        Add(new Option<SqlConnectionColumnEncryptionSetting>(new[] { "--columnEncryptionSetting" }, "Column Encryption Setting"));
+        Add(new Option<int>(new[] { "--maxPoolSize" }, "Max Pool Size"));
+        Add(new Option<int>(new[] { "--connectionLifetime" }, "Connection Lifetime"));
+        Add(new Option<int>(new[] { "--loadBalanceTimeout" }, "Load Balance Timeout"));
+        Add(new Option<SqlConnectionAttestationProtocol>(new[] { "--attestationProtocol" }, "Attestation Protocol"));
+        Add(new Option<string>(new[] { "--enclaveAttestationUrl" }, "Enclave Attestation Url"));
+        Add(new Option<ApplicationIntent>(new[] { "--applicationIntent" }, "Application Intent"));
+        Add(new Option<string>(new[] { "--applicationName" }, "Application Name"));
+        Add(new Option<string>(new[] { "--app" }, "App"));
+        Add(new Option<string>(new[] { "--attachDBFilename" }, "AttachDbFilename"));
+        Add(new Option<string>(new[] { "--extendedProperties" }, "Extended Properties"));
+        Add(new Option<string>(new[] { "--initialFileName" }, "Initial File Name"));
+        Add(new Option<SqlAuthenticationMethod>(new[] { "--authentication" }, "Authentication"));
+        Add(new Option<int>(new[] { "--connectRetryCount" }, "Connect Retry Count"));
+        Add(new Option<int>(new[] { "--connectTimeout" }, "Connect Timeout"));
+        Add(new Option<int>(new[] { "--connectionTimeout" }, "Connection Timeout"));
+        Add(new Option<int>(new[] { "--timeout" }, "Timeout"));
+        Add(new Option<string>(new[] { "--currentLanguage" }, "Current Language"));
+        Add(new Option<string>(new[] { "--language" }, "Language"));
+        Add(new Option<int>(new[] { "--connectRetryInterval" }, "Connect Retry Interval"));
+        Add(new Option<bool>(new[] { "--encrypt" }, "Encrypt"));
+        Add(new Option<bool>(new[] { "--enlist" }, "Enlist"));
+        Add(new Option<string>(new[] { "--failoverPartner" }, "Failover Partner"));
+        Add(new Option<string>(new[] { "--initialCatalog" }, "Initial Catalog"));
+        Add(new Option<string>(new[] { "--database" }, "Database"));
+        Add(new Option<bool>(new[] { "--integratedSecurity" }, "Integrated Security"));
+        Add(new Option<bool>(new[] { "--trustedConnection" }, "Trusted Connection"));
+        Add(new Option<string>(new[] { "--dataSource" }, "Data Source"));
+        Add(new Option<string>(new[] { "--server" }, "Server"));
+        Add(new Option<string>(new[] { "--address" }, "Address"));
+        Add(new Option<string>(new[] { "--addr" }, "Addr"));
+        Add(new Option<string>(new[] { "--networkAddress" }, "Network Address"));
+        Add(new Option<bool>(new[] { "--verbose", "-v" }, "Print debugging information"));
+
+        Handler = CommandHandler.Create(async (ConnectMSSQLOptions options, bool verbose) =>
         {
-            Add(new Argument<string?>("connectionString", () => null, "Connection String"));
-            Add(new Option<string>(new[] { "--kernelName" }, "Kernel Name"));
-            Add(new Option<int>(new[] { "--minPoolSize" }, "Min Pool Size"));
-            Add(new Option<bool>(new[] { "--multipleActiveResultSets" }, "Multiple Active Result Sets"));
-            Add(new Option<bool>(new[] { "--multiSubnetFailover" }, "Multi Subnet Failover"));
-            Add(new Option<int>(new[] { "--packetSize" }, "Packet Size"));
-            Add(new Option<string>(new[] { "--password" }, "Password"));
-            Add(new Option<string>(new[] { "--pwd" }, "PWD"));
-            Add(new Option<bool>(new[] { "--persistSecurityInfo" }, "Persist Security Info"));
-            Add(new Option<bool>(new[] { "--pooling" }, "Pooling"));
-            Add(new Option<bool>(new[] { "--replication" }, "Replication"));
-            Add(new Option<string>(new[] { "--transactionBinding" }, "Transaction Binding"));
-            Add(new Option<bool>(new[] { "--trustServerCertificate" }, "Trust Server Certificate"));
-            Add(new Option<string>(new[] { "--typeSystemVersion" }, "Type System Version"));
-            Add(new Option<string>(new[] { "--userID" }, "User ID"));
-            Add(new Option<string>(new[] { "--user" }, "User"));
-            Add(new Option<string>(new[] { "--uid" }, "UID"));
-            Add(new Option<bool>(new[] { "--userInstance" }, "User Instance"));
-            Add(new Option<string>(new[] { "--workstationID" }, "Workstation ID"));
-            Add(new Option<string>(new[] { "--wsid" }, "WSID"));
-            Add(new Option<PoolBlockingPeriod>(new[] { "--poolBlockingPeriod" }, "Pool Blocking Period"));
-            Add(new Option<SqlConnectionColumnEncryptionSetting>(new[] { "--columnEncryptionSetting" }, "Column Encryption Setting"));
-            Add(new Option<int>(new[] { "--maxPoolSize" }, "Max Pool Size"));
-            Add(new Option<int>(new[] { "--connectionLifetime" }, "Connection Lifetime"));
-            Add(new Option<int>(new[] { "--loadBalanceTimeout" }, "Load Balance Timeout"));
-            Add(new Option<SqlConnectionAttestationProtocol>(new[] { "--attestationProtocol" }, "Attestation Protocol"));
-            Add(new Option<string>(new[] { "--enclaveAttestationUrl" }, "Enclave Attestation Url"));
-            Add(new Option<ApplicationIntent>(new[] { "--applicationIntent" }, "Application Intent"));
-            Add(new Option<string>(new[] { "--applicationName" }, "Application Name"));
-            Add(new Option<string>(new[] { "--app" }, "App"));
-            Add(new Option<string>(new[] { "--attachDBFilename" }, "AttachDbFilename"));
-            Add(new Option<string>(new[] { "--extendedProperties" }, "Extended Properties"));
-            Add(new Option<string>(new[] { "--initialFileName" }, "Initial File Name"));
-            Add(new Option<SqlAuthenticationMethod>(new[] { "--authentication" }, "Authentication"));
-            Add(new Option<int>(new[] { "--connectRetryCount" }, "Connect Retry Count"));
-            Add(new Option<int>(new[] { "--connectTimeout" }, "Connect Timeout"));
-            Add(new Option<int>(new[] { "--connectionTimeout" }, "Connection Timeout"));
-            Add(new Option<int>(new[] { "--timeout" }, "Timeout"));
-            Add(new Option<string>(new[] { "--currentLanguage" }, "Current Language"));
-            Add(new Option<string>(new[] { "--language" }, "Language"));
-            Add(new Option<int>(new[] { "--connectRetryInterval" }, "Connect Retry Interval"));
-            Add(new Option<bool>(new[] { "--encrypt" }, "Encrypt"));
-            Add(new Option<bool>(new[] { "--enlist" }, "Enlist"));
-            Add(new Option<string>(new[] { "--failoverPartner" }, "Failover Partner"));
-            Add(new Option<string>(new[] { "--initialCatalog" }, "Initial Catalog"));
-            Add(new Option<string>(new[] { "--database" }, "Database"));
-            Add(new Option<bool>(new[] { "--integratedSecurity" }, "Integrated Security"));
-            Add(new Option<bool>(new[] { "--trustedConnection" }, "Trusted Connection"));
-            Add(new Option<string>(new[] { "--dataSource" }, "Data Source"));
-            Add(new Option<string>(new[] { "--server" }, "Server"));
-            Add(new Option<string>(new[] { "--address" }, "Address"));
-            Add(new Option<string>(new[] { "--addr" }, "Addr"));
-            Add(new Option<string>(new[] { "--networkAddress" }, "Network Address"));
-            Add(new Option<bool>(new[] { "--verbose", "-v" }, "Print debugging information"));
+            Kernel kernel = await CreateKernelAsync(
+                options.GetConnectionString(),
+                options.GetkernelName(),
+                options.Context,
+                verbose);
 
-            Handler = CommandHandler.Create(async (ConnectMSSQLOptions options, bool verbose) =>
-            {
-                Kernel kernel = await CreateKernelAsync(
-                    options.GetConnectionString(),
-                    options.GetkernelName(),
-                    options.Context,
-                    verbose);
+            options.Context.HandlingKernel.ParentKernel.Add(kernel);
+        });
+    }
 
-                options.Context.HandlingKernel.ParentKernel.Add(kernel);
-            });
+    private async Task<Kernel> CreateKernelAsync(
+        string connectionString,
+        string kernelName,
+        KernelInvocationContext context,
+        bool verbose)
+    {
+        string pathToService = PathToService(FindResolvedPackageReference(Kernel.Root), "MicrosoftSqlToolsServiceLayer");
+
+        MsSqlKernelConnector connector = new MsSqlKernelConnector(createDbContext: false, connectionString)
+        {
+            PathToService = pathToService
+        };
+
+        Kernel kernel = await connector.ConnectKernelAsync(new KernelInfo(kernelName));
+
+        await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
+
+        return kernel;
+
+        //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.FindResolvedPackageReference
+        ResolvedPackageReference FindResolvedPackageReference(Kernel rootKernel)
+        {
+            var runtimePackageIdSuffix = "native.Microsoft.SqlToolsService";
+            var resolved = rootKernel.SubkernelsAndSelf()
+                .OfType<ISupportNuget>()
+                .SelectMany(k => k.ResolvedPackageReferences)
+                .FirstOrDefault(p => p.PackageName.EndsWith(runtimePackageIdSuffix, StringComparison.OrdinalIgnoreCase));
+            return resolved!;
         }
 
-        private async Task<Kernel> CreateKernelAsync(
-            string connectionString,
-            string kernelName,
-            KernelInvocationContext context,
-            bool verbose)
+        //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.PathToService
+        string PathToService(ResolvedPackageReference resolvedPackageReference, string serviceName)
         {
-            string pathToService = PathToService(FindResolvedPackageReference(Kernel.Root), "MicrosoftSqlToolsServiceLayer");
-
-            MsSqlKernelConnector connector = new MsSqlKernelConnector(createDbContext: false, connectionString)
+            var pathToService = "";
+            if (resolvedPackageReference is not null)
             {
-                PathToService = pathToService
-            };
-
-            Kernel kernel = await connector.ConnectKernelAsync(new KernelInfo(kernelName));
-
-            await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
-
-            return kernel;
-
-            //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.FindResolvedPackageReference
-            ResolvedPackageReference FindResolvedPackageReference(Kernel rootKernel)
-            {
-                var runtimePackageIdSuffix = "native.Microsoft.SqlToolsService";
-                var resolved = rootKernel.SubkernelsAndSelf()
-                    .OfType<ISupportNuget>()
-                    .SelectMany(k => k.ResolvedPackageReferences)
-                    .FirstOrDefault(p => p.PackageName.EndsWith(runtimePackageIdSuffix, StringComparison.OrdinalIgnoreCase));
-                return resolved!;
-            }
-
-            //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.PathToService
-            string PathToService(ResolvedPackageReference resolvedPackageReference, string serviceName)
-            {
-                var pathToService = "";
-                if (resolvedPackageReference is not null)
+                // Extract the platform 'osx-x64' from the package name 'runtime.osx-x64.native.microsoft.sqltoolsservice'
+                var packageNameSegments = resolvedPackageReference.PackageName.Split(".");
+                if (packageNameSegments.Length > 2)
                 {
-                    // Extract the platform 'osx-x64' from the package name 'runtime.osx-x64.native.microsoft.sqltoolsservice'
-                    var packageNameSegments = resolvedPackageReference.PackageName.Split(".");
-                    if (packageNameSegments.Length > 2)
+                    var platform = packageNameSegments[1];
+
+                    // Build the path to the MicrosoftSqlToolsServiceLayer executable by reaching into the resolve nuget package
+                    // assuming a convention for native binaries.
+                    pathToService = Path.Combine(
+                        resolvedPackageReference.PackageRoot,
+                        "runtimes",
+                        platform,
+                        "native",
+                        serviceName);
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        var platform = packageNameSegments[1];
-
-                        // Build the path to the MicrosoftSqlToolsServiceLayer executable by reaching into the resolve nuget package
-                        // assuming a convention for native binaries.
-                        pathToService = Path.Combine(
-                            resolvedPackageReference.PackageRoot,
-                            "runtimes",
-                            platform,
-                            "native",
-                            serviceName);
-
-                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        {
-                            pathToService += ".exe";
-                        }
+                        pathToService += ".exe";
                     }
                 }
-
-                return pathToService;
             }
+
+            return pathToService;
         }
+    }
 
-        private async Task InitializeDbContextAsync(
-            string connectionString,
-            string kernelName,
-            KernelInvocationContext context,
-            bool verbose)
-        {
-            CSharpKernel csharpKernel = context.GetCSharpKernel();
+    private async Task InitializeDbContextAsync(
+        string connectionString,
+        string kernelName,
+        KernelInvocationContext context,
+        bool verbose)
+    {
+        CSharpKernel csharpKernel = context.GetCSharpKernel();
 
-            //$"Scaffolding a `DbContext` and initializing an instance of it called `{kernelName}` in the C# kernel.".Display("text/markdown");
+        //$"Scaffolding a `DbContext` and initializing an instance of it called `{kernelName}` in the C# kernel.".Display("text/markdown");
 
-            var submission1 = @$"
+        var submission1 = @$"
 using System;
 using System.Reflection;
 using System.Linq;
@@ -273,26 +268,25 @@ string CleanFile(string file)
         .Trim( new[] {{ '{{', '}}' }} );
 }}
 ";
-            await SubmitCodeAsync(submission1);
+        await SubmitCodeAsync(submission1);
 
-            csharpKernel.TryGetValue("code", out string submission2);
+        csharpKernel.TryGetValue("code", out string submission2);
 
-            await SubmitCodeAsync(submission2);
+        await SubmitCodeAsync(submission2);
 
-            var submission3 = $@"
+        var submission3 = $@"
 var {kernelName} = new {kernelName}Context();";
 
-            await SubmitCodeAsync(submission3);
+        await SubmitCodeAsync(submission3);
 
-            async Task SubmitCodeAsync(string code)
+        async Task SubmitCodeAsync(string code)
+        {
+            if (verbose)
             {
-                if (verbose)
-                {
-                    code.Display();
-                }
-
-                await csharpKernel.SubmitCodeAsync(code);
+                code.Display();
             }
+
+            await csharpKernel.SubmitCodeAsync(code);
         }
     }
 }

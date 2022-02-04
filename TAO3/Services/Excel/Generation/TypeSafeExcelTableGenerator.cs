@@ -1,47 +1,38 @@
-﻿using Microsoft.DotNet.Interactive;
-using Microsoft.DotNet.Interactive.Commands;
-using Microsoft.DotNet.Interactive.CSharp;
-using Microsoft.Office.Interop.Excel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using Microsoft.DotNet.Interactive.CSharp;
 using TAO3.CodeGeneration;
 using TAO3.Internal.Extensions;
 using TAO3.TypeProvider;
 
-namespace TAO3.Excel.Generation
+namespace TAO3.Excel.Generation;
+
+internal class TypeSafeExcelTableGenerator
 {
-    internal class TypeSafeExcelTableGenerator
+    private readonly ITypeProvider<ExcelTable> _typeProvider;
+
+    public TypeSafeExcelTableGenerator(ITypeProvider<ExcelTable> typeProvider)
     {
-        private readonly ITypeProvider<ExcelTable> _typeProvider;
+        _typeProvider = typeProvider;
+    }
 
-        public TypeSafeExcelTableGenerator(ITypeProvider<ExcelTable> typeProvider)
-        {
-            _typeProvider = typeProvider;
-        }
+    public string Generate(CSharpKernel cSharpKernel, ExcelTable table)
+    {
+        string rowTypeName = GenerateRowType(cSharpKernel, table);
+        string tableTypeName = GenerateTableType(cSharpKernel, table, rowTypeName);
+        return tableTypeName;
+    }
 
-        public string Generate(CSharpKernel cSharpKernel, ExcelTable table)
-        {
-            string rowTypeName = GenerateRowType(cSharpKernel, table);
-            string tableTypeName = GenerateTableType(cSharpKernel, table, rowTypeName);
-            return tableTypeName;
-        }
+    private string GenerateRowType(CSharpKernel cSharpKernel, ExcelTable table)
+    {
+        SchemaSerialization schema = _typeProvider.ProvideTypes(table);
+        cSharpKernel.ScheduleSubmitCode(schema.Code);
+        return _typeProvider.Serializer.PrettyPrint(schema.RootElementType!);
+    }
 
-        private string GenerateRowType(CSharpKernel cSharpKernel, ExcelTable table)
-        {
-            SchemaSerialization schema = _typeProvider.ProvideTypes(table);
-            cSharpKernel.ScheduleSubmitCode(schema.Code);
-            return _typeProvider.Serializer.PrettyPrint(schema.RootElementType!);
-        }
+    private string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
+    {
+        string className = IdentifierUtils.ToCSharpIdentifier(table.Name);
 
-        private string GenerateTableType(CSharpKernel cSharpKernel, ExcelTable table, string rowTypeName)
-        {
-            string className = IdentifierUtils.ToCSharpIdentifier(table.Name);
-
-            string code = $@"using System;
+        string code = $@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using TAO3.Excel;
@@ -58,9 +49,8 @@ public class {className} : ExcelTable
 
     public void Set(IEnumerable<{rowTypeName}> data) => Set<{rowTypeName}>(data);
 }}";
-            cSharpKernel.ScheduleSubmitCode(code);
+        cSharpKernel.ScheduleSubmitCode(code);
 
-            return className;
-        }
+        return className;
     }
 }

@@ -1,37 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿namespace TAO3.TextSerializer;
 
-namespace TAO3.TextSerializer
+public class ObjectSerializerOptions
 {
-    public class ObjectSerializerOptions
+    public int IndentationLevel { get; private set; }
+    public string IndentationString { get; private set; }
+    public string Indentation { get; private set; } 
+
+    public ObjectSerializerOptions(int indentationLevel = 0, string indentationString = "    ")
     {
-        public int IndentationLevel { get; private set; }
-        public string IndentationString { get; private set; }
-        public string Indentation { get; private set; } 
+        IndentationLevel = indentationLevel;
+        IndentationString = indentationString;
+        Indentation = string.Concat(Enumerable.Repeat(IndentationString, IndentationLevel));
+    }
 
-        public ObjectSerializerOptions(int indentationLevel = 0, string indentationString = "    ")
+    public ObjectSerializerOptions Indent()
+    {
+        return With(x =>
         {
-            IndentationLevel = indentationLevel;
-            IndentationString = indentationString;
-            Indentation = string.Concat(Enumerable.Repeat(IndentationString, IndentationLevel));
-        }
+            x.IndentationLevel += 1;
+            x.Indentation = string.Concat(Enumerable.Repeat(x.IndentationString, x.IndentationLevel));
+        });
+    }
 
-        public ObjectSerializerOptions Indent()
-        {
-            return With(x =>
-            {
-                x.IndentationLevel += 1;
-                x.Indentation = string.Concat(Enumerable.Repeat(x.IndentationString, x.IndentationLevel));
-            });
-        }
-
-        private ObjectSerializerOptions With(Action<ObjectSerializerOptions> setValues)
-        {
-            ObjectSerializerOptions clone = (ObjectSerializerOptions)MemberwiseClone();
-            setValues(clone);
-            return clone;
-        }
+    private ObjectSerializerOptions With(Action<ObjectSerializerOptions> setValues)
+    {
+        ObjectSerializerOptions clone = (ObjectSerializerOptions)MemberwiseClone();
+        setValues(clone);
+        return clone;
     }
 }

@@ -1,52 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TAO3.TypeProvider;
 
-namespace TAO3.TypeProvider
+public abstract class DomVisitor
 {
-    public abstract class DomVisitor
+    public virtual void Visit(IDomNode node)
     {
-        public virtual void Visit(IDomNode node)
+        node.Accept(this);
+    }
+
+    public virtual void Visit(DomClass node)
+    {
+        foreach (DomClassProperty property in node.Properties)
         {
-            node.Accept(this);
+            property.Accept(this);
         }
+    }
 
-        public virtual void Visit(DomClass node)
+    public virtual void Visit(DomClassProperty node)
+    {
+
+    }
+
+    public virtual void Visit(DomClassReference node)
+    {
+
+    }
+
+    public virtual void Visit(DomLiteral node)
+    {
+
+    }
+
+    public virtual void Visit(DomCollection node)
+    {
+        foreach (IDomType value in node.Values)
         {
-            foreach (DomClassProperty property in node.Properties)
-            {
-                property.Accept(this);
-            }
+            value.Accept(this);
         }
+    }
 
-        public virtual void Visit(DomClassProperty node)
-        {
+    public virtual void Visit(DomNullLiteral node)
+    {
 
-        }
-
-        public virtual void Visit(DomClassReference node)
-        {
-
-        }
-
-        public virtual void Visit(DomLiteral node)
-        {
-
-        }
-
-        public virtual void Visit(DomCollection node)
-        {
-            foreach (IDomType value in node.Values)
-            {
-                value.Accept(this);
-            }
-        }
-
-        public virtual void Visit(DomNullLiteral node)
-        {
-
-        }
     }
 }

@@ -1,51 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAO3.TextSerializer;
+﻿using TAO3.TextSerializer;
 
-namespace TAO3.Converters.Sql
+namespace TAO3.Converters.Sql;
+
+public interface ISqlObjectSerializer : IObjectSerializer
 {
-    public interface ISqlObjectSerializer : IObjectSerializer
-    {
 
+}
+
+public class SqlObjectSerializer : ObjectSerializer, ISqlObjectSerializer
+{
+    public SqlObjectSerializer()
+    {
+        AddBuiltIn();
     }
 
-    public class SqlObjectSerializer : ObjectSerializer, ISqlObjectSerializer
+    private void AddBuiltIn()
     {
-        public SqlObjectSerializer()
-        {
-            AddBuiltIn();
-        }
+        AddConverter<byte, NumberTypeConverter<byte>>();
+        AddConverter<decimal, NumberTypeConverter<decimal>>();
+        AddConverter<double, NumberTypeConverter<double>>();
+        AddConverter<short, NumberTypeConverter<short>>();
+        AddConverter<int, NumberTypeConverter<int>>();
+        AddConverter<long, NumberTypeConverter<long>>();
+        AddConverter<sbyte, NumberTypeConverter<sbyte>>();
+        AddConverter<ushort, NumberTypeConverter<ushort>>();
+        AddConverter<uint, NumberTypeConverter<uint>>();
+        AddConverter<ulong, NumberTypeConverter<ulong>>();
+        AddConverter<float, NumberTypeConverter<float>>();
 
-        private void AddBuiltIn()
-        {
-            AddConverter<byte, NumberTypeConverter<byte>>();
-            AddConverter<decimal, NumberTypeConverter<decimal>>();
-            AddConverter<double, NumberTypeConverter<double>>();
-            AddConverter<short, NumberTypeConverter<short>>();
-            AddConverter<int, NumberTypeConverter<int>>();
-            AddConverter<long, NumberTypeConverter<long>>();
-            AddConverter<sbyte, NumberTypeConverter<sbyte>>();
-            AddConverter<ushort, NumberTypeConverter<ushort>>();
-            AddConverter<uint, NumberTypeConverter<uint>>();
-            AddConverter<ulong, NumberTypeConverter<ulong>>();
-            AddConverter<float, NumberTypeConverter<float>>();
+        AddConverter<bool, BoolTypeConverter>();
+        AddConverter<char, CharTypeConverter>();
+        AddConverter<string, StringTypeConverter>();
+        AddConverter<DateTime, DateTimeTypeConverter>();
+        AddConverter<Guid, GuidTypeConverter>();
+        
+        AddConverter<Type, TypeTypeConverter>();
 
-            AddConverter<bool, BoolTypeConverter>();
-            AddConverter<char, CharTypeConverter>();
-            AddConverter<string, StringTypeConverter>();
-            AddConverter<DateTime, DateTimeTypeConverter>();
-            AddConverter<Guid, GuidTypeConverter>();
-            
-            AddConverter<Type, TypeTypeConverter>();
+        AddGenericConverter(typeof(CollectionInitializerTypeConverter<>));
+        AddGenericConverter(typeof(NullableTypeConverter<>));
 
-            AddGenericConverter(typeof(CollectionInitializerTypeConverter<>));
-            AddGenericConverter(typeof(NullableTypeConverter<>));
-
-            AddConverter<Enum, EnumTypeConverter>();
-            AddConverter<object, ObjectTypeConverter>();
-        }
+        AddConverter<Enum, EnumTypeConverter>();
+        AddConverter<object, ObjectTypeConverter>();
     }
 }

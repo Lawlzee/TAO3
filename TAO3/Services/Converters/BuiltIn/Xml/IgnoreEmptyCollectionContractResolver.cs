@@ -1,43 +1,37 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Internal.Types;
 
-namespace TAO3.Converters.Xml
+namespace TAO3.Converters.Xml;
+
+//https://stackoverflow.com/questions/11320968/can-newtonsoft-json-net-skip-serializing-empty-lists
+internal class IgnoreEmptyCollectionContractResolver : DefaultContractResolver
 {
-    //https://stackoverflow.com/questions/11320968/can-newtonsoft-json-net-skip-serializing-empty-lists
-    internal class IgnoreEmptyCollectionContractResolver : DefaultContractResolver
+    public static readonly IgnoreEmptyCollectionContractResolver Instance = new IgnoreEmptyCollectionContractResolver();
+
+    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
     {
-        public static readonly IgnoreEmptyCollectionContractResolver Instance = new IgnoreEmptyCollectionContractResolver();
+        JsonProperty property = base.CreateProperty(member, memberSerialization);
 
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        if (property.PropertyType != typeof(string))
         {
-            JsonProperty property = base.CreateProperty(member, memberSerialization);
-
-            if (property.PropertyType != typeof(string))
+            if (property.PropertyType!.GetInterface(nameof(IEnumerable)) != null)
             {
-                if (property.PropertyType!.GetInterface(nameof(IEnumerable)) != null)
+                property.ShouldSerialize = instance =>
                 {
-                    property.ShouldSerialize = instance =>
+                    if (instance == null)
                     {
-                        if (instance == null)
-                        {
-                            return false;
-                        }
+                        return false;
+                    }
 
-                        object? value = member.GetValue(instance);
-                        return value != null && ((IEnumerable)value).GetEnumerator().MoveNext();
-                    };
-                }
-                    
+                    object? value = member.GetValue(instance);
+                    return value != null && ((IEnumerable)value).GetEnumerator().MoveNext();
+                };
             }
-            return property;
+                
         }
+        return property;
     }
 }

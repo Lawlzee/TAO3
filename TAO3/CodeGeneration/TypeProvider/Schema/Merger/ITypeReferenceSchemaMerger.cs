@@ -1,8 +1,7 @@
-﻿namespace TAO3.TypeProvider
+﻿namespace TAO3.TypeProvider;
+
+public interface ITypeReferenceSchemaMerger
 {
-    public interface ITypeReferenceSchemaMerger
-    {
-        static ITypeReferenceSchemaMerger Default { get; } = new SchemaMerger(ILiteralTypeMerger.Default);
-        TypeReferenceSchema Merge(TypeReferenceSchema a, TypeReferenceSchema b);
-    }
+    static ITypeReferenceSchemaMerger Default { get; } = new SchemaMerger(ILiteralTypeMerger.Default);
+    TypeReferenceSchema Merge(TypeReferenceSchema a, TypeReferenceSchema b);
 }

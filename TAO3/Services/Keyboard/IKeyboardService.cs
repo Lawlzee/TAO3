@@ -1,16 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WindowsHook;
+﻿using WindowsHook;
 
-namespace TAO3.Keyboard
+namespace TAO3.Keyboard;
+
+public interface IKeyboardService : IDisposable
 {
-
-    public interface IKeyboardService : IDisposable
-    {
-        void RegisterOnKeyPressed(Keys shortcut, Action onPressed);
-        bool UnRegisterOnKeyPressed(Keys shortcut);
-    }
+    void RegisterOnKeyPressed(Keys shortcut, Action onPressed);
+    bool UnRegisterOnKeyPressed(Keys shortcut);
 }

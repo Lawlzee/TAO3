@@ -1,12 +1,5 @@
 ﻿using Microsoft.DotNet.Interactive;
-using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TAO3.Converters;
 using TAO3.IO;
 using TAO3.Internal.Commands.Output;
@@ -48,198 +41,197 @@ using TAO3.EventHandlers.Macro;
 using TAO3.Converters.Default;
 using Microsoft.DotNet.Interactive.Connection;
 
-namespace TAO3.Internal
+namespace TAO3.Internal;
+
+public class TAO3KernelExtension : IKernelExtension
 {
-    public class TAO3KernelExtension : IKernelExtension
+    public async Task OnLoadAsync(Kernel kernel)
     {
-        public async Task OnLoadAsync(Kernel kernel)
+        Debugger.Launch();
+
+        CompositeKernel compositeKernel = (CompositeKernel)kernel;
+
+        INotepadService notepad = new NotepadService();
+
+        IWindowsService windowsService = new WindowsService();
+        IKeyboardService keyboard = windowsService.Keyboard;
+        IClipboardService clipboard = windowsService.Clipboard;
+
+        IToastService toast = new ToastService();
+        IConverterService converterService = new ConverterService();
+
+        ISourceService sourceService = new SourceService();
+        IDestinationService destinationService = new DestinationService();
+
+        ICellService cellService = new CellService();
+
+        HttpClient httpClient = new HttpClient();
+        ITranslationService translationService = new TranslationService(httpClient);
+
+        IDomSchematizer domSchematizer = IDomSchematizer.Default;
+
+        ICSharpSchemaSerializer cSharpSchemaSerializer = new CSharpSchemaSerializer();
+        cSharpSchemaSerializer.AddAnnotator(new JsonPropertyAnnotator());
+        cSharpSchemaSerializer.AddAnnotator(new CsvIndexAnnotator());
+        cSharpSchemaSerializer.AddAnnotator(new CsvColumnNameAnnotator());
+        cSharpSchemaSerializer.AddAnnotator(new ValueToListAnnotator(cSharpSchemaSerializer));
+        cSharpSchemaSerializer.AddAnnotator(new TableNameAnnotator());
+
+        ITypeProvider<string> sqlTypeProvider = new TypeProvider<string>(
+            "sql",
+            new SqlDomParser(),
+            domSchematizer,
+            cSharpSchemaSerializer);
+
+        ITypeProvider<JsonSource> jsonTypeProvider = new TypeProvider<JsonSource>(
+            "json",
+            new JsonDomParser(),
+            domSchematizer,
+            cSharpSchemaSerializer);
+
+        ITypeProvider<JsonSource> xmlTypeProvider = new TypeProvider<JsonSource>(
+            "xml",
+            new JsonDomParser(),
+            domSchematizer,
+            cSharpSchemaSerializer);
+
+        ITypeProvider<CsvSource> csvTypeProvider = new TypeProvider<CsvSource>(
+            "csv",
+            new CsvDomParser(),
+            domSchematizer,
+            cSharpSchemaSerializer);
+
+        ITypeProvider<ExcelTable> excelTypeProvider = new TypeProvider<ExcelTable>(
+            "excel",
+            new ExcelDomParser(),
+            domSchematizer,
+            cSharpSchemaSerializer);
+
+        ITypeProviders typeProviders = new TypeProviders(
+            cSharpSchemaSerializer,
+            sqlTypeProvider,
+            jsonTypeProvider,
+            csvTypeProvider);
+
+        JsonConverter jsonConverter = new JsonConverter(jsonTypeProvider);
+
+        TAO3Converters builtInConverters = new TAO3Converters(
+            new CSharpConverter(new CSharpObjectSerializer()),
+            new CsvConverter(csvTypeProvider, false),
+            new CsvConverter(csvTypeProvider, true),
+            new HtmlConverter(),
+            jsonConverter,
+            new LineConverter(),
+            new TextConverter(),
+            new XmlConverter(jsonConverter, xmlTypeProvider),
+            new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
+
+        CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
+        //IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
+        //    ? host
+        //    : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
+
+        
+        IExcelService excel = new ExcelService(
+            cSharpKernel,
+            excelTypeProvider);
+
+        try
         {
-            Debugger.Launch();
-
-            CompositeKernel compositeKernel = (CompositeKernel)kernel;
-
-            INotepadService notepad = new NotepadService();
-
-            IWindowsService windowsService = new WindowsService();
-            IKeyboardService keyboard = windowsService.Keyboard;
-            IClipboardService clipboard = windowsService.Clipboard;
-
-            IToastService toast = new ToastService();
-            IConverterService converterService = new ConverterService();
-
-            ISourceService sourceService = new SourceService();
-            IDestinationService destinationService = new DestinationService();
-
-            ICellService cellService = new CellService();
-
-            HttpClient httpClient = new HttpClient();
-            ITranslationService translationService = new TranslationService(httpClient);
-
-            IDomSchematizer domSchematizer = IDomSchematizer.Default;
-
-            ICSharpSchemaSerializer cSharpSchemaSerializer = new CSharpSchemaSerializer();
-            cSharpSchemaSerializer.AddAnnotator(new JsonPropertyAnnotator());
-            cSharpSchemaSerializer.AddAnnotator(new CsvIndexAnnotator());
-            cSharpSchemaSerializer.AddAnnotator(new CsvColumnNameAnnotator());
-            cSharpSchemaSerializer.AddAnnotator(new ValueToListAnnotator(cSharpSchemaSerializer));
-            cSharpSchemaSerializer.AddAnnotator(new TableNameAnnotator());
-
-            ITypeProvider<string> sqlTypeProvider = new TypeProvider<string>(
-                "sql",
-                new SqlDomParser(),
-                domSchematizer,
-                cSharpSchemaSerializer);
-
-            ITypeProvider<JsonSource> jsonTypeProvider = new TypeProvider<JsonSource>(
-                "json",
-                new JsonDomParser(),
-                domSchematizer,
-                cSharpSchemaSerializer);
-
-            ITypeProvider<JsonSource> xmlTypeProvider = new TypeProvider<JsonSource>(
-                "xml",
-                new JsonDomParser(),
-                domSchematizer,
-                cSharpSchemaSerializer);
-
-            ITypeProvider<CsvSource> csvTypeProvider = new TypeProvider<CsvSource>(
-                "csv",
-                new CsvDomParser(),
-                domSchematizer,
-                cSharpSchemaSerializer);
-
-            ITypeProvider<ExcelTable> excelTypeProvider = new TypeProvider<ExcelTable>(
-                "excel",
-                new ExcelDomParser(),
-                domSchematizer,
-                cSharpSchemaSerializer);
-
-            ITypeProviders typeProviders = new TypeProviders(
-                cSharpSchemaSerializer,
-                sqlTypeProvider,
-                jsonTypeProvider,
-                csvTypeProvider);
-
-            JsonConverter jsonConverter = new JsonConverter(jsonTypeProvider);
-
-            TAO3Converters builtInConverters = new TAO3Converters(
-                new CSharpConverter(new CSharpObjectSerializer()),
-                new CsvConverter(csvTypeProvider, false),
-                new CsvConverter(csvTypeProvider, true),
-                new HtmlConverter(),
-                jsonConverter,
-                new LineConverter(),
-                new TextConverter(),
-                new XmlConverter(jsonConverter, xmlTypeProvider),
-                new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
-
-            CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
-            //IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
-            //    ? host
-            //    : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
-
-            
-            IExcelService excel = new ExcelService(
-                cSharpKernel,
-                excelTypeProvider);
-
-            try
-            {
-                excel.RefreshTypes();
-            }
-            catch
-            {
-                //Excel is closed
-            }
-
-            TAO3Formatters formatters = new TAO3Formatters(
-                new CSharpFormatter(),
-                new JsonFormatter(),
-                new SqlFormatter(),
-                new XmlFormatter());
-
-            IVsCodeService vsCode = new VsCodeService(/*interactiveHost, */converterService);
-            IAvaloniaService avalonia = new AvaloniaService();
-
-            IMacroService macroService = new MacroService(keyboard, compositeKernel);
-
-            Prelude.Services = new TAO3Services(
-                excel,
-                notepad,
-                keyboard,
-                clipboard,
-                toast,
-                converterService,
-                sourceService,
-                destinationService,
-                cellService,
-                windowsService,
-                httpClient,
-                translationService,
-                builtInConverters,
-                typeProviders,
-                formatters,
-                vsCode,
-                avalonia,
-                macroService);
-
-            Prelude.Kernel = compositeKernel;
-
-            compositeKernel.RegisterForDisposal(Prelude.Services);
-
-            compositeKernel.RegisterForDisposal(await ShowMacrosInAvalonia.CreateAsync(avalonia, macroService));
-            compositeKernel.RegisterForDisposal(new SendToastNotificationOnMacroCompletion(macroService, toast));
-
-            HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
-            ProxyKernel javascriptKernel = (ProxyKernel)compositeKernel.FindKernel("javascript");
-
-            ClipboardIO clipboardIO = new ClipboardIO(clipboard);
-            DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
-
-            compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, clipboardIO, defaultConverter));
-            compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, clipboardIO, defaultConverter));
-            
-            compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
-            compositeKernel.AddDirective(new CellCommand(cellService));
-            compositeKernel.AddDirective(new RunCommand(cellService));
-            compositeKernel.AddDirective(new ConnectMSSQLCommand());
-            compositeKernel.AddDirective(new GenerateHttpClientCommand(cSharpKernel));
-
-            compositeKernel.Add(new TranslateKernel(translationService));
-
-            RazorLightEngine razorEngine = new RazorLightEngineBuilder()
-                .UseEmbeddedResourcesProject(typeof(Prelude))
-                .SetOperatingAssembly(typeof(Prelude).Assembly)
-                .UseMemoryCachingProvider()
-                .Build();
-
-            compositeKernel.Add(new RazorKernel(razorEngine));
-
-            converterService.Register(builtInConverters.Csv);
-            converterService.Register(builtInConverters.Csvh);
-            converterService.Register(builtInConverters.Json);
-            converterService.Register(builtInConverters.Xml);
-            converterService.Register(builtInConverters.Line);
-            converterService.Register(builtInConverters.Text);
-            converterService.Register(builtInConverters.Html);
-            converterService.Register(builtInConverters.CSharp);
-            converterService.Register(builtInConverters.Sql);
-
-            NotepadIO notepadIO = new NotepadIO(notepad);
-            FileIO fileIO = new FileIO();
-            HttpIO httpIO = new HttpIO(httpClient);
-
-            sourceService.Register(clipboardIO);
-            sourceService.Register(notepadIO);
-            sourceService.Register(fileIO);
-            sourceService.Register(httpIO);
-            sourceService.Register(new CellSource());
-            sourceService.Register(new ClipboardFileSource(clipboard));
-
-            destinationService.Register(clipboardIO);
-            destinationService.Register(notepadIO);
-            destinationService.Register(fileIO);
-            destinationService.Register(httpIO);
+            excel.RefreshTypes();
         }
+        catch
+        {
+            //Excel is closed
+        }
+
+        TAO3Formatters formatters = new TAO3Formatters(
+            new CSharpFormatter(),
+            new JsonFormatter(),
+            new SqlFormatter(),
+            new XmlFormatter());
+
+        IVsCodeService vsCode = new VsCodeService(/*interactiveHost, */converterService);
+        IAvaloniaService avalonia = new AvaloniaService();
+
+        IMacroService macroService = new MacroService(keyboard, compositeKernel);
+
+        Prelude.Services = new TAO3Services(
+            excel,
+            notepad,
+            keyboard,
+            clipboard,
+            toast,
+            converterService,
+            sourceService,
+            destinationService,
+            cellService,
+            windowsService,
+            httpClient,
+            translationService,
+            builtInConverters,
+            typeProviders,
+            formatters,
+            vsCode,
+            avalonia,
+            macroService);
+
+        Prelude.Kernel = compositeKernel;
+
+        compositeKernel.RegisterForDisposal(Prelude.Services);
+
+        compositeKernel.RegisterForDisposal(await ShowMacrosInAvalonia.CreateAsync(avalonia, macroService));
+        compositeKernel.RegisterForDisposal(new SendToastNotificationOnMacroCompletion(macroService, toast));
+
+        HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
+        ProxyKernel javascriptKernel = (ProxyKernel)compositeKernel.FindKernel("javascript");
+
+        ClipboardIO clipboardIO = new ClipboardIO(clipboard);
+        DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
+
+        compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, clipboardIO, defaultConverter));
+        compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, clipboardIO, defaultConverter));
+        
+        compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
+        compositeKernel.AddDirective(new CellCommand(cellService));
+        compositeKernel.AddDirective(new RunCommand(cellService));
+        compositeKernel.AddDirective(new ConnectMSSQLCommand());
+        compositeKernel.AddDirective(new GenerateHttpClientCommand(cSharpKernel));
+
+        compositeKernel.Add(new TranslateKernel(translationService));
+
+        RazorLightEngine razorEngine = new RazorLightEngineBuilder()
+            .UseEmbeddedResourcesProject(typeof(Prelude))
+            .SetOperatingAssembly(typeof(Prelude).Assembly)
+            .UseMemoryCachingProvider()
+            .Build();
+
+        compositeKernel.Add(new RazorKernel(razorEngine));
+
+        converterService.Register(builtInConverters.Csv);
+        converterService.Register(builtInConverters.Csvh);
+        converterService.Register(builtInConverters.Json);
+        converterService.Register(builtInConverters.Xml);
+        converterService.Register(builtInConverters.Line);
+        converterService.Register(builtInConverters.Text);
+        converterService.Register(builtInConverters.Html);
+        converterService.Register(builtInConverters.CSharp);
+        converterService.Register(builtInConverters.Sql);
+
+        NotepadIO notepadIO = new NotepadIO(notepad);
+        FileIO fileIO = new FileIO();
+        HttpIO httpIO = new HttpIO(httpClient);
+
+        sourceService.Register(clipboardIO);
+        sourceService.Register(notepadIO);
+        sourceService.Register(fileIO);
+        sourceService.Register(httpIO);
+        sourceService.Register(new CellSource());
+        sourceService.Register(new ClipboardFileSource(clipboard));
+
+        destinationService.Register(clipboardIO);
+        destinationService.Register(notepadIO);
+        destinationService.Register(fileIO);
+        destinationService.Register(httpIO);
     }
 }

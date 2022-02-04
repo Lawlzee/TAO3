@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TAO3.Converters.CSharp;
 
-namespace TAO3.Converters.CSharp
+internal static class CSharpSerializerPriority
 {
-    internal static class CSharpSerializerPriority
-    {
-        public static int AnonymousType => 100;
-    }
+    public static int AnonymousType => 100;
 }

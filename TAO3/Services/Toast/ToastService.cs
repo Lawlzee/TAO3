@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace TAO3.Toast
+namespace TAO3.Toast;
+
+internal class ToastService : IToastService
 {
-    internal class ToastService : IToastService
+    public void Notify(string title, string text, DateTimeOffset expirationTime)
     {
-        public void Notify(string title, string text, DateTimeOffset expirationTime)
-        {
-            //https://den.dev/blog/powershell-windows-notification/
-            string psCommmand = $@"
+        //https://den.dev/blog/powershell-windows-notification/
+        string psCommmand = $@"
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null
 $Template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)
 
@@ -30,26 +25,25 @@ $Notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNoti
 $Notifier.Show($Toast);
 ";
 
-            byte[] psCommandBytes = Encoding.Unicode.GetBytes(psCommmand);
-            string psCommandBase64 = Convert.ToBase64String(psCommandBytes);
+        byte[] psCommandBytes = Encoding.Unicode.GetBytes(psCommmand);
+        string psCommandBase64 = Convert.ToBase64String(psCommandBytes);
 
-            ProcessStartInfo startInfo = new ProcessStartInfo()
-            {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy unrestricted -EncodedCommand {psCommandBase64}",
-                UseShellExecute = false
-            };
-            Process.Start(startInfo);
-        }
-
-        private string EscapeString(string str)
+        ProcessStartInfo startInfo = new ProcessStartInfo()
         {
-            return str
-                .Replace("\"", "`");
-        }
-        public void Dispose()
-        {
+            FileName = "powershell.exe",
+            Arguments = $"-NoProfile -ExecutionPolicy unrestricted -EncodedCommand {psCommandBase64}",
+            UseShellExecute = false
+        };
+        Process.Start(startInfo);
+    }
 
-        }
+    private string EscapeString(string str)
+    {
+        return str
+            .Replace("\"", "`");
+    }
+    public void Dispose()
+    {
+
     }
 }
