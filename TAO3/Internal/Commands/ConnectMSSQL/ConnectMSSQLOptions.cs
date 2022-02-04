@@ -1,5 +1,4 @@
-﻿using Humanizer;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.DotNet.Interactive;
 using System;
 using System.Collections.Generic;

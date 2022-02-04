@@ -20,6 +20,7 @@ using TAO3.Internal.Types;
 using TAO3.Converters.Default;
 using Newtonsoft.Json;
 using TAO3.Converters.Json;
+using System.CommandLine.NamingConventionBinder;
 
 namespace TAO3.Internal.Commands.Output
 {
@@ -161,12 +162,12 @@ namespace TAO3.Internal.Commands.Output
             converter.Configure(command);
 
             Argument<string?> variableArgument = new Argument<string?>("variable", description: "Variable to output", getDefaultValue: () => null);
-            variableArgument.AddSuggestions((_, text) =>
+            variableArgument.AddCompletions(context =>
             {
                 return _cSharpKernel
                     .GetValueInfos()
                     .Select(x => x.Name)
-                    .Where(x => text?.Contains(x) ?? true);
+                    .Where(x => context.WordToComplete?.Contains(x) ?? true);
             });
             command.Add(variableArgument);
 

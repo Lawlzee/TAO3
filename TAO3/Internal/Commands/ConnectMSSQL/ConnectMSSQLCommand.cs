@@ -5,7 +5,7 @@ using Microsoft.DotNet.Interactive.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -100,7 +100,7 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
                 PathToService = pathToService
             };
 
-            Kernel kernel = await connector.ConnectKernelAsync(new KernelName(kernelName));
+            Kernel kernel = await connector.ConnectKernelAsync(new KernelInfo(kernelName));
 
             await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
 
@@ -157,7 +157,7 @@ namespace TAO3.Internal.Commands.ConnectMSSQL
         {
             CSharpKernel csharpKernel = context.GetCSharpKernel();
 
-            context.Display($"Scaffolding a `DbContext` and initializing an instance of it called `{kernelName}` in the C# kernel.", "text/markdown");
+            //$"Scaffolding a `DbContext` and initializing an instance of it called `{kernelName}` in the C# kernel.".Display("text/markdown");
 
             var submission1 = @$"
 using System;

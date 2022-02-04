@@ -36,6 +36,8 @@ namespace TAO3.Internal.Kernels.Razor
         IKernelCommandHandler<RequestSignatureHelp>,
         IKernelCommandHandler<SubmitCode>
     {
+        private readonly ChooseRazorKernelDirective _chooseKernelDirective;
+
         private static readonly MethodInfo _hasReturnValueMethod = typeof(Script)
             .GetMethod("HasReturnValue", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
@@ -44,6 +46,7 @@ namespace TAO3.Internal.Kernels.Razor
         public RazorKernel(RazorLightEngine engine) : base("razor")
         {
             _engine = engine;
+            _chooseKernelDirective = new ChooseRazorKernelDirective(this);
         }
 
         public async Task HandleAsync(RequestCompletions command, KernelInvocationContext context)
@@ -98,13 +101,20 @@ namespace TAO3.Internal.Kernels.Razor
             });
         }
 
+        public override ChooseKernelDirective ChooseKernelDirective => _chooseKernelDirective;
+
         public async Task HandleAsync(SubmitCode command, KernelInvocationContext context)
+        {
+            ParseResult parseResult = command.GetKernelNameDirectiveNode().GetDirectiveParseResult();
+            RazorOptions options = RazorOptions.Create(parseResult, _chooseKernelDirective);
+
+            await HandleAsync(command, context, options);
+        }
+
+        internal async Task HandleAsync(SubmitCode command, KernelInvocationContext context, RazorOptions options)
         {
             await DoHandleAsync(command.Code, command, context, failContextIfGenerationFails: true, async args =>
             {
-                ParseResult parseResult = command.GetKernelNameDirectiveNode().GetDirectiveParseResult();
-                RazorOptions options = RazorOptions.Create(parseResult);
-
                 if (options.Verbose)
                 {
                     args.GeneratedCode.Display();
@@ -113,7 +123,7 @@ namespace TAO3.Internal.Kernels.Razor
                 await HandleAsync(args.CSharpKernel, command, args.GeneratedCode, context);
 
                 string variableName = options.Name ?? "__internal_razorResult";
-                await args.CSharpKernel.SetVariableAsync("__razorEngine", _engine);
+                await args.CSharpKernel.SetValueAsync("__razorEngine", _engine);
                 await args.CSharpKernel.SubmitCodeAsync($@"string {variableName} = await __razorEngine.RenderTemplateAsync(new GeneratedTemplate((Microsoft.DotNet.Interactive.CSharp.CSharpKernel)Microsoft.DotNet.Interactive.KernelExtensions.FindKernel(Microsoft.DotNet.Interactive.Kernel.Root, ""csharp"")), new System.Dynamic.ExpandoObject());");
 
                 if (!options.Suppress)
@@ -130,7 +140,7 @@ namespace TAO3.Internal.Kernels.Razor
 
             //Same implementation as CSharpKernel.HandleAsync(SubmitCode submitCode, KernelInvocationContext context), but diagnostic position takes into acount the #line directive
             async Task HandleAsync(
-                CSharpKernel kernel, 
+                CSharpKernel kernel,
                 SubmitCode submitCode,
                 string code,
                 KernelInvocationContext context)
@@ -244,7 +254,6 @@ namespace TAO3.Internal.Kernels.Razor
                 }
             }
         }
-
         private InteractiveDiagnostic FromCodeAnalysisDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic)
         {
             //FileLinePositionSpan lineSpan = diagnostic.Location.GetLineSpan();
@@ -261,12 +270,12 @@ namespace TAO3.Internal.Kernels.Razor
         }
 
         private record HandleContext(
-            string GeneratedCode, 
-            CSharpKernel CSharpKernel, 
+            string GeneratedCode,
+            CSharpKernel CSharpKernel,
             Dictionary<string, Type> Variables);
 
         private async Task DoHandleAsync(
-            LanguageServiceCommand command, 
+            LanguageServiceCommand command,
             KernelInvocationContext context,
             bool failContextIfGenerationFails,
             Func<HandleContext, LinePosition, Task> handle)
@@ -279,8 +288,8 @@ namespace TAO3.Internal.Kernels.Razor
         }
 
         private async Task DoHandleAsync(
-            string code, 
-            KernelCommand command, 
+            string code,
+            KernelCommand command,
             KernelInvocationContext context,
             bool failContextIfGenerationFails,
             Func<HandleContext, Task> handle)
@@ -308,8 +317,8 @@ namespace TAO3.Internal.Kernels.Razor
         }
 
         private async Task<string?> GetGeneratedCodeAsync(
-            string code, 
-            KernelCommand command, 
+            string code,
+            KernelCommand command,
             KernelInvocationContext context,
             bool failContextIfGenerationFails,
             Dictionary<string, Type> variables)
@@ -401,42 +410,6 @@ namespace TAO3.Internal.Kernels.Razor
                 .Last();
 
             return new LinePosition(line, position.Character);
-        }
-
-        protected override ChooseKernelDirective CreateChooseKernelDirective()
-        {
-            Option<string> mimeTypeOption = new Option<string>(new[] { "--mimeType", "-m" }, "Mime type used to display the resulting document");
-
-            mimeTypeOption.AddSuggestions(
-                "text/html",
-                "text/plain",
-                "application/json",
-                "text/markdown",
-                "text/x-csharp",
-                "text/x-javascript",
-                "text/x-fsharp",
-                "text/x-sql",
-                "text/x-powershell");
-
-            return new ChooseKernelDirective(this)
-            {
-                mimeTypeOption,
-                new Option<string>(new[] { "--name", "-n" }, "Name of the variable that will containt the resulting document"),
-                new Option<bool>(new[] { "--suppress", "-s" }, "Suppress the displaying of the resulting document"),
-                new Option<bool>(new[] { "--verbose", "-v" }, "Print debugging information")
-            };
-        }
-
-        private class RazorOptions
-        {
-            private static readonly ModelBinder<RazorOptions> _modelBinder = new();
-
-            public string? MimeType { get; set; }
-            public string? Name { get; set; }
-            public bool Suppress { get; set; }
-            public bool Verbose { get; set; }
-
-            public static RazorOptions Create(ParseResult parseResult) => (_modelBinder.CreateInstance(new BindingContext(parseResult)) as RazorOptions)!;
         }
     }
 }

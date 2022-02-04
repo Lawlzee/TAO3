@@ -39,7 +39,7 @@ namespace TAO3.Internal.Extensions
                     (Command childCommand, IDisposable disposable) = createChildCommand(registerEvent);
                     removeCommandByName[name] = new CompositeDisposable(
                         disposable,
-                        Disposable.Create(() => parentCommand.Children.Remove(childCommand)));
+                        Disposable.Create(() => parentCommand.RemoveSubCommand(childCommand)));
 
                     parentCommand.Add(childCommand);
                 }

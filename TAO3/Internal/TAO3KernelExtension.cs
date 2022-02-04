@@ -46,6 +46,7 @@ using TAO3.Avalonia;
 using TAO3.Macro;
 using TAO3.EventHandlers.Macro;
 using TAO3.Converters.Default;
+using Microsoft.DotNet.Interactive.Connection;
 
 namespace TAO3.Internal
 {
@@ -190,7 +191,7 @@ namespace TAO3.Internal
             compositeKernel.RegisterForDisposal(new SendToastNotificationOnMacroCompletion(macroService, toast));
 
             HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
-            JavaScriptKernel javascriptKernel = (JavaScriptKernel)compositeKernel.FindKernel("javascript");
+            ProxyKernel javascriptKernel = (ProxyKernel)compositeKernel.FindKernel("javascript");
 
             ClipboardIO clipboardIO = new ClipboardIO(clipboard);
             DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);

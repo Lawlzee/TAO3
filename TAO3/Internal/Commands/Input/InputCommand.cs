@@ -23,6 +23,7 @@ using TAO3.TypeProvider;
 using TAO3.Converters.Default;
 using TAO3.Converters.Json;
 using Newtonsoft.Json;
+using System.CommandLine.NamingConventionBinder;
 
 namespace TAO3.Internal.Commands.Input
 {

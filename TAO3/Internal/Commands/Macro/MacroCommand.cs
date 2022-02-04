@@ -1,5 +1,6 @@
 ﻿using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Commands;
+using Microsoft.DotNet.Interactive.Connection;
 using Microsoft.DotNet.Interactive.Events;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
@@ -26,7 +28,7 @@ namespace TAO3.Internal.Commands.Macro
     {
         private MacroCommand(
             IMacroService macroService,
-            JavaScriptKernel javaScriptKernel,
+            ProxyKernel javaScriptKernel,
             HtmlKernel htmlKernel)
             : base("#!macro", "Add a macro that run the code in the cell")
         {
@@ -153,14 +155,14 @@ namespace TAO3.Internal.Commands.Macro
 
         public static async Task<MacroCommand> CreateAsync(
             IMacroService macroService,
-            JavaScriptKernel javaScriptKernel,
+            ProxyKernel javaScriptKernel,
             HtmlKernel htmlKernel)
         {
             await RegisterSendJavascriptCodeCommandAsync(javaScriptKernel);
             return new MacroCommand(macroService, javaScriptKernel, htmlKernel);
         }
 
-        private static async Task RegisterSendJavascriptCodeCommandAsync(JavaScriptKernel javaScriptKernel)
+        private static async Task RegisterSendJavascriptCodeCommandAsync(ProxyKernel javaScriptKernel)
         {
             javaScriptKernel.RegisterCommandType<SubmitJsCodeCommand>();
             await javaScriptKernel.SubmitCodeAsync(@"

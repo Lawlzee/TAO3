@@ -28,16 +28,20 @@ namespace TAO3.Internal.Kernels.Translate
         IKernelCommandHandler<RequestDiagnostics>
     {
         private readonly ITranslationService _translationService;
+        private readonly ChooseTranslateKernelDirective _chooseKernelDirective;
 
         public TranslateKernel(ITranslationService translationService) : base("translate")
         {
             _translationService = translationService;
+            _chooseKernelDirective = new(this);
         }
+
+        public override ChooseKernelDirective ChooseKernelDirective => _chooseKernelDirective;
 
         public async Task HandleAsync(SubmitCode command, KernelInvocationContext context)
         {
             ParseResult parseResult = command.GetKernelNameDirectiveNode().GetDirectiveParseResult();
-            TranslateOptions options = TranslateOptions.Create(parseResult);
+            TranslateOptions options = TranslateOptions.Create(parseResult, _chooseKernelDirective);
             string? result = await _translationService.TranslateAsync(options.Source, options.Target, command.Code);
             (result ?? "null").Display();
         }
@@ -45,7 +49,7 @@ namespace TAO3.Internal.Kernels.Translate
         public Task HandleAsync(RequestCompletions command, KernelInvocationContext context)
         {
             ParseResult parseResult = command.GetKernelNameDirectiveNode().GetDirectiveParseResult();
-            TranslateOptions options = TranslateOptions.Create(parseResult);
+            TranslateOptions options = TranslateOptions.Create(parseResult, _chooseKernelDirective);
 
             ILanguageDictionary? dictionary = _translationService.GetDictionary(options.Source);
             if (dictionary == null)
@@ -117,7 +121,7 @@ namespace TAO3.Internal.Kernels.Translate
         public Task HandleAsync(RequestDiagnostics command, KernelInvocationContext context)
         {
             ParseResult parseResult = command.GetKernelNameDirectiveNode().GetDirectiveParseResult();
-            TranslateOptions options = TranslateOptions.Create(parseResult);
+            TranslateOptions options = TranslateOptions.Create(parseResult, _chooseKernelDirective);
 
             ILanguageDictionary? dictionary = _translationService.GetDictionary(options.Source);
             if (dictionary == null)
@@ -214,25 +218,6 @@ namespace TAO3.Internal.Kernels.Translate
                 default:
                     return false;
             }
-        }
-
-        protected override ChooseKernelDirective CreateChooseKernelDirective()
-        {
-            return new ChooseKernelDirective(this, "Translate text from source language to target language")
-            {
-                new Argument<Language>("source"),
-                new Argument<Language>("target")
-            };
-        }
-
-        private class TranslateOptions
-        {
-            private static readonly ModelBinder<TranslateOptions> _modelBinder = new();
-
-            public Language Source { get; set; }
-            public Language Target { get; set; }
-
-            public static TranslateOptions Create(ParseResult parseResult) => (_modelBinder.CreateInstance(new BindingContext(parseResult)) as TranslateOptions)!;
         }
     }
 }

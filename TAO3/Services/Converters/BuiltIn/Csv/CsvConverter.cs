@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using CsvHelper.TypeConversion;
 using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
@@ -12,6 +13,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reactive;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,11 +59,63 @@ namespace TAO3.Converters.Csv
 
         public CsvConfiguration GetDefaultSettings()
         {
-            return new CsvConfiguration(CultureInfo.InvariantCulture)
+            CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = ",",
                 HasHeaderRecord = _hasHeader
             };
+
+            config.TypeConverterOptionsCache.AddOptions<BigInteger>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<bool>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<byte>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<byte[]>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<char>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<DateTime>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<DateTimeOffset>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<decimal>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<double>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<float>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<Guid>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<short>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<int>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<long>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<sbyte>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<string>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<TimeSpan>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<Type>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<ushort>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<uint>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<ulong>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<Uri>(CreateConverter());
+
+            config.TypeConverterOptionsCache.AddOptions<BigInteger?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<bool?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<byte?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<char?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<DateTime?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<DateTimeOffset?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<decimal?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<double?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<float?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<Guid?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<short?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<int?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<long?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<sbyte?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<string?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<TimeSpan?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<ushort?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<uint?>(CreateConverter());
+            config.TypeConverterOptionsCache.AddOptions<ulong?>(CreateConverter());
+
+            return config;
+
+            TypeConverterOptions CreateConverter()
+            {
+                TypeConverterOptions options = new TypeConverterOptions();
+                options.NullValues.AddRange(new List<string> { "NULL", "null", "" });
+                return options;
+            }
         }
 
         T IConverterTypeProvider<CsvConfiguration, CsvConverterInputParameters>.Deserialize<T>(string text, CsvConfiguration? settings)

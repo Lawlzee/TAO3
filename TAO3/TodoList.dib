@@ -96,4 +96,9 @@
           { "A" : 1 }
           #!in variable json myJson
 ```
-- [ ] Fix `#!in <source> csvh <name>`
+- [x] Fix `#!in <source> csvh <name>`
+- [x] Support `NULL` as null value in csv converter
+  - [x] https://stackoverflow.com/questions/18733819/adding-detectable-nullable-values-to-csvhelper
+- [ ] Use `[JsonProperty]` for sql serializer
+- [ ] Add `-tableName` option to sql converter
+- [ ] C# serializer using constructor

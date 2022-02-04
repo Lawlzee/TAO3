@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Completions;
 using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
@@ -31,12 +32,12 @@ namespace TAO3.Internal.Commands
                 return default;
             });
 
-            option.AddSuggestions((_, text) =>
+            option.AddCompletions(context =>
             {
                 return cSharpKernel
                     .GetValueInfos()
                     .Select(x => x.Name)
-                    .Where(x => text?.Contains(x) ?? true);
+                    .Where(x => context.WordToComplete?.Contains(x) ?? true);
             });
 
             return option;
@@ -69,7 +70,8 @@ namespace TAO3.Internal.Commands
                 return encodingInfo.GetEncoding();
             });
 
-            encodingOptions.AddSuggestions(Encoding
+
+            encodingOptions.AddCompletions(Encoding
                 .GetEncodings()
                 .Select(x => x.Name)
                 .ToArray());
@@ -89,14 +91,14 @@ namespace TAO3.Internal.Commands
             {
             }
 
-            public override IEnumerable<string> GetSuggestions(ParseResult? parseResult = null, string? textToMatch = null)
+            public override IEnumerable<CompletionItem> GetCompletions(CompletionContext context)
             {
-                if (textToMatch == null || parseResult == null)
+                if (context.WordToComplete == null || context.ParseResult == null)
                 {
-                    return base.GetSuggestions(parseResult, textToMatch);
+                    return base.GetCompletions(context);
                 }
 
-                int tokenIndex = parseResult.CommandResult.Command.Arguments
+                int tokenIndex = context.ParseResult.CommandResult.Command.Arguments
                     .Select((x, i) => new
                     {
                         Arg = x,
@@ -106,12 +108,12 @@ namespace TAO3.Internal.Commands
                     .Select(x => x.Index)
                     .First();
 
-                if (parseResult.CommandResult.Tokens.Count <= tokenIndex)
+                if (context.ParseResult.CommandResult.Tokens.Count <= tokenIndex)
                 {
-                    return Array.Empty<string>();
+                    return Array.Empty<CompletionItem>();
                 }
 
-                string realTextToMatch = parseResult.CommandResult.Tokens[tokenIndex].Value;
+                string realTextToMatch = context.ParseResult.CommandResult.Tokens[tokenIndex].Value;
 
                 if (Path.IsPathFullyQualified(realTextToMatch))
                 {
@@ -120,11 +122,11 @@ namespace TAO3.Internal.Commands
 
                 return GetRelativeSuggestion(realTextToMatch);
 
-                IEnumerable<string> GetRootedSuggestions(string textToMatch)
+                IEnumerable<CompletionItem> GetRootedSuggestions(string textToMatch)
                 {
                     if (File.Exists(textToMatch))
                     {
-                        return new[] { AddQuoteIfNecessary(textToMatch) };
+                        return new[] { new CompletionItem(AddQuoteIfNecessary(textToMatch)) };
                     }
 
                     string? currentDirectory = Path.GetDirectoryName(textToMatch);
@@ -142,15 +144,16 @@ namespace TAO3.Internal.Commands
                     return Directory.GetDirectories(directory, fileName + "*")
                         .Select(x => x + "\\")
                         .Concat(Directory.GetFiles(directory, fileName + "*"))
-                        .Select(AddQuoteIfNecessary);
+                        .Select(AddQuoteIfNecessary)
+                        .Select(x => new CompletionItem(x));
                 }
 
-                IEnumerable<string> GetRelativeSuggestion(string textToMatch)
+                IEnumerable<CompletionItem> GetRelativeSuggestion(string textToMatch)
                 {
                     string currentDirectory = Directory.GetCurrentDirectory();
                     if (File.Exists(textToMatch))
                     {
-                        return new[] { AddQuoteIfNecessary(Path.GetRelativePath(currentDirectory, textToMatch)) };
+                        return new[] { new CompletionItem(AddQuoteIfNecessary(Path.GetRelativePath(currentDirectory, textToMatch))) };
                     }
 
                     string? commandDirectory = Path.GetDirectoryName(textToMatch);
@@ -172,10 +175,12 @@ namespace TAO3.Internal.Commands
                             .Select(x => x.Name)
                             .Where(x => x.StartsWith(textToMatch, StringComparison.OrdinalIgnoreCase))
                             .Concat(suggestions)
-                            .Select(AddQuoteIfNecessary);
+                            .Select(AddQuoteIfNecessary)
+                            .Select(x => new CompletionItem(x));
                     }
 
-                    return suggestions;
+                    return suggestions
+                        .Select(x => new CompletionItem(x));
                 }
 
                 string AddQuoteIfNecessary(string path)
@@ -187,7 +192,7 @@ namespace TAO3.Internal.Commands
 
                     return path;
                 }
-            }
+            }  
         }
     }
 }
