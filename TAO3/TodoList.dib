@@ -47,7 +47,7 @@
 - [ ] Add an image .net interactive formatter
 - [ ] Add a fluent api to add serialization rules to ObjectSerializer
   - [ ] Rules to serialize an object of some type
-- [ ] Refactor ObjectSerializer to support custom context type and custom options type
+- [x] Refactor ObjectSerializer to support custom context type and custom options type
 - [ ] Add an "head-less" version of TAO3 that can execute notebooks without a text editor (VSCode)
 - [x] Add #!out $destination $format $variableName
 - [x] Add #!connectMSSQL $connectionString [--kernelName $kernelName]
@@ -100,5 +100,5 @@
 - [x] Support `NULL` as null value in csv converter
   - [x] https://stackoverflow.com/questions/18733819/adding-detectable-nullable-values-to-csvhelper
 - [ ] Use `[JsonProperty]` for sql serializer
-- [ ] Add `-tableName` option to sql converter
+- [x] Add `-tableName` option to sql converter
 - [ ] C# serializer using constructor

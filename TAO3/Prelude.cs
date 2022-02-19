@@ -35,7 +35,7 @@ public static class Prelude
     public static IToastService Toast => Services.Toast;
     public static IConverterService Converter => Services.Converter;
     public static ISourceService SourceService => Services.SourceService;
-    public static IDestinationService OutputDestination => Services.DestinationService;
+    public static IDestinationService DestinationService => Services.DestinationService;
     public static ICellService Cells => Services.Cells;
     public static HttpClient HttpClient => Services.HttpClient;
     public static ITranslationService Translation => Services.Translation;
