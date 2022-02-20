@@ -39,14 +39,14 @@ internal class ChooseRazorKernelDirective : ChooseKernelDirective
         Add(VerboseOption);
     }
 
-    protected override async Task Handle(KernelInvocationContext kernelInvocationContext, InvocationContext commandLineInvocationContext)
-    {
-        SubmitCode submitCode = (SubmitCode)kernelInvocationContext.Command;
-        RazorKernel razorKernel = (RazorKernel)Kernel;
-        RazorOptions options = RazorOptions.Create(commandLineInvocationContext.ParseResult, this);
-
-        await razorKernel.HandleAsync(submitCode, kernelInvocationContext, options);
-    }
+    //protected override async Task Handle(KernelInvocationContext kernelInvocationContext, InvocationContext commandLineInvocationContext)
+    //{
+    //    SubmitCode submitCode = (SubmitCode)kernelInvocationContext.Command;
+    //    RazorKernel razorKernel = (RazorKernel)Kernel;
+    //    RazorOptions options = RazorOptions.Create(commandLineInvocationContext.ParseResult, this);
+    //
+    //    await razorKernel.HandleAsync(submitCode, kernelInvocationContext, options);
+    //}
 }
 
 internal record RazorOptions(

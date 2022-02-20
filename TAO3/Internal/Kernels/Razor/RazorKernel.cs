@@ -104,7 +104,7 @@ internal class RazorKernel
         await HandleAsync(command, context, options);
     }
 
-    internal async Task HandleAsync(SubmitCode command, KernelInvocationContext context, RazorOptions options)
+    private async Task HandleAsync(SubmitCode command, KernelInvocationContext context, RazorOptions options)
     {
         await DoHandleAsync(command.Code, command, context, failContextIfGenerationFails: true, async args =>
         {

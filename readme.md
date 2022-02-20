@@ -1,4 +1,6 @@
-TAO3 is a [dotnet interactive](https://github.com/dotnet/interactive) extension for writting interactively adhoc data transformation quickly.
+![Logo](/Docs/Images/Logo.jpg)
+
+TAO3 is a [.NET Interactive](https://github.com/dotnet/interactive) extension for writting interactively adhoc data transformation quickly in C#.
 
 
 **Table of contents**
@@ -17,10 +19,23 @@ TAO3 is a [dotnet interactive](https://github.com/dotnet/interactive) extension 
   - [#!generateHttpClient](#generatehttpclient)
 - [Sources and destinations](#sources-and-destinations)
 - [Converters](#converters)
+  - [`text` converter](#text-converter)
+  - [`line` converter](#line-converter)
+  - [`json` converter](#json-converter)
+    - [Exemples:](#exemples-4)
+  - [`csv` converter](#csv-converter)
+    - [Exemples:](#exemples-5)
+  - [`csvh` converter](#csvh-converter)
+  - [`xml` converter](#xml-converter)
+  - [`html` converter](#html-converter)
+  - [`sql` converter](#sql-converter)
+  - [`csharp` converter](#csharp-converter)
 - [Kernels](#kernels)
-  - [Razor](#razor)
-  - [Translate](#translate)
-- [Services](#services)
+  - [#!razor](#razor)
+    - [Exemples:](#exemples-6)
+  - [#!translate](#translate)
+    - [Exemples:](#exemples-7)
+- [Prelude](#prelude)
   - [Excel](#excel)
   - [Notepad++](#notepad)
   - [Keyboard](#keyboard)
@@ -37,7 +52,7 @@ TAO3 is a [dotnet interactive](https://github.com/dotnet/interactive) extension 
 ## Getting Started
 
 ### Prerequisites
-- [dotnet interactive](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode) in VS Code
+- [.NET Interactive](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode) in VS Code
 - [Notepad++](https://notepad-plus-plus.org/downloads/) (optional)
 - Excel (optional)
 
@@ -349,11 +364,289 @@ Wrapper of `SvcUtil.exe` that generates HTTP clients for svc and asmx endpoints.
 
 ## Converters
 
-## Kernels
-### Razor
-### Translate
+### `text` converter
+### `line` converter
+### `json` converter
 
-## Services
+**`#!input` arguments:**
+|Name|Required|Description|
+|--|--|--|
+|`--type` (or `-t`)|false|Type to use to deserialise the input text. It can be `dynamic`. If omited, the type will be infered|
+|`--settings`|false|Converter settings of type `Newtonsoft.Json.JsonSerializerSettings`|
+
+**`#!output` arguments:**
+|Name|Required|Description|
+|--|--|--|
+|`--settings`|false|Converter settings of type `Newtonsoft.Json.JsonSerializerSettings`|
+
+#### Exemples:
+
+**Exemple 1:**
+```c#
+#!input clipboard json myJson
+return myJson;
+```
+
+**Exemple 2:**
+```c#
+var bob = new
+{
+    Name = "Bob",
+    Age = 50
+};
+#!output file D:\file.json json bob
+```
+
+**Exemple 3:**
+```c#
+#!input clipboard json --type dynamic myJson
+return myJson;
+```
+
+**Exemple 4:**
+```c#
+class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+#!input clipboard json --type Person person
+return person;
+```
+
+**Exemple 5:**
+```c#
+Newtonsoft.Json.JsonSerializerSettings mySettings = new Newtonsoft.Json.JsonSerializerSettings();
+
+#!in cb json --settings mySettings myJson
+return myJson;
+```
+
+### `csv` converter
+
+**`#!input` arguments:**
+|Name|Required|Description|
+|--|--|--|
+|`--separator` (or `-s`)|false|Separator used between the values in the CSV
+|`--type` (or `-t`)|false|Type to use to deserialise the input text. It can be `dynamic`. If omited, the type will be infered|
+|`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
+
+**`#!output` arguments:**
+|Name|Required|Description|
+|--|--|--|
+|`--separator` (or `-s`)|false|Separator used between the values in the CSV
+|`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
+
+#### Exemples:
+
+**Exemple 1:**
+```c#
+#!input clipboard csv myCSV
+return myCSV;
+```
+
+**Exemple 2:**
+```c#
+var bob = new
+{
+    Name = "Bob",
+    Age = 50
+};
+#!output file D:\file.csv csv bob
+//Writes "Bob,50" in D:\file.csv
+```
+
+**Exemple 3:**
+```c#
+#!input clipboard csv --type dynamic rows
+return rows;
+```
+
+**Exemple 4:**
+```c#
+class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+#!input clipboard csv --type Person persons
+return persons;
+```
+
+
+**Exemple 5:**
+```c#
+CsvHelper.Configuration.CsvConfiguration mySettings = new CsvHelper.Configuration.CsvConfiguration();
+
+#!in cb csv --settings mySettings rows
+return rows;
+```
+
+### `csvh` converter
+Exactly the same as [csv](#csvh-converter), except the CSV has an header.
+
+### `xml` converter
+### `html` converter
+### `sql` converter
+### `csharp` converter
+
+## Kernels
+In .NET Interactive, [kernels](https://github.com/dotnet/interactive/blob/main/docs/kernels-overview.md) are a way to add custom language to a notebook. Kernels provide a way to execute code of a specific language and language services like code completion and diagnostics. 
+
+TAO3 provides 2 kernels. The first one is the [#!razor](#razor) kernel that enables you to generate textual output using the [razor template engine](https://docs.microsoft.com/en-us/aspnet/core/mvc/views/razor?view=aspnetcore-6.0). The second one is the [#!translate](#translate) kernel that enables you to translate text from one language to another.
+
+### #!razor
+
+**Syntax:**
+```
+#!razor [--mimeType <mimetype>] [--name <name>] [--suppress] [--verbose]
+```
+
+**Arguments:**
+|Name|Description|
+|--|--|
+|`--mimeType`|Mime type used to display the resulting document|
+|`--name`|Name of the variable containing the resulting document|
+|`--supress`|Suppress the displaying of the resulting document|
+|`--verbose`|Print the generated C# class representing the razor template into to cell output|
+
+#### Exemples:
+
+**Exemple 1:**
+```c#
+var persons = new[]{
+    new
+    {
+        Name = "Bob",
+        Age = 45
+    },
+    new
+    {
+        Name = "George",
+        Age = 32
+    }
+};
+
+#!razor
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var person in persons)
+    {
+        <tr>
+            <td>@person.Name</td>
+            <td>@person.Age</td>
+        </tr>
+    }
+    </tbody>
+</table>
+```
+
+**Exemple 2:**
+```c#
+#!output clipboard text generatedSql
+
+var rows = new[]{
+    new
+    {
+        Id = 1,
+        Col = "Col1"
+    },
+    new
+    {
+        Id = 2,
+        Col = "Col2"
+    }
+};
+
+#!razor --name generatedSql --suppress
+@foreach (var row in rows)
+{
+    <text>UPDATE [TableName] ([Id], [Col]) SET [Col] = </text>
+    @row.Col
+
+    <text> WHERE [Id] = </text>
+    @row.Id;
+
+    <text>
+</text>
+}
+```
+
+### #!translate
+The `#!translate` kernel is wrapper around the [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) translation API.
+
+```
+#!translate <source> <target>
+```
+
+**Arguments:**
+|Name|Description|
+|--|--|
+|`source`|Language of the input text|
+|`target`|Language to translate the input text to|
+
+**Language list:**
+|Language|Description|
+|--|--|
+|en|English|
+|ar|Arabic|
+|az|Azerbaijani|
+|zh|Chinese|
+|cs|Czech|
+|nl|Dutch|
+|fi|Finnish|
+|fr|French|
+|de|German|
+|hi|Hindi|
+|hu|Hungarian|
+|id|Indonesian|
+|ga|Irish|
+|it|Italian|
+|ja|Japanese|
+|ko|Korean|
+|pl|Polish|
+|pt|Portuguese|
+|ru|Russian|
+|es|Spanish|
+|sv|Swedish|
+|tr|Turkish|
+|uk|Ukranian|
+|vi|Vietnamese|
+|auto|Auto Detect|
+
+#### Exemples:
+
+**Exemple 1:**
+```c#
+//Set the URI used for the translation. This is required. 
+//If you want to self host, or choose another URI, consult the LibreTranslate Github page:
+//https://github.com/LibreTranslate/LibreTranslate
+using static TAO3.Prelude;
+ConfigureTranslator("https://libretranslate.de/");
+
+//Writes "Bonjour !" in the cell output
+#!translate en fr
+Hello world!
+```
+
+## Prelude
+
+The prelude ([TAO3.Prelude](/TAO3/Prelude.cs)) provides a convinient way to access most of the APIs provided by `TAO3` using C#. 
+
+It is recommanded to import the prelude statically, so that you can have access to its method directly:
+```csharp
+#r "nuget:TAO3"
+using static TAO3.Prelude;
+```
+
 ### Excel
 ### Notepad++
 ### Keyboard
