@@ -155,7 +155,7 @@ internal class OutputCommand : Command
 
         converter.Configure(command);
 
-        Argument<string?> variableArgument = new Argument<string?>("variable", description: "Variable to output", getDefaultValue: () => null);
+        Argument<string?> variableArgument = new Argument<string?>("variable", description: "Name of the variable used as the output", getDefaultValue: () => null);
         variableArgument.AddCompletions(context =>
         {
             return _cSharpKernel

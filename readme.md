@@ -139,7 +139,7 @@ return lines;
 //1. Takes the text in the clipbard
 //2. Infer a C# class named "MyJsonObject"
 //3. Deserialize the text from the clipboard using the infered class
-//4. Copie the deseralized value into a variable named "myJsonObject"
+//4. Copy the deseralized value into a variable named "myJsonObject"
 #!input clipboard json myJsonObject
 
 return myJsonObject;
@@ -413,9 +413,9 @@ Wrapper of `SvcUtil.exe` that generates HTTP clients for svc and asmx endpoints.
 
 ## Sources and destinations
 
-Sources are locations where the text is readed for the [#!input](#input) magic command.
+Sources are locations where the text is readed for the [#!input](#input-magic-command) magic command.
 
-Destinations are where the result of the [#!output](#output) magic command is written to. 
+Destinations are where the result of the [#!output](#output-magic-command) magic command is written to. 
 
 Most sources are also destinations and vice versa.
 
@@ -605,15 +605,102 @@ output:
 
 ## Converters
 
+Converters are used in the [#!input](#input-magic-command) magic command to transform the source text to a C# objects. Some converter will deserialize the source text into a specific type. For example the `line` converter will always convert the input text to a `List<string>`. Other converter will infer a type, depending on the shape of the data. For exemple, the `json` converter will infer a C# class, using the shape of the text provided by the source.
+
+Converters are also used in the [#!output](#output-magic-command) to serialize a C# object into text.
+
 ### `text` Converter
+
+The `text` converter simply takes the source text in the [#!input](#input-magic-command) magic command. For the `#!output` magic command, the string representation of the object (`ToString`) will be used.
+
+**Aliases:** `string`
+
+**Arguments:** none
+
+<details open>
+  <summary>Examples:</summary>
+  
+**Exemple 1:**
+```c#
+//Write into the cell output the current clipboard content
+#!input clipboard text clipboardContent
+return clipboardContent;
+```
+
+**Exemple 2:**
+```c#
+//Write into the clipboard "Hello world"
+#!output clipboard text
+return "Hello World";
+```
+
+**Exemple 3:**
+```c#
+//Write into the clipboard "Hello world"
+#!output clipboard text
+
+class A
+{
+    public override string ToString()
+    {
+        return "Hello world";
+    }
+}
+
+return new A();
+```
+
+</details>
+
+
 
 ---
 
 ### `line` Converter
 
+For the [#!input](#input-magic-command) magic command, the `line` converter transforms the input text into a `List<string>`, where each element of the list is a line.
+
+For the [#!ouput](#output-magic-command) magic command, if the object is a `string` or is not `IEnumerable`, the string representation (`.ToString()`) of the object will be used. Otherwise, each element of the `IEnumerable` will be written to the output text. Each element will be on 1 line.
+
+**Aliases:** none
+
+**Arguments:** none
+
+<details open>
+  <summary>Examples:</summary>
+  
+**Exemple 1:**
+```c#
+//Write into the cell output each line of the clipboad text that is not empty
+#!input clipboard line rows
+return rows
+    .Where(x => x != "");
+```
+
+**Exemple 2:**
+```c#
+//Write into the clipboard the following value:
+//Hello
+//World
+//!
+#!output clipboard line
+return new List<string>
+{
+    "Hello",
+    "World",
+    "!"
+};
+```
+
 ---
 
 ### `json` Converter
+
+For the [#!input](#input-magic-command) magic command, the `json` converter is used to convert the source text containing [JSON](https://en.wikipedia.org/wiki/JSON) to a C# object. If `--type` is not specified the converter will try to infer a C# class that represents the source text.
+
+For the [#!ouput](#output-magic-command) magic command, the will simply serialize the output object into JSON.
+
+**Aliases:** none
 
 <details open>
   <summary><code>#!input</code> Arguments:</summary>
@@ -685,12 +772,22 @@ return myJson;
 
 ### `csv` Converter
 
+For the [#!input](#input-magic-command) magic command, is used to transform the source text containing [Comma-separated values (CSV)](https://en.wikipedia.org/wiki/Comma-separated_values) into a C# object. The object will be of type `List<T>` where `T` is a type that the converter will inferes bases on the shape of the source text.
+
+For the [#!ouput](#output-magic-command) magic command, the output object will be serialize into CSV
+
+This converter should be used when your data doesn't have any headers. If your data has headers, use the `csvh` converter instead.
+
+The converter will name each columns using the excel column naming convention. So column will be named: `A`, `B`, ... `Y`, `Z`, `AA`, `AB`, ...
+
+**Aliases:** none
+
 <details open>
   <summary><code>#!input</code> Arguments:</summary>
 
 |Name|Required|Description|
 |--|--|--|
-|`--separator` (or `-s`)|false|Separator used between the values in the CSV
+|`--separator` (or `-s`)|false|Separator used between the values in the CSV. The default separator is "`,`"
 |`--type` (or `-t`)|false|Type to use to deserialise the input text. It can be `dynamic`. If omited, the type will be infered|
 |`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
 
@@ -701,7 +798,7 @@ return myJson;
 
 |Name|Required|Description|
 |--|--|--|
-|`--separator` (or `-s`)|false|Separator used between the values in the CSV
+|`--separator` (or `-s`)|false|Separator used between the values in the CSV. The default separator is "`,`".
 |`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
 
 </details>
@@ -728,11 +825,22 @@ var bob = new
 
 **Exemple 3:**
 ```c#
+var bob = new
+{
+    Name = "Alice",
+    Age = 23
+};
+#!output file D:\file.csv csv --separator ; bob
+//Writes "Alice;23" in D:\file.csv
+```
+
+**Exemple 4:**
+```c#
 #!input clipboard csv --type dynamic rows
 return rows;
 ```
 
-**Exemple 4:**
+**Exemple 5:**
 ```c#
 class Person
 {
@@ -755,10 +863,19 @@ return rows;
 
 </details>
 
+**Tips**
+If you copy data from a tabular source, the default separator will be a tab (`\t`) That means, that if you copy data from Excel, SSMS, or any a data tabular source, this command will likely work correctly:
+```c#
+//Use csvh if the data has an header
+#!input clipboard csv -s \t rows
+```
+
 ---
 
 ### `csvh` Converter
 Exactly the same as [csv](#csvh-converter), except the CSV has an header.
+
+**Aliases:** none
 
 ---
 
@@ -768,13 +885,254 @@ Exactly the same as [csv](#csvh-converter), except the CSV has an header.
 
 ### `html` Converter
 
+For the [#!input](#input-magic-command) magic command, the `html` converter transforms the source text into a `Microsoft.AspNetCore.Html.HtmlString`. `Microsoft.AspNetCore.Html.HtmlString` are used to render HTML in the cell output.
+
+For the [#!ouput](#output-magic-command) magic command, the `html` converter transforms `Microsoft.AspNetCore.Html.HtmlString` into a string containing the HTML.
+
+**Aliases:** none
+
+**`#!input` Arguments:** none
+
+**`#!output` Arguments:** none
+
+<details open>
+  <summary>Examples:</summary>
+  
+**Example 1:**
+
+Clipboard text:
+
+```html
+<table>
+    <tr>
+        <th style="color: red">Header</th>
+    </tr>
+        <tr>
+        <th style="color: green">Value</th>
+    </tr>
+</table>
+```
+
+Cell:
+```c#
+#!in cb html code
+return code;
+```
+
+Output: 
+<table>
+    <tr>
+        <th style="color: red">Header</th>
+    </tr>
+        <tr>
+        <th style="color: green">Value</th>
+    </tr>
+</table>
+
+</details>
+
 ---
 
 ### `sql` Converter
 
+For the [#!input](#input-magic-command) magic command, the `sql` converter can be use to transform SQL insert statements to c# objects. The `sql` converter will infer a C# class, based on the shape of the input text.
+
+For the [#!ouput](#output-magic-command) magic command, the `sql` converter can be used to transform C# objects into SQL insert statements. It can also be used to transform `System.Type` into create table statements.
+
+The sql converter is made for SQL Server, but may work for other SQL dialects.
+
+**Aliases:** none
+
+**`#!input` Arguments:** none
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`--tableName` (or `-tn`)|false|Name of the table used for the insert table statements. If omitted, the name of the type will be used|
+
+</details>
+
+<details open>
+  <summary>Examples:</summary>
+
+**Exemple 1:**
+
+Clipboard text
+```SQL
+INSERT INTO [Person] ([Name], [LastName]) VALUES('Alice', 'Stone');
+INSERT INTO [Person] ([Name], [LastName]) VALUES('Bob', 'Armstrong');
+```
+
+Cell 1:
+```c#
+#!input clipboard sql persons -v
+```
+
+<details open>
+  <summary>Output 1:</summary>
+  
+</details>
+
+```c#
+using CsvHelper.Configuration.Attributes;
+using Newtonsoft.Json;
+using System;
+using TAO3.Converters.Sql;
+
+[TableName("Person")]
+public class Person
+{
+    [JsonProperty("Name")]
+    [Index(0)]
+    [Name("Name")]
+    public string Name { get; set; } = null!;
+
+    [JsonProperty("LastName")]
+    [Index(1)]
+    [Name("LastName")]
+    public string LastName { get; set; } = null!;
+}
+
+List<Person> persons = __internal_c14fbca127bc4e63b99080ac80940e56.Deserialize<List<Person>>(__internal_a6d1c31558234bb2b658b7c94075cd7f, __internal_76c313bd8c494cd3b5f53b04f881dc7c);
+```
+
+</details>
+
+Cell 2:
+```c#
+return persons;
+```
+
+Output 2:
+
+|*index*|Name|LastName|
+|--|--|--|
+|0|Alice|Stone|
+|1|Bob|Armstrong|
+
+**Exemple 2:**
+
+```
+#!out cb sql --tableName Blog
+
+return new[]
+{
+    new
+    {
+        Id = 1,
+        Name = "Introduction to C# 10"
+    },
+    new
+    {
+        Id = 1,
+        Name = "Introduction to C# 12"
+    }
+};
+
+```
+
+Clipboard output:
+```sql
+INSERT INTO [Blog] ([Id], [Name]) VALUES(1, 'Introduction to C# 10');
+INSERT INTO [Blog] ([Id], [Name]) VALUES(1, 'Introduction to C# 12');
+```
+
+**Examples 3:**
+
+Cell:
+```c#
+#!out cb sql
+
+record Adresse(
+    Guid Id,
+    int StreetNumber,
+    string StreetName);
+
+return typeof(Adresse);
+```
+
+Clipboard output:
+```sql
+CREATE TABLE [Adresse] (
+    [Id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT (NEWID()),
+    [StreetNumber] INT NOT NULL,
+    [StreetName] nvarchar(MAX) NULL);
+```
+
 ---
 
 ### `csharp` Converter
+
+For the [#!input](#input-magic-command) magic command, the `csharp` converter can be used to have a simplified view of the syntax tree corresponding to C# code in the source text.
+
+For the [#!ouput](#output-magic-command) magic command, the `csharp` converter can be use to transform a C# object into a string containing C# code to code to instanciate an object with the same values as the transformed output object.
+
+**Aliases:** `c#`
+
+**`#!input` Arguments:** none
+
+**`#!output` Arguments:** none
+
+<details open>
+  <summary>Examples:</summary>
+  
+**Example 1:**
+
+Clipboard text:
+```c#
+public class TypeProviders : ITypeProviders
+{
+    public ICSharpSchemaSerializer Serializer { get; }
+    public ITypeProvider<string> Sql { get; }
+    public ITypeProvider<JsonSource> Json { get; }
+    public ITypeProvider<CsvSource> Csv { get; }
+}
+```
+
+Cell:
+```c#
+return code.Classes[0].Properties
+    .Select(x => new
+    {
+        Type = x.Type.Name,
+        x.Name
+    });
+```
+
+Cell output:
+
+|index|Type|Name|
+|--|--|--|
+|0|ICSharpSchemaSerializer|Serializer|
+|1|ITypeProvider<string>|Sql|
+|2|ITypeProvider<JsonSource>|Json|
+|3|ITypeProvider<CsvSource>|Csv|
+
+**Example 2:**
+
+Cell:
+```c#
+#!out cb c#
+
+record Blog(
+    int Id,
+    string Name);
+
+return new Blog(
+    1,
+    "Introduction to C# 10");
+```
+
+Clipboard output:
+```c#
+new Blog(
+    Id: 1,
+    Name: @"Introduction to C# 10")
+```
+
+</details>
 
 ## Kernels
 In .NET Interactive, [kernels](https://github.com/dotnet/interactive/blob/main/docs/kernels-overview.md) are a way to add custom language to a notebook. Kernels provide a way to execute code of a specific language and language services like code completion and diagnostics. 
