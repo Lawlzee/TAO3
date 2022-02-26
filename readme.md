@@ -1,40 +1,49 @@
-![Logo](/Docs/Images/Logo.jpg)
+<div align="center">
+<img src="Docs/Images/Logo.jpg" alt="Logo" width="80%" height="80%">
+</div>
+
+[![TAO3](https://img.shields.io/nuget/dt/TAO3?style=flat-square&label=TAO3)](https://www.nuget.org/packages/TAO3/)
 
 TAO3 is a [.NET Interactive](https://github.com/dotnet/interactive) extension for writting interactively adhoc data transformation quickly in C#.
 
+For more information on .NET interactive:
+-  [Introduction to .NET Interactive on youtube (30 minutes)](https://www.youtube.com/watch?v=DMYtIJT1OeU)
+-  [.NET Interactive Github repository](https://github.com/dotnet/interactive)
+-  [.NET Interactive documentation](https://github.com/dotnet/interactive/tree/main/docs)
+-  [.NET Interactive samples](https://github.com/dotnet/interactive/tree/main/samples)
 
-**Table of contents**
+<details open>
+  <summary>Table of contents:</summary>
+
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-- [Magic commands](#magic-commands)
-  - [#!input](#input)
-    - [Exemples:](#exemples)
-  - [#!output](#output)
-    - [Exemples:](#exemples-1)
-  - [#!macro](#macro)
-    - [Exemples:](#exemples-2)
-  - [#!run](#run)
-    - [Exemples:](#exemples-3)
-  - [#!connectMSSQL](#connectmssql)
-  - [#!generateHttpClient](#generatehttpclient)
+- [Magic Commands](#magic-commands)
+  - [`#!input` Magic Command](#input-magic-command)
+  - [`#!output` Magic Command](#output-magic-command)
+  - [`#!macro` Magic Command](#macro-magic-command)
+  - [`#!run` Magic Command](#run-magic-command)
+  - [`#!connectMSSQL` Magic Command](#connectmssql-magic-command)
+  - [`#!generateHttpClient` Magic Command](#generatehttpclient-magic-command)
 - [Sources and destinations](#sources-and-destinations)
+  - [`clipboard` Source And Destination](#clipboard-source-and-destination)
+  - [`notepad++` Source And Destination](#notepad-source-and-destination)
+  - [`file` Source And Destination](#file-source-and-destination)
+  - [`clipboardFile` Source](#clipboardfile-source)
+  - [`http` Source And Destination](#http-source-and-destination)
+  - [`cell`](#cell)
 - [Converters](#converters)
-  - [`text` converter](#text-converter)
-  - [`line` converter](#line-converter)
-  - [`json` converter](#json-converter)
-    - [Exemples:](#exemples-4)
-  - [`csv` converter](#csv-converter)
-    - [Exemples:](#exemples-5)
-  - [`csvh` converter](#csvh-converter)
-  - [`xml` converter](#xml-converter)
-  - [`html` converter](#html-converter)
-  - [`sql` converter](#sql-converter)
-  - [`csharp` converter](#csharp-converter)
+  - [`text` Converter](#text-converter)
+  - [`line` Converter](#line-converter)
+  - [`json` Converter](#json-converter)
+  - [`csv` Converter](#csv-converter)
+  - [`csvh` Converter](#csvh-converter)
+  - [`xml` Converter](#xml-converter)
+  - [`html` Converter](#html-converter)
+  - [`sql` Converter](#sql-converter)
+  - [`csharp` Converter](#csharp-converter)
 - [Kernels](#kernels)
-  - [#!razor](#razor)
-    - [Exemples:](#exemples-6)
-  - [#!translate](#translate)
-    - [Exemples:](#exemples-7)
+  - [`#!razor` Kernel](#razor-kernel)
+  - [`#!translate` Kernel](#translate-kernel)
 - [Prelude](#prelude)
   - [Excel](#excel)
   - [Notepad++](#notepad)
@@ -48,6 +57,10 @@ TAO3 is a [.NET Interactive](https://github.com/dotnet/interactive) extension fo
   - [Cells](#cells)
   - [Translation](#translation)
   - [TypeProviders](#typeproviders)
+- [Extending TAO3](#extending-tao3)
+- [Roadmap](#roadmap)
+
+</details>
 
 ## Getting Started
 
@@ -74,10 +87,11 @@ return lines
     .Where(x => x != "");
 ```
 
-## Magic commands
-Magic commands are special directives provided by dotnet interactive and extension developer that. See the documentation from the [dotnet interactive repo]((https://github.com/dotnet/interactive/blob/main/docs/magic-commands.md)) for a detailed explanation of how magic commands works.
+## Magic Commands
+Magic commands are special directives provided by .NET interactive and extension developer that enables the user to send special command to the .NET interactive engine. See the documentation from the [dotnet interactive repo](https://github.com/dotnet/interactive/blob/main/docs/magic-commands.md) for a detailed explanation of how magic commands works.
 
-### #!input
+### `#!input` Magic Command
+
 The `#!input` command enables you to load a textual value from a source into a type safe C# class.
 
 **Syntax:**
@@ -87,7 +101,9 @@ The `#!input` command enables you to load a textual value from a source into a t
 
 **Aliases:** `#!in`
 
-**Arguments:**
+<details open>
+  <summary>Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`source`|true|Describe where to get the data to import. The most common source are `clipboard`, `file`, `http` and `file`. See [Source and destinations](#sources-and-destinations) for more details.|
@@ -97,7 +113,10 @@ The `#!input` command enables you to load a textual value from a source into a t
 |`name`|true|Name of the variable containing the converted text from the source.
 |`--verbose` (or `-v`)|false|If enabled, the generated C# classe will be printed in the cell output
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -110,7 +129,7 @@ return str;
 **Exemple 2:**
 ```c#
 //Copy every lines of the active tab in Notepad++ into a variable named "lines" of type List<string>
-#!input npp line lines
+#!input notepad line lines
 
 return lines;
 ```
@@ -145,7 +164,9 @@ Input:
 return artists;
 ```
 
-Output:
+<details>
+  <summary>Output:</summary>
+
 ```c#
 using CsvHelper.Configuration.Attributes;
 using Newtonsoft.Json;
@@ -199,8 +220,15 @@ public class Track
 
 Artists artists = __internal_010ff204dcb24d529c03e502ffbbf60d.Deserialize<Artists>(__internal_9149ba43941a420c913b54b6095ea283, __internal_c7cbd2804ad449b4838956977a80e2d2);
 ```
+</details>
 
-### #!output
+</details>
+
+
+
+---
+
+### `#!output` Magic Command
 
 **Syntax:**
 ```
@@ -209,7 +237,9 @@ Artists artists = __internal_010ff204dcb24d529c03e502ffbbf60d.Deserialize<Artist
 
 **Aliases:** `#!out`
 
-**Arguments:**
+<details open>
+  <summary>Arguments:</summary>
+
 |Name|Required|Default value|Description|
 |--|--|--|-- |
 |`destination`|false|`clipboard`|Describe where to export the data. The most common destination are `clipboard`, `file`, `http` and `file`. See [Source and destinations](#sources-and-destinations) for more details.|
@@ -219,7 +249,10 @@ Artists artists = __internal_010ff204dcb24d529c03e502ffbbf60d.Deserialize<Artist
 |`variable`|false|return value of the cell|Name of the variable containing the converted text from the source.
 |`--verbose` (or `-v`)|false|false|If enabled, the generated C# class will be printed in the cell output
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -265,7 +298,11 @@ return new List<MyTable>
 };
 ```
 
-### #!macro
+</details>
+
+---
+
+### `#!macro` Magic Command
 **Syntax:**
 ```
 #!macro <shortcut> [--silent]
@@ -273,12 +310,15 @@ return new List<MyTable>
 
 **Aliases:** none
 
-**Arguments:**
+<details open>
+  <summary>Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`shortcut`|true|Key combination that will trigger the macro.|
 |`--silent` (or `-s`)|false|Removes the toast notification when the key combination is pressed|
 
+</details>
 
 **Shortcut syntax**
 ```
@@ -286,7 +326,7 @@ return new List<MyTable>
 <key>: A, B, ..., Y, Z, 0, 1, ..., 8, 9, F1, F2, ..., F11, F12
 ```
 
-**Exemples of shortcut**
+**Examples of shortcut**
 ```
 CTRL+SHIFT+1
 ALT+B
@@ -294,10 +334,9 @@ P
 CTRL+SHIFT+ALT+F12
 ```
 
+<details open>
+  <summary>Examples:</summary>
 
-#### Exemples:
-
-**Exemple 1:**
 ```c#
 //Creates a macro with the sortcut "CTRL + SHIFT + 1" that transform the content of the clipboard from JSON to XML.
 #!macro CTRL+SHIFT+1
@@ -306,8 +345,12 @@ CTRL+SHIFT+ALT+F12
 return myJsonValue;
 ```
 
-### #!run
-Run a script. The supported file types are `.dib`, `
+</details>
+
+---
+
+### `#!run` Magic Command
+Run a script from a file.
 
 **Syntax:**
 ```
@@ -332,26 +375,35 @@ Depending on the file extension, a different kernel will be used to execute the 
 |`.ps1`|`PowerShell`|
 |other|`C#`|
 
-#### Exemples:
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
 #!run D:\myClass.cs
 ```
 
+</details>
 
-### #!connectMSSQL
+---
+
+### `#!connectMSSQL` Magic Command
 Wrapper around `#!connect mssql` provided by [Microsoft.DotNet.Interactive.SqlServer](https://www.nuget.org/packages/Microsoft.DotNet.Interactive.SqlServer/). This wrapper adds parameter for each part of the connection string, to help the user to write the connection string.
 
-**Exemples:**
+<details open>
+  <summary>Examples:</summary>
+  
 ```c#
 #!connectMSSQL --server . --database Northwind --integratedSecurity
 //Equivalent to:
 #r "nuget: Microsoft.DotNet.Interactive.SqlServer, *-*"
 #!connect mssql "server=.;database=Northwind;Integrated Security=true" --kernel-name Northwind --create-dbcontext
 ```
+</details>
 
-### #!generateHttpClient
+---
+
+### `#!generateHttpClient` Magic Command
 Wrapper of `SvcUtil.exe` that generates HTTP clients for svc and asmx endpoints.
 
 **Syntax:**
@@ -361,25 +413,229 @@ Wrapper of `SvcUtil.exe` that generates HTTP clients for svc and asmx endpoints.
 
 ## Sources and destinations
 
+Sources are locations where the text is readed for the [#!input](#input) magic command.
+
+Destinations are where the result of the [#!output](#output) magic command is written to. 
+
+Most sources are also destinations and vice versa.
+
+### `clipboard` Source And Destination
+
+Uses the text in the clipboard as a source or a destination.
+
+**Aliases:** `cb`
+
+**`#!input` Arguments:** none
+
+**`#!output` Arguments:** none
+
+---
+
+### `notepad++` Source And Destination
+
+Uses the active tab in notepad++ as a source or a destination. 
+
+**Aliases:** `npp`, `notepad`, `n++`
+
+**`#!input` Arguments:** none
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+  
+|Name|Required|Description|
+|--|--|--|
+|`--language`|false|Name of the language used for the syntax highlighting in the current tab of notepad++. If ommited, the default language defined in the converter will be used. See [NppLanguage.cs](/TAO3/Services/Notepad/NppLanguage.cs) for all legal values.
+
+</details>
+
+---
+
+### `file` Source And Destination
+
+Uses a file as a source or a destination
+
+**Aliases:** none
+
+<details open>
+  <summary><code>#!input</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`path`|true|Path to the file used as a source|
+|`--encoding`|false|Encoding used to read the file. Legal values are: `iso-8859-1`, `us-ascii` `utf-16`, `utf-16BE`, `utf-32`, `utf-32BE`, `utf-8`
+
+</details>
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`path`|true|Path to the file used as a destination|
+|`--encoding`|false|Encoding used to read the file. Legal values are: `iso-8859-1`, `us-ascii` `utf-16`, `utf-16BE`, `utf-32`, `utf-32BE`, `utf-8`
+
+</details>
+
+---
+
+### `clipboardFile` Source
+
+Uses the currently copied files as a source. `clipboardFile` cannot be used in the `#!output` magic command.
+
+**Aliases:** `cbf`
+
+<details open>
+  <summary><code>#!input</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`--encoding`|false|Encoding used to read the files. Legal values are: `iso-8859-1`, `us-ascii` `utf-16`, `utf-16BE`, `utf-32`, `utf-32BE`, `utf-8`
+
+</details>
+
+<details open>
+  <summary>Examples:</summary>
+
+**Exemple 1:**
+
+Files copied in clipboard
+```
+D:\Blogs.json
+D:\Posts.json
+D:\Archives\ArchivedPosts.json
+```
+
+Cell:
+```
+#!input clipboardFile json copiedFiles -v
+```
+
+Result:
+```c#
+//...
+public class CopiedFiles
+{
+    //...
+    public Blogs Blogs { get; set; }
+    //...
+    public Posts Posts { get; set; }
+    //...
+    public ArchivedPosts ArchivedPosts { get; set; }
+}
+
+//Infered classes for D:\Blogs.json
+public class Blogs
+{
+    //...
+}
+
+//Infered classes for D:\Posts.json
+public class Posts
+{
+    //...
+}
+
+//Infered classes for D:\Archives\ArchivedPosts.json
+public class ArchivedPosts
+{
+    //...
+}
+
+```
+
+</details>
+
+---
+
+### `http` Source And Destination
+Uses a HTTP request as source or a destination.
+
+**Aliases:** none
+
+<details open>
+  <summary><code>#!input</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`uri`|true`|URI used to do the request|
+|`--verb`|false|HTTP verb used to do request. Legal values are `Delete`, `Get`, `Head`, `Options`, `Patch`, `Post`, `Put` and `Trace`. The default value is `Get`
+
+</details>
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+
+|Name|Required|Description|
+|--|--|--|
+|`uri`|true`|URI used to do the request|
+|`--verb`|false|HTTP verb used to do request. Legal values are `Delete`, `Get`, `Head`, `Options`, `Patch`, `Post`, `Put` and `Trace`. The default value is `Post`|
+|`mediaType`|false|Media type used for the content of the request. If ommited, the `MimeType` defined in the [converter](#converter) will be used as the `mediaType`|
+
+</details>
+
+### `cell`
+Taked the current cell as the source, without the `#!input` magic command. `cell` cannot be used in the `#!output` magic command.
+
+**Aliases:** none
+
+<details open>
+  <summary>Examples:</summary>
+
+**Exemple 1:**
+
+Cell 1 (HTML cell):
+```html
+#!input cell xml code
+<div>
+    hello world
+</div>
+```
+
+Cell 2 (C# cell):
+```c#
+return code;
+```
+
+output:
+|div|
+|--|
+|hello world|
+
+</details>
 
 ## Converters
 
-### `text` converter
-### `line` converter
-### `json` converter
+### `text` Converter
 
-**`#!input` arguments:**
+---
+
+### `line` Converter
+
+---
+
+### `json` Converter
+
+<details open>
+  <summary><code>#!input</code> Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`--type` (or `-t`)|false|Type to use to deserialise the input text. It can be `dynamic`. If omited, the type will be infered|
 |`--settings`|false|Converter settings of type `Newtonsoft.Json.JsonSerializerSettings`|
 
-**`#!output` arguments:**
+</details>
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`--settings`|false|Converter settings of type `Newtonsoft.Json.JsonSerializerSettings`|
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -423,22 +679,35 @@ Newtonsoft.Json.JsonSerializerSettings mySettings = new Newtonsoft.Json.JsonSeri
 return myJson;
 ```
 
-### `csv` converter
+</details>
 
-**`#!input` arguments:**
+---
+
+### `csv` Converter
+
+<details open>
+  <summary><code>#!input</code> Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`--separator` (or `-s`)|false|Separator used between the values in the CSV
 |`--type` (or `-t`)|false|Type to use to deserialise the input text. It can be `dynamic`. If omited, the type will be infered|
 |`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
 
-**`#!output` arguments:**
+</details>
+
+<details open>
+  <summary><code>#!output</code> Arguments:</summary>
+
 |Name|Required|Description|
 |--|--|--|
 |`--separator` (or `-s`)|false|Separator used between the values in the CSV
 |`--settings`|false|Converter settings of type `CsvHelper.Configuration.CsvConfiguration`|
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -484,27 +753,44 @@ CsvHelper.Configuration.CsvConfiguration mySettings = new CsvHelper.Configuratio
 return rows;
 ```
 
-### `csvh` converter
+</details>
+
+---
+
+### `csvh` Converter
 Exactly the same as [csv](#csvh-converter), except the CSV has an header.
 
-### `xml` converter
-### `html` converter
-### `sql` converter
-### `csharp` converter
+---
+
+### `xml` Converter
+
+---
+
+### `html` Converter
+
+---
+
+### `sql` Converter
+
+---
+
+### `csharp` Converter
 
 ## Kernels
 In .NET Interactive, [kernels](https://github.com/dotnet/interactive/blob/main/docs/kernels-overview.md) are a way to add custom language to a notebook. Kernels provide a way to execute code of a specific language and language services like code completion and diagnostics. 
 
 TAO3 provides 2 kernels. The first one is the [#!razor](#razor) kernel that enables you to generate textual output using the [razor template engine](https://docs.microsoft.com/en-us/aspnet/core/mvc/views/razor?view=aspnetcore-6.0). The second one is the [#!translate](#translate) kernel that enables you to translate text from one language to another.
 
-### #!razor
+### `#!razor` Kernel
 
 **Syntax:**
 ```
 #!razor [--mimeType <mimetype>] [--name <name>] [--suppress] [--verbose]
 ```
 
-**Arguments:**
+<details open>
+  <summary>Arguments:</summary>
+
 |Name|Description|
 |--|--|
 |`--mimeType`|Mime type used to display the resulting document|
@@ -512,7 +798,10 @@ TAO3 provides 2 kernels. The first one is the [#!razor](#razor) kernel that enab
 |`--supress`|Suppress the displaying of the resulting document|
 |`--verbose`|Print the generated C# class representing the razor template into to cell output|
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -580,20 +869,30 @@ var rows = new[]{
 }
 ```
 
-### #!translate
+</details>
+
+---
+
+### `#!translate` Kernel
 The `#!translate` kernel is wrapper around the [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) translation API.
 
 ```
 #!translate <source> <target>
 ```
 
-**Arguments:**
+<details open>
+  <summary>Arguments:</summary>
+
 |Name|Description|
 |--|--|
 |`source`|Language of the input text|
 |`target`|Language to translate the input text to|
 
-**Language list:**
+</details>
+
+<details open>
+  <summary>Language list:</summary>
+
 |Language|Description|
 |--|--|
 |en|English|
@@ -622,7 +921,10 @@ The `#!translate` kernel is wrapper around the [LibreTranslate](https://github.c
 |vi|Vietnamese|
 |auto|Auto Detect|
 
-#### Exemples:
+</details>
+
+<details open>
+  <summary>Examples:</summary>
 
 **Exemple 1:**
 ```c#
@@ -647,15 +949,61 @@ It is recommanded to import the prelude statically, so that you can have access 
 using static TAO3.Prelude;
 ```
 
+</details>
+
 ### Excel
+
+---
+
 ### Notepad++
+
+---
+
 ### Keyboard
+
+---
+
 ### Clipboard
+
+---
+
 ### Toast
+
+---
+
 ### Converter
+
+---
+
 ### SourceService
+
+---
+
 ### OutputDestination
+
+---
+
 ### DestinationService
+
+---
+
 ### Cells
+
+---
+
 ### Translation
+
+---
+
 ### TypeProviders
+
+## Extending TAO3
+- Custom converters
+  - source converter
+    - type inference (TypeProvider)
+  - destination converter
+- Custom sources
+- Custom destinations
+
+## Roadmap
+[TodoList.dib](TAO3/TodoList.dib)

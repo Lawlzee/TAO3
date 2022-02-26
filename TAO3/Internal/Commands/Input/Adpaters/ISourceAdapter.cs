@@ -100,9 +100,9 @@ internal class IntermediateSourceAdapter<TSourceOptions>
     {
         Dictionary<string, string> textById = new Dictionary<string, string>();
 
-        IDomType rootType = await _source.ProvideTypeAsync(sourceOptions, async args =>
+        IDomType rootType = await _source.ProvideTypeAsync(variableName, sourceOptions, async args =>
         {
-            ConverterContext<TSettings> context = new ConverterContext<TSettings>(variableName, settings, () => Task.FromResult(args.Text));
+            ConverterContext<TSettings> context = new ConverterContext<TSettings>(args.Name, settings, () => Task.FromResult(args.Text));
             IDomType inferedType = await converter.ProvideTypeAsync(context, converterParameters);
 
             textById[args.Id] = args.Text;

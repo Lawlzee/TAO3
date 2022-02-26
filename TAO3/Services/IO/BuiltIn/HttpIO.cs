@@ -26,6 +26,7 @@ internal record HttpDestinationOptions
 {
     public string Uri { get; init; } = null!;
     public HttpVerb? Verb { get; init; }
+    public string? MediaType { get; init; }
     public IConverter Converter { get; init; } = null!;
 }
 
@@ -65,7 +66,7 @@ internal class HttpIO :
     {
         command.Add(new Argument<string>("uri"));
         command.Add(new Option<HttpVerb>("--verb"));
-        command.Add(new Option<HttpVerb>("--mediaType"));
+        command.Add(new Option<string>("--mediaType"));
     }
 
     public async Task SetTextAsync(string text, HttpDestinationOptions options)
@@ -74,7 +75,7 @@ internal class HttpIO :
 
         HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, options.Uri)
         {
-            Content = new StringContent(text, Encoding.UTF8, options.Converter.MimeType)
+            Content = new StringContent(text, Encoding.UTF8, options.MediaType ?? options.Converter.MimeType)
         });
         response.EnsureSuccessStatusCode();
     }

@@ -31,7 +31,7 @@ internal class ClipboardFileSource :
         command.Add(CommandFactory.CreateEncodingOptions());
     }
 
-    public async Task<IDomType> ProvideTypeAsync(ClipboardFileOptions options, Func<ProvideSourceArguments, Task<IDomType>> inferChildTypeAsync)
+    public async Task<IDomType> ProvideTypeAsync(string variableName, ClipboardFileOptions options, Func<ProvideSourceArguments, Task<IDomType>> inferChildTypeAsync)
     {
         List<string> files = await _clipboardService.GetFilesAsync();
 
@@ -39,9 +39,6 @@ internal class ClipboardFileSource :
         //{
         //    throw new Exception("No file found in clipboard");
         //}
-
-        //todo: change
-        string className = "Temp";
 
         var fileContents = await Task.WhenAll(files
             .Select(async path => new
@@ -56,10 +53,10 @@ internal class ClipboardFileSource :
             .Select(async x => new DomClassProperty(
                 identifier: Path.GetFileNameWithoutExtension(x.Path),
                 name: Path.GetFileName(x.Path),
-                await inferChildTypeAsync(new ProvideSourceArguments(x.Path, x.Text)))));
+                await inferChildTypeAsync(new ProvideSourceArguments(x.Path, Path.GetFileName(x.Path), x.Text)))));
 
         return new DomClass(
-            className,
+            variableName,
             properties.ToList());
     }
 
