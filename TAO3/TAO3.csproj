@@ -8,9 +8,19 @@
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
     <Authors>Olivier Lavoie</Authors>
-    <Company>Olivier Lavoie</Company>
-    <Description>TAO3</Description>
+    <Company>Lawlzee</Company>
+    <VersionPrefix>1.0.1</VersionPrefix>
+    <Description>TAO3 is a .NET Interactive extension for writing data transformation quickly.</Description>
     <NoWarn>$(NoWarn);NU5100;VSTHRD002</NoWarn>
+    <PackageIcon>Logo.jpg</PackageIcon>
+    <PackageProjectUrl>https://github.com/Lawlzee/TAO3</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Lawlzee/TAO3</RepositoryUrl>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageTags>dotnet-interactive notebook interactive tao3 data</PackageTags>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <AssemblyVersion></AssemblyVersion>
+    <FileVersion></FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -68,6 +78,14 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)/TAO3.dll" Pack="true" PackagePath="interactive-extensions/dotnet" />
+    <None Include="..\Docs\Images\Logo.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

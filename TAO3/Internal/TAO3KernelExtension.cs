@@ -47,8 +47,9 @@ public class TAO3KernelExtension : IKernelExtension
 {
     public async Task OnLoadAsync(Kernel kernel)
     {
+#if DEBUG
         Debugger.Launch();
-
+#endif
         CompositeKernel compositeKernel = (CompositeKernel)kernel;
 
         INotepadService notepad = new NotepadService();
