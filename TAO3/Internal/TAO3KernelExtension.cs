@@ -40,6 +40,7 @@ using TAO3.Macro;
 using TAO3.EventHandlers.Macro;
 using TAO3.Converters.Default;
 using Microsoft.DotNet.Interactive.Connection;
+using TAO3.Internal.Kernels.Variable;
 
 namespace TAO3.Internal;
 
@@ -208,6 +209,7 @@ public class TAO3KernelExtension : IKernelExtension
             .Build();
 
         compositeKernel.Add(new RazorKernel(razorEngine));
+        compositeKernel.Add(new VariableKernel(converterService, cSharpKernel), new[] { "var" });
 
         converterService.Register(builtInConverters.Csv);
         converterService.Register(builtInConverters.Csvh);

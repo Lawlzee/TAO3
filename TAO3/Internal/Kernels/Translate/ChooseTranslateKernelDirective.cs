@@ -20,11 +20,6 @@ internal class ChooseTranslateKernelDirective : ChooseKernelDirective
         Add(Source);
         Add(Target);
     }
-
-    protected override Task Handle(KernelInvocationContext kernelInvocationContext, InvocationContext commandLineInvocationContext)
-    {
-        return base.Handle(kernelInvocationContext, commandLineInvocationContext);
-    }
 }
 
 internal record TranslateOptions(

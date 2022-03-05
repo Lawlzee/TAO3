@@ -43,7 +43,7 @@
   - [ ] View Macros
   - [ ] Enable/Disable macros
 - [ ] Add support formatters the text converters
-- [ ] Add support Clipboard files as a text source
+- [x] Add support Clipboard files as a text source
 - [ ] Add an image .net interactive formatter
 - [ ] Add a fluent api to add serialization rules to ObjectSerializer
   - [ ] Rules to serialize an object of some type
@@ -81,16 +81,16 @@
 - [x] Support dictionnary for #!translate
   - [x] Add a method to load dictionnaries
   - [x] Use Locality-sensitive hashing for autocompletion
-- [ ] Create a logo for TAO3
-- [ ] Add a command for each converter, to easily load values
-  - [ ] Add an option to load as object or as raw text
-  - [ ] Example:
+- [x] Create a logo for TAO3
+- [x] Add a command for each converter, to easily load values
+  - [x] Add an option to load as object or as raw text
+  - [x] Example:
 ```
           #!json <variableName> [options]
           { "A" : 1 }
 ```
-- [ ] Add `variable` source
-  - [ ] Example
+- [x] Add `variable` source
+  - [x] Example
 ```
           #!json myJson --text
           { "A" : 1 }
@@ -99,6 +99,8 @@
 - [x] Fix `#!in <source> csvh <name>`
 - [x] Support `NULL` as null value in csv converter
   - [x] https://stackoverflow.com/questions/18733819/adding-detectable-nullable-values-to-csvhelper
-- [ ] Use `[JsonProperty]` for sql serializer
+- [x] Use `[JsonProperty]` for sql serializer
 - [x] Add `-tableName` option to sql converter
 - [ ] C# serializer using constructor
+- [ ] Added a image scanner that extract text from images
+- [ ] Added #!infer command, that does only the inferance part of #!input
