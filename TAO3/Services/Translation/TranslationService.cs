@@ -68,7 +68,7 @@ public class TranslationService : ITranslationService
 
         if (response.IsSuccessStatusCode)
         {
-            return JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync()).translatedText;
+            return JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync())!.translatedText;
         }
 
         return null;

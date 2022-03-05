@@ -222,11 +222,13 @@ public class TAO3KernelExtension : IKernelExtension
         NotepadIO notepadIO = new NotepadIO(notepad);
         FileIO fileIO = new FileIO();
         HttpIO httpIO = new HttpIO(httpClient);
+        VariableIO variableIO = new VariableIO(cSharpKernel);
 
         sourceService.Register(clipboardIO);
         sourceService.Register(notepadIO);
         sourceService.Register(fileIO);
         sourceService.Register(httpIO);
+        sourceService.Register(variableIO);
         sourceService.Register(new CellSource());
         sourceService.Register(new ClipboardFileSource(clipboard));
 
@@ -234,5 +236,6 @@ public class TAO3KernelExtension : IKernelExtension
         destinationService.Register(notepadIO);
         destinationService.Register(fileIO);
         destinationService.Register(httpIO);
+        destinationService.Register(variableIO);
     }
 }

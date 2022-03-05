@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Newtonsoft.Json;
 
 namespace TAO3.Converters.Sql;
 
@@ -53,7 +54,11 @@ internal static class SqlColumnInferer
             .Where(x => x.MemberType == MemberTypes.Field || x.MemberType == MemberTypes.Property)
             .Where(x => !(x is PropertyInfo prop) || (prop.CanRead && prop.GetIndexParameters().Length == 0))
             .Select(x => new SqlColumn(
-                x.Name,
+                Name: x.GetCustomAttributes<JsonPropertyAttribute>()
+                    .Where(x => x.PropertyName != null)
+                    .Select(x => x.PropertyName!)
+                    .DefaultIfEmpty(x.Name)
+                    .First(),
                 x is PropertyInfo prop
                     ? prop.PropertyType
                     : ((FieldInfo)x).FieldType,

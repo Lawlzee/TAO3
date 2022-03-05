@@ -146,7 +146,7 @@ internal class AvaloniaService : IAvaloniaService
 public class AvaloniaApp : Application
 {
     private readonly Semaphore _initialisationLock;
-    public new IClassicDesktopStyleApplicationLifetime ApplicationLifetime => (IClassicDesktopStyleApplicationLifetime)base.ApplicationLifetime;
+    public new IClassicDesktopStyleApplicationLifetime ApplicationLifetime => (IClassicDesktopStyleApplicationLifetime)base.ApplicationLifetime!;
     public Window MainWindow => ApplicationLifetime.MainWindow;
     public Menu Menu { get; private set; } = null!;
     public TabControl TabControl { get; private set; } = null!;
