@@ -45,6 +45,7 @@ public static class Prelude
     public static IVsCodeService VsCode => Services.VsCode;
     public static IAvaloniaService AvaloniaService => Services.Avalonia;
     public static IMacroService MacroService => Services.MacroService;
+    public static IOCRService OCRService => Services.OCRService;
 
     public static string ToJson(object? value, JsonSerializerSettings? settings = null) => BuiltInConverters.Json.Serialize(value, settings);
     public static string ToXml(object? value, XmlWriterSettings? settings = null) => BuiltInConverters.Xml.Serialize(value, settings);

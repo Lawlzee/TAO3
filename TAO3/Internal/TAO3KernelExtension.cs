@@ -158,6 +158,8 @@ public class TAO3KernelExtension : IKernelExtension
 
         IMacroService macroService = new MacroService(keyboard, compositeKernel);
 
+        IOCRService ocrService = new OCRService(httpClient);
+
         Prelude.Services = new TAO3Services(
             excel,
             notepad,
@@ -176,7 +178,8 @@ public class TAO3KernelExtension : IKernelExtension
             formatters,
             vsCode,
             avalonia,
-            macroService);
+            macroService,
+            ocrService);
 
         Prelude.Kernel = compositeKernel;
 

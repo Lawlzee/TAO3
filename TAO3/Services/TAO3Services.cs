@@ -35,7 +35,8 @@ public record TAO3Services(
     TAO3Formatters Formatters,
     IVsCodeService VsCode,
     IAvaloniaService Avalonia,
-    IMacroService MacroService) : IDisposable
+    IMacroService MacroService,
+    IOCRService OCRService) : IDisposable
 {
     public void Dispose()
     {
@@ -57,5 +58,6 @@ public record TAO3Services(
         VsCode.Dispose();
         Avalonia.Dispose();
         MacroService.Dispose();
+        OCRService.Dispose();
     }
 }

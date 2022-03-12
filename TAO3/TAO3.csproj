@@ -55,6 +55,8 @@
     <PackageReference Include="ReactiveUI" Version="17.1.17" />
     <PackageReference Include="rm.Trie" Version="1.3.5" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="Tesseract" Version="4.1.1" />
+    <PackageReference Include="Tesseract.Drawing" Version="4.1.1" />
     <PackageReference Include="WindowsHook" Version="1.0.1" />
     <PackageReference Include="RazorLight" Version="2.0.0-rc.4" />
   </ItemGroup>
