@@ -95,7 +95,7 @@ internal class ConnectMSSQLCommand : Command
             PathToService = pathToService
         };
 
-        Kernel kernel = await connector.ConnectKernelAsync(new KernelInfo(kernelName));
+        Kernel kernel = await connector.CreateKernelAsync(kernelName);
 
         await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
 

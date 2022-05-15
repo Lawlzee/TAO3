@@ -44,9 +44,9 @@
     <PackageReference Include="FastExpressionCompiler" Version="3.2.2" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="Interactive.Extension.System.Drawing" Version="1.0.36" />
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.22103.1" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.22103.1" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.22103.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.22256.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.CSharp" Version="1.0.0-beta.22256.1" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.SqlServer" Version="1.0.0-beta.22256.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />

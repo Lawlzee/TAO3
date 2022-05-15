@@ -141,7 +141,7 @@ internal class VariableKernel
         converter.Configure(command);
 
         command.Add(new Argument<string>("name", "The name of the variable that will contain the deserialized source content"));
-        command.Add(new Option(new[] { "-v", "--verbose" }, "Print debugging information"));
+        command.Add(new Option<bool>(new[] { "-v", "--verbose" }, "Print debugging information"));
 
         if (typeof(TSettings) != typeof(Unit))
         {

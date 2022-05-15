@@ -31,12 +31,12 @@ internal class VariableIO :
 
     void IConfigurableSource.Configure(Command command)
     {
-        command.Add(new Argument("sourceVariableName", "Name of the variable to use as a source"));
+        command.Add(new Argument<string>("sourceVariableName", "Name of the variable to use as a source"));
     }
 
     void IConfigurableDestination.Configure(Command command)
     {
-        command.Add(new Argument("destinationVariableName", "Name of the variable to use as a destination"));
+        command.Add(new Argument<string>("destinationVariableName", "Name of the variable to use as a destination"));
     }
 
     public Task<string> GetTextAsync(SourceVariableOptions options)

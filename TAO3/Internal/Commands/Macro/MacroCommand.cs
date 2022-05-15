@@ -24,7 +24,7 @@ internal class MacroCommand : Command
     {
         Add(new Argument<string>("shortcut", "Ex. CTRL+SHIFT+1"));
         Add(new Option<string>(new[] { "-n", "--name" }, "Macro name"));
-        Add(new Option(new[] { "-s", "--silent" }, "Disable the toast notifications"));
+        Add(new Option<string>(new[] { "-s", "--silent" }, "Disable the toast notifications"));
 
         Handler = CommandHandler.Create(async (string shortcut, string name, bool silent, KernelInvocationContext context) =>
         {
