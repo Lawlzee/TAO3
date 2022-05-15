@@ -10,6 +10,8 @@ public interface IOCRService : IDisposable
     Uri BaseTraindedDataUri { get; set; }
     string DataPath { get; }
 
+    void Init();
+
     Task<string> GetTextAsync(OCRLanguage language, Image image, string? inputName = null, Rect? region = null, PageSegMode? pageSegMode = null);
     Task<string> GetTextAsync(string language, Image image, string? inputName = null, Rect? region = null, PageSegMode? pageSegMode = null);
 
@@ -43,15 +45,43 @@ public interface IOCRService : IDisposable
 internal class OCRService : IOCRService
 {
     private readonly HttpClient _httpClient;
+    private bool _isInitialised;
 
     public Uri BaseTraindedDataUri { get; set; }
     public string DataPath { get; }
 
     public OCRService(HttpClient httpClient)
     {
-        DataPath = Path.GetTempPath();
-        BaseTraindedDataUri = new Uri("https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main");
+        DataPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "tessdata");
+        BaseTraindedDataUri = new Uri("https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/");
         _httpClient = httpClient;
+    }
+
+    //Ugly hack to be able to load Tesseract's native dlls
+    public void Init()
+    {
+        if (!_isInitialised)
+        {
+            lock (typeof(OCRService))
+            {
+                if (!_isInitialised)
+                {
+                    string currentDirectory = Environment.CurrentDirectory;
+                    try
+                    {
+                        //Change to the location of the Tesseract nuget package
+                        Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(typeof(TesseractEngine).Assembly.Location)))!;
+
+                        typeof(TesseractEngine).Assembly.GetType("Tesseract.Interop.TessApi")!.GetProperty("Native")!.GetValue(null);
+                        _isInitialised = true;
+                    }
+                    finally
+                    {
+                        Environment.CurrentDirectory = currentDirectory;
+                    }
+                }
+            }
+        }
     }
 
     public async Task<string> GetTextAsync(OCRLanguage language, Image image, string? inputName = null, Rect? region = null, PageSegMode? pageSegMode = null)
@@ -97,6 +127,7 @@ internal class OCRService : IOCRService
 
     public async Task<Page> ProcessAsync(string language, Image image, string? inputName = null, Rect? region = null, PageSegMode? pageSegMode = null)
     {
+        Init();
         using var img = PixConverter.ToPix((Bitmap)image);
         return await ProcessAsync(language, img);
     }
@@ -108,6 +139,7 @@ internal class OCRService : IOCRService
 
     public async Task<Page> ProcessAsync(string language, string path, string? inputName = null, Rect? region = null, PageSegMode? pageSegMode = null)
     {
+        Init();
         using var img = Pix.LoadFromFile(path);
         return await ProcessAsync(language, img);
     }
@@ -131,6 +163,7 @@ internal class OCRService : IOCRService
 
     public async Task<TesseractEngine> CreateEngineAsync(string language)
     {
+        Init();
         await LoadLanguageAsync(language);
         return new TesseractEngine(DataPath, language);
     }
@@ -145,6 +178,8 @@ internal class OCRService : IOCRService
         if (!IsLanguageLoaded(language))
         {
             string fileName = language + ".traineddata";
+
+            Directory.CreateDirectory(DataPath);
             string filePath = Path.Combine(DataPath, fileName);
 
             Uri uri = new Uri(BaseTraindedDataUri, fileName);
