@@ -60,7 +60,10 @@ internal class RazorKernel
             Document document = args.CSharpKernel.ForkDocumentForLanguageServices(args.GeneratedCode);
             SemanticModel semanticModel = (await document.GetSemanticModelAsync(context.CancellationToken))!;
             ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics = semanticModel.GetDiagnostics(cancellationToken: context.CancellationToken);
-            context.Publish(GetDiagnosticsProduced(command, diagnostics));
+            if (diagnostics.Length > 0)
+            {
+                context.Publish(GetDiagnosticsProduced(command, diagnostics));
+            }
         });
 
         DiagnosticsProduced GetDiagnosticsProduced(
@@ -116,8 +119,8 @@ internal class RazorKernel
             await HandleAsync(args.CSharpKernel, command, args.GeneratedCode, context);
 
             string variableName = options.Name ?? "__internal_razorResult";
-            await args.CSharpKernel.SetValueAsync("__razorEngine", _engine);
-            await args.CSharpKernel.SubmitCodeAsync($@"string {variableName} = await __razorEngine.RenderTemplateAsync(new GeneratedTemplate((Microsoft.DotNet.Interactive.CSharp.CSharpKernel)Microsoft.DotNet.Interactive.KernelExtensions.FindKernel(Microsoft.DotNet.Interactive.Kernel.Root, ""csharp"")), new System.Dynamic.ExpandoObject());");
+            await args.CSharpKernel.SetValueAsync("__razorEngine", _engine, declaredType: null);
+            await args.CSharpKernel.SubmitCodeAsync($@"string {variableName} = await __razorEngine.RenderTemplateAsync(new GeneratedTemplate((Microsoft.DotNet.Interactive.CSharp.CSharpKernel)Microsoft.DotNet.Interactive.KernelExtensions.FindKernelByName(Microsoft.DotNet.Interactive.Kernel.Root, ""csharp"")), new System.Dynamic.ExpandoObject());");
 
             if (!options.Suppress)
             {
@@ -125,9 +128,9 @@ internal class RazorKernel
 
                 object diplayRazorResult = options.MimeType == "text/html"
                     ? new HtmlString(razorResult)
-                    : razorResult;
+                : razorResult;
 
-                context.Publish(new ReturnValueProduced(razorResult, command, FormattedValue.FromObject(diplayRazorResult, options.MimeType)));
+                context.Publish(new ReturnValueProduced(razorResult, command, new[] { FormattedValue.CreateSingleFromObject(diplayRazorResult, options.MimeType) }));
             }
         });
 
@@ -226,7 +229,7 @@ internal class RazorKernel
                 {
                     if (kernel.ScriptState is not null && HasReturnValue())
                     {
-                        var formattedValues = FormattedValue.FromObject(kernel.ScriptState.ReturnValue);
+                        var formattedValues = FormattedValue.CreateManyFromObject(kernel.ScriptState.ReturnValue);
                         context.Publish(
                             new ReturnValueProduced(
                                 kernel.ScriptState.ReturnValue,
@@ -321,10 +324,6 @@ internal class RazorKernel
         try
         {
             IGeneratedRazorTemplate template = await sourceGenerator.GenerateCodeAsync(new TextSourceRazorProjectItem(ComputeKey(code), code));
-            if (failContextIfGenerationFails)
-            {
-                context.Publish(new DiagnosticsProduced(Array.Empty<InteractiveDiagnostic>(), command));
-            }
             return RazorGeneratedCodeCleaner.Clean(template.GeneratedCode, variables);
         }
         catch (TemplateGenerationException ex)
@@ -333,7 +332,10 @@ internal class RazorKernel
                 .Select(ConvertRazorDiagnostic)
                 .ToList();
 
-            context.Publish(new DiagnosticsProduced(diagnostics, command));
+            if (diagnostics.Count > 0)
+            {
+                context.Publish(new DiagnosticsProduced(diagnostics, command));
+            }
 
             if (failContextIfGenerationFails)
             {

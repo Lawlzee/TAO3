@@ -16,7 +16,7 @@ namespace TAO3.Internal.Commands.Macro;
 
 internal class MacroCommand : Command
 {
-    private MacroCommand(
+    public MacroCommand(
         IMacroService macroService,
         ProxyKernel javaScriptKernel,
         HtmlKernel htmlKernel)
@@ -127,7 +127,7 @@ internal class MacroCommand : Command
             };
 
             string json = JsonConvert.SerializeObject(body);
-            await javaScriptKernel.SendAsync(new SubmitJsCodeCommand($@"{cellId}_Print({json})"));
+            await javaScriptKernel.SendAsync(new SubmitCode($@"{cellId}_Print({json})", "javascript"));
 
             string[] FormatCommandFailedBody()
             {
@@ -141,24 +141,6 @@ internal class MacroCommand : Command
                 return body.Concat(Regex.Split(commandFailed!.Exception.ToString(), @"\r\n|\r|\n")).ToArray();
             }
         }
-    }
-
-    public static async Task<MacroCommand> CreateAsync(
-        IMacroService macroService,
-        ProxyKernel javaScriptKernel,
-        HtmlKernel htmlKernel)
-    {
-        await RegisterSendJavascriptCodeCommandAsync(javaScriptKernel);
-        return new MacroCommand(macroService, javaScriptKernel, htmlKernel);
-    }
-
-    private static async Task RegisterSendJavascriptCodeCommandAsync(ProxyKernel javaScriptKernel)
-    {
-        javaScriptKernel.RegisterCommandType<SubmitJsCodeCommand>();
-        await javaScriptKernel.SubmitCodeAsync(@"
-                interactive.registerCommandHandler({commandType: 'SubmitJsCodeCommand', handle: c => {
-                    eval(c.command.code);
-                }});");
     }
 
 

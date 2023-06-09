@@ -28,9 +28,9 @@ internal static class CommandFactory
 
         option.AddCompletions(context =>
         {
-            return cSharpKernel
-                .GetValueInfos()
+            return cSharpKernel.ScriptState.Variables
                 .Select(x => x.Name)
+                .Distinct()
                 .Where(x => context.WordToComplete?.Contains(x) ?? true);
         });
 

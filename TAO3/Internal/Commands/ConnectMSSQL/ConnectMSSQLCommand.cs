@@ -2,6 +2,7 @@
 using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.DotNet.Interactive.SqlServer;
+using Microsoft.DotNet.Interactive.Utility;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.IO;
@@ -82,17 +83,28 @@ internal class ConnectMSSQLCommand : Command
         });
     }
 
+    //Microsoft.DotNet.Interactive.SqlServer.Utils
+    private class DotnetToolInfo
+    {
+        public string PackageId { get; set; }
+        public string PackageVersion { get; set; }
+        public string CommandName { get; set; }
+
+    }
+
     private async Task<Kernel> CreateKernelAsync(
         string connectionString,
         string kernelName,
         KernelInvocationContext context,
         bool verbose)
     {
-        string pathToService = PathToService(FindResolvedPackageReference(Kernel.Root), "MicrosoftSqlToolsServiceLayer");
+        var sqlToolName = "MicrosoftSqlToolsServiceLayer";
+        await CheckAndInstallGlobalToolAsync(sqlToolName, "1.2.0", "Microsoft.SqlServer.SqlToolsServiceLayer.Tool");
+        var sqlToolPath = Path.Combine(Paths.DotnetToolsPath, sqlToolName);
 
         MsSqlKernelConnector connector = new MsSqlKernelConnector(createDbContext: false, connectionString)
         {
-            PathToService = pathToService
+            PathToService = sqlToolName
         };
 
         Kernel kernel = await connector.CreateKernelAsync(kernelName);
@@ -101,46 +113,69 @@ internal class ConnectMSSQLCommand : Command
 
         return kernel;
 
-        //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.FindResolvedPackageReference
-        ResolvedPackageReference FindResolvedPackageReference(Kernel rootKernel)
+        //Microsoft.DotNet.Interactive.SqlServer.Utils
+        async Task CheckAndInstallGlobalToolAsync(string toolName, string minimumVersion, string nugetPackage)
         {
-            var runtimePackageIdSuffix = "native.Microsoft.SqlToolsService";
-            var resolved = rootKernel.SubkernelsAndSelf()
-                .OfType<ISupportNuget>()
-                .SelectMany(k => k.ResolvedPackageReferences)
-                .FirstOrDefault(p => p.PackageName.EndsWith(runtimePackageIdSuffix, StringComparison.OrdinalIgnoreCase));
-            return resolved!;
-        }
-
-        //Microsoft.DotNet.Interactive.SqlServer.SqlToolsServiceDiscovery.PathToService
-        string PathToService(ResolvedPackageReference resolvedPackageReference, string serviceName)
-        {
-            var pathToService = "";
-            if (resolvedPackageReference is not null)
+            var installedGlobalTools = await GetGlobalToolListAsync();
+            var expectedVersion = Version.Parse(minimumVersion);
+            var installNeeded = true;
+            var updateNeeded = false;
+            foreach (var tool in installedGlobalTools)
             {
-                // Extract the platform 'osx-x64' from the package name 'runtime.osx-x64.native.microsoft.sqltoolsservice'
-                var packageNameSegments = resolvedPackageReference.PackageName.Split(".");
-                if (packageNameSegments.Length > 2)
+                if (string.Equals(tool.CommandName, toolName, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var platform = packageNameSegments[1];
-
-                    // Build the path to the MicrosoftSqlToolsServiceLayer executable by reaching into the resolve nuget package
-                    // assuming a convention for native binaries.
-                    pathToService = Path.Combine(
-                        resolvedPackageReference.PackageRoot,
-                        "runtimes",
-                        platform,
-                        "native",
-                        serviceName);
-
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    installNeeded = false;
+                    var installedVersion = Version.Parse(tool.PackageVersion);
+                    if (installedVersion < expectedVersion)
                     {
-                        pathToService += ".exe";
+                        updateNeeded = true;
                     }
+                    break;
                 }
             }
 
-            return pathToService;
+            var dotnet = new Microsoft.DotNet.Interactive.Utility.Dotnet();
+            if (updateNeeded)
+            {
+                var commandLineResult = await dotnet.Execute($"tool update --global \"{nugetPackage}\" --version \"{minimumVersion}\"");
+                commandLineResult.ThrowOnFailure();
+            }
+            else if (installNeeded)
+            {
+                var commandLineResult = await dotnet.Execute($"tool install --global \"{nugetPackage}\" --version \"{minimumVersion}\"");
+                commandLineResult.ThrowOnFailure();
+            }
+        }
+
+        //Microsoft.DotNet.Interactive.SqlServer.Utils
+        async Task<IEnumerable<DotnetToolInfo>> GetGlobalToolListAsync()
+        {
+            var dotnet = new Microsoft.DotNet.Interactive.Utility.Dotnet();
+            var result = await dotnet.Execute("tool list --global");
+            if (result.ExitCode != 0)
+            {
+                return new DotnetToolInfo[0];
+            }
+
+            // Output of dotnet tool list is:
+            // Package Id        Version      Commands
+            // -------------------------------------------
+            // dotnettry.p1      1.0.0        dotnettry.p1
+
+            string[] separator = new[] { " " };
+            return result.Output
+                .Skip(2)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s =>
+                {
+                    var parts = s.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+                    return new DotnetToolInfo()
+                    {
+                        PackageId = parts[0],
+                        PackageVersion = parts[1],
+                        CommandName = parts[2]
+                    };
+                });
         }
     }
 
@@ -195,12 +230,6 @@ public partial class {kernelName}Context
     private TAO3.Internal.Commands.ConnectMSSQL.SaveChangesInterceptor _interceptor;
     public List<string> SqlQueries => _interceptor.SqlQueries;
 
-    partial void CustomOnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {{
-        _interceptor = new TAO3.Internal.Commands.ConnectMSSQL.SaveChangesInterceptor();
-        optionsBuilder.AddInterceptors(_interceptor);
-    }}
-
     public List<string> GetSaveScript()
     {{
         using (IDbContextTransaction transaction = Database.BeginTransaction())
@@ -235,16 +264,17 @@ public partial class {kernelName}Context
 }}
 "";
 
-code += CleanFile(model.ContextFile.Code)
-    .Replace(
-        @""protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {{"",
-        @""
-        partial void CustomOnConfiguring(DbContextOptionsBuilder optionsBuilder);
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {{
-            CustomOnConfiguring(optionsBuilder);"");
+code += System.Text.RegularExpressions.Regex.Replace(
+    CleanFile(model.ContextFile.Code),
+    @""protected override void OnConfiguring\(DbContextOptionsBuilder optionsBuilder\)
+#warning .*
+        => (.*)"",
+    @""protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {{
+        $1
+        _interceptor = new TAO3.Internal.Commands.ConnectMSSQL.SaveChangesInterceptor();
+        optionsBuilder.AddInterceptors(_interceptor);
+    }}"");
 
 foreach (var file in model.AdditionalFiles.Select(f => f.Code))
 {{              
@@ -253,19 +283,13 @@ foreach (var file in model.AdditionalFiles.Select(f => f.Code))
 
 string CleanFile(string file)
 {{
-    return file
+    var namespaceToFind = ""namespace {kernelName};"";
+    var headerSize = file.LastIndexOf(namespaceToFind)  + namespaceToFind.Length;
+    var fileCode = file
         // remove namespaces, which don't compile in Roslyn scripting
-        .Replace(""namespace {kernelName}"", """")
+        .Substring(headerSize).Trim();
 
-        // remove the namespaces, which have been hoisted to the top of the code submission
-        .Replace(""using System;"", """")
-        .Replace(""using System.Collections.Generic;"", """")
-        .Replace(""using Microsoft.EntityFrameworkCore;"", """")
-        .Replace(""using Microsoft.EntityFrameworkCore.Metadata;"", """")
-
-        // trim out the wrapping braces
-        .Trim()
-        .Trim( new[] {{ '{{', '}}' }} );
+    return fileCode;
 }}
 ";
         await SubmitCodeAsync(submission1);

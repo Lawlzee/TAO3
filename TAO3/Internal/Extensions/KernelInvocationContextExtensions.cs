@@ -7,6 +7,6 @@ internal static class KernelInvocationContextExtensions
 {
     public static CSharpKernel GetCSharpKernel(this KernelInvocationContext context)
     {
-        return (CSharpKernel)context.HandlingKernel.FindKernel("csharp");
+        return (CSharpKernel)context.HandlingKernel.FindKernelByName("csharp");
     }
 }

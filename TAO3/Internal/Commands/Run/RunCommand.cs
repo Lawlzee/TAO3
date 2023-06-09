@@ -88,7 +88,7 @@ internal class RunCommand : Command
                 foreach (InteractiveDocumentElement cell in response.Document.Elements)
                 {
                     //todo: handle errors
-                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.Language));
+                    await Kernel.Current.ParentKernel.SendAsync(new SubmitCode(cell.Contents, cell.KernelName));
                 }
             }
             else if (extension.Equals(".csx", StringComparison.OrdinalIgnoreCase))

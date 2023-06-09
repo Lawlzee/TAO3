@@ -118,7 +118,6 @@ internal class TranslateKernel :
         ILanguageDictionary? dictionary = _translationService.GetDictionary(options.Source);
         if (dictionary == null)
         {
-            context.Publish(new DiagnosticsProduced(Array.Empty<Diagnostic>(), command));
             return Task.CompletedTask;
         }
 
@@ -133,7 +132,10 @@ internal class TranslateKernel :
                 message: $"Unknown word '{token.Text}'"))
             .ToList();
 
-        context.Publish(new DiagnosticsProduced(diagnostics, command));
+        if (diagnostics.Count > 0)
+        {
+            context.Publish(new DiagnosticsProduced(diagnostics, command));
+        }
         return Task.CompletedTask;
     }
 

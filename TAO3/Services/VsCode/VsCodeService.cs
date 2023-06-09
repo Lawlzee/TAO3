@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.DotNet.Interactive;
 using TAO3.Converters;
 using TAO3.Internal.Utils;
 
@@ -15,20 +16,16 @@ public interface IVsCodeService : IDisposable
     Task DiffAsync(string left, string right, string fileExtension = ".txt");
     Task DiffFilesAsync(string path1, string path2);
 
-    Task<string> AskAsync(string prompt = "", bool isPassword = false, CancellationToken cancellationToken = default);
-
     void ClearPassword();
 }
 
 internal class VsCodeService : IVsCodeService
 {
     private string? _userPassword;
-    //private readonly IInteractiveHost _interactiveHost;
     private readonly IConverterService _converterService;
 
-    public VsCodeService(/*IInteractiveHost interactiveHost, */IConverterService converterService)
+    public VsCodeService(IConverterService converterService)
     {  
-        //_interactiveHost = interactiveHost;
         _converterService = converterService;
     }
 
@@ -80,7 +77,7 @@ internal class VsCodeService : IVsCodeService
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             && _userPassword == null)
         {
-            _userPassword = await AskAsync($"Password for {Environment.UserName}", isPassword: true);
+            _userPassword = await Kernel.GetPasswordAsync($"Password for {Environment.UserName}", "Password");
         }
 
         using (Process process = new Process())
@@ -107,12 +104,6 @@ internal class VsCodeService : IVsCodeService
                 throw;
             }
         }
-    }
-
-    public Task<string> AskAsync(string prompt = "", bool isPassword = false, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-        //return _interactiveHost.GetInputAsync(prompt, isPassword, cancellationToken);
     }
 
     public void ClearPassword()

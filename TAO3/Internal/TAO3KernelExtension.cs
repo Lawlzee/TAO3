@@ -41,6 +41,7 @@ using TAO3.EventHandlers.Macro;
 using TAO3.Converters.Default;
 using Microsoft.DotNet.Interactive.Connection;
 using TAO3.Internal.Kernels.Variable;
+using TAO3.Internal.Formatters;
 
 namespace TAO3.Internal;
 
@@ -128,12 +129,8 @@ public class TAO3KernelExtension : IKernelExtension
             new XmlConverter(jsonConverter, xmlTypeProvider),
             new SqlConverter(sqlTypeProvider, new SqlDeserializer(), new SqlObjectSerializer()));
 
-        CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernel("csharp");
-        //IInteractiveHost interactiveHost = cSharpKernel.TryGetValue("InteractiveHost", out IInteractiveHost host)
-        //    ? host
-        //    : throw new Exception("Cannot find 'InteractiveHost' in the CSharpKernel");
+        CSharpKernel cSharpKernel = (CSharpKernel)compositeKernel.FindKernelByName("csharp");
 
-        
         IExcelService excel = new ExcelService(
             cSharpKernel,
             excelTypeProvider);
@@ -153,7 +150,7 @@ public class TAO3KernelExtension : IKernelExtension
             new SqlFormatter(),
             new XmlFormatter());
 
-        IVsCodeService vsCode = new VsCodeService(/*interactiveHost, */converterService);
+        IVsCodeService vsCode = new VsCodeService(converterService);
         IAvaloniaService avalonia = new AvaloniaService();
 
         IMacroService macroService = new MacroService(keyboard, compositeKernel);
@@ -185,8 +182,8 @@ public class TAO3KernelExtension : IKernelExtension
         compositeKernel.RegisterForDisposal(await ShowMacrosInAvalonia.CreateAsync(avalonia, macroService));
         compositeKernel.RegisterForDisposal(new SendToastNotificationOnMacroCompletion(macroService, toast));
 
-        HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernel("html");
-        ProxyKernel javascriptKernel = (ProxyKernel)compositeKernel.FindKernel("javascript");
+        HtmlKernel htmlKernel = (HtmlKernel)compositeKernel.FindKernelByName("html");
+        ProxyKernel javascriptKernel = (ProxyKernel)compositeKernel.FindKernelByName("javascript");
 
         ClipboardIO clipboardIO = new ClipboardIO(clipboard);
         DefaultConverter defaultConverter = new DefaultConverter(jsonConverter);
@@ -194,7 +191,7 @@ public class TAO3KernelExtension : IKernelExtension
         compositeKernel.AddDirective(new InputCommand(sourceService, converterService, cSharpKernel, clipboardIO, defaultConverter));
         compositeKernel.AddDirective(new OutputCommand(destinationService, converterService, cSharpKernel, clipboardIO, defaultConverter));
         
-        compositeKernel.AddDirective(await MacroCommand.CreateAsync(macroService, javascriptKernel, htmlKernel));
+        compositeKernel.AddDirective(new MacroCommand(macroService, javascriptKernel, htmlKernel));
         compositeKernel.AddDirective(new CellCommand(cellService));
         compositeKernel.AddDirective(new RunCommand(cellService));
         compositeKernel.AddDirective(new ConnectMSSQLCommand());
@@ -239,5 +236,7 @@ public class TAO3KernelExtension : IKernelExtension
         destinationService.Register(fileIO);
         destinationService.Register(httpIO);
         destinationService.Register(variableIO);
+
+        ImageFormatter.Register();
     }
 }

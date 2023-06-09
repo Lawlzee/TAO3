@@ -158,8 +158,7 @@ internal class OutputCommand : Command
         Argument<string?> variableArgument = new Argument<string?>("variable", description: "Name of the variable used as the output", getDefaultValue: () => null);
         variableArgument.AddCompletions(context =>
         {
-            return _cSharpKernel
-                .GetValueInfos()
+            return _cSharpKernel.ScriptState.Variables
                 .Select(x => x.Name)
                 .Where(x => context.WordToComplete?.Contains(x) ?? true);
         });

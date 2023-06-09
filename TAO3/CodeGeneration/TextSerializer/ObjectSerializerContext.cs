@@ -1,55 +1,68 @@
 ﻿namespace TAO3.TextSerializer;
 
-public record ObjectSerializerContext<TSettings>(
-    int IndentationLevel,
-    string IndentationString,
-    TSettings Settings,
-    StringBuilder StringBuilder,
-    ObjectSerializer<TSettings> Serializer)
+public class ObjectSerializerContext<TSettings> 
 {
+    private readonly int _indentationLevel;
+    private readonly string _indentationString;
+    private readonly StringBuilder _stringBuilder;
+    private readonly ObjectSerializer<TSettings> _serializer;
+
+    public TSettings Settings;
+
     private string? _identation;
-    public string Indentation => _identation ??= string.Concat(Enumerable.Repeat(IndentationString, IndentationLevel));
+    public string Indentation => _identation ??= string.Concat(Enumerable.Repeat(_indentationString, _indentationLevel));
+
+    public ObjectSerializerContext(int indentationLevel, string indentationString, TSettings settings, StringBuilder stringBuilder, ObjectSerializer<TSettings> serializer)
+    {
+        _indentationLevel = indentationLevel;
+        _indentationString = indentationString;
+        Settings = settings;
+        _stringBuilder = stringBuilder;
+        _serializer = serializer;
+    }
 
     public ObjectSerializerContext<TSettings> Indent()
     {
-        return this with
-        {
-            IndentationLevel = IndentationLevel + 1,
-        };
+        return new ObjectSerializerContext<TSettings>(
+            _indentationLevel + 1,
+            _indentationString,
+            Settings,
+            _stringBuilder,
+            _serializer);
     }
 
     public StringBuilder Append(string? text)
     {
-        return StringBuilder.Append(text);
+        return _stringBuilder.Append(text);
     }
 
     public StringBuilder Append(char c)
     {
-        return StringBuilder.Append(c);
+        return _stringBuilder.Append(c);
     }
 
     public StringBuilder Append(int c)
     {
-        return StringBuilder.Append(c);
+        return _stringBuilder.Append(c);
     }
 
     public StringBuilder AppendLine()
     {
-        return StringBuilder.AppendLine();
+        return _stringBuilder.AppendLine();
     }
 
     public StringBuilder AppendLine(string? text)
     {
-        return StringBuilder.AppendLine(text);
+        return _stringBuilder.AppendLine(text);
     }
 
     public StringBuilder AppendIndentation()
     {
-        return StringBuilder.Append(Indentation);
+        return _stringBuilder.Append(Indentation);
     }
 
     public void Serialize(object? obj)
     {
-        Serializer.Serialize(obj, this);
+        _serializer.Serialize(obj, this);
     }
 }

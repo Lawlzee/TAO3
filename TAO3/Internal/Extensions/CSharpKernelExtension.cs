@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.CSharp;
 using System.Reflection;
@@ -55,5 +56,12 @@ internal static class CSharpKernelExtension
         }
 
         return kernel.SubmitCodeAsync(code);
+    }
+
+    public static Task<bool> IsCompleteSubmissionAsync(this CSharpKernel kernel, string code)
+    {
+        CSharpParseOptions options = new(LanguageVersion.Latest, kind: SourceCodeKind.Script);
+        var syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options);
+        return Task.FromResult(SyntaxFactory.IsCompleteSubmission(syntaxTree));
     }
 }
