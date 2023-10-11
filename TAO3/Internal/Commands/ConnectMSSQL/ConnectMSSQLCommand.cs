@@ -6,6 +6,7 @@ using Microsoft.DotNet.Interactive.Utility;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using TAO3.Internal.Extensions;
 
@@ -102,12 +103,7 @@ internal class ConnectMSSQLCommand : Command
         await CheckAndInstallGlobalToolAsync(sqlToolName, "1.2.0", "Microsoft.SqlServer.SqlToolsServiceLayer.Tool");
         var sqlToolPath = Path.Combine(Paths.DotnetToolsPath, sqlToolName);
 
-        MsSqlKernelConnector connector = new MsSqlKernelConnector(createDbContext: false, connectionString)
-        {
-            PathToService = sqlToolName
-        };
-
-        Kernel kernel = await connector.CreateKernelAsync(kernelName);
+        Kernel kernel = await CreateKernelAsync(connectionString, sqlToolName, kernelName);
 
         await InitializeDbContextAsync(connectionString, kernelName, context, verbose);
 
@@ -177,6 +173,19 @@ internal class ConnectMSSQLCommand : Command
                     };
                 });
         }
+    }
+
+    private async Task<Kernel> CreateKernelAsync(string connectionString, string sqlToolName, string kernelName)
+    {
+        Type msSqlKernelConnectorType = typeof(ConnectMsSqlCommand).Assembly.GetType("Microsoft.DotNet.Interactive.SqlServer.MsSqlKernelConnector")!;
+        var constructor = msSqlKernelConnectorType.GetConstructors()[0];
+        var connector = constructor.Invoke(new object[] { false, connectionString });
+
+        msSqlKernelConnectorType.GetProperty("PathToService").SetValue(connector, sqlToolName);
+
+        var task = msSqlKernelConnectorType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).First(x => x.Name == "CreateKernelAsync").Invoke(connector, new[] { kernelName });
+
+        return await (Task<Kernel>)task;
     }
 
     private async Task InitializeDbContextAsync(
